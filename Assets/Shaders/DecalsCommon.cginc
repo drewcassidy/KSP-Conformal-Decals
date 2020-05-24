@@ -6,7 +6,7 @@ struct DecalSurfaceInput
     float4 uv_decal;
     #ifdef DECAL_BASE_NORMAL
         float2 uv_base;
-    #endif
+    #endif //DECAL_BASE_NORMAL
     float3 normal;
     float3 viewDir;
 };
@@ -17,7 +17,7 @@ struct appdata_decal
     float3 normal : NORMAL;
     #ifdef DECAL_BASE_NORMAL
         float4 texcoord : TEXCOORD0;
-    #endif
+    #endif //DECAL_BASE_NORMAL
 };
 
 struct v2f
@@ -27,13 +27,11 @@ struct v2f
     float4 uv_decal : TEXCOORD0;
     #ifdef DECAL_BASE_NORMAL
         float2 uv_base : TEXCOORD1;
-    #endif
+    #endif //DECAL_BASE_NORMAL
     float4 tSpace0 : TEXCOORD2;
     float4 tSpace1 : TEXCOORD3;
     float4 tSpace2 : TEXCOORD4;
-    #if UNITY_SHOULD_SAMPLE_SH
-        half3 sh : TEXCOORD5; // SH
-    #endif
+    fixed3 vlight : TEXCOORD5;
     UNITY_SHADOW_COORDS(6)
 };
 
@@ -57,7 +55,7 @@ v2f vert_forward_base(appdata_decal v)
     
     #ifdef DECAL_BASE_NORMAL
         o.uv_base = TRANSFORM_TEX(v.texcoord, _BumpMap);
-    #endif
+    #endif //DECAL_BASE_NORMAL
     
     float3 worldPos = mul(unity_ObjectToWorld, v.vertex).xyz;
     float3 worldNormal = UnityObjectToWorldNormal(v.normal);
@@ -69,17 +67,21 @@ v2f vert_forward_base(appdata_decal v)
     o.tSpace1 = float4(worldTangent.y, worldBinormal.y, worldNormal.y, worldPos.y);
     o.tSpace2 = float4(worldTangent.z, worldBinormal.z, worldNormal.z, worldPos.z);
     
-    #if UNITY_SHOULD_SAMPLE_SH && !UNITY_SAMPLE_FULL_SH_PER_PIXEL
-        o.sh = 0;
-        // Approximated illumination from non-important point lights
-        #ifdef VERTEXLIGHT_ON
-            o.sh += Shade4PointLights (
-            unity_4LightPosX0, unity_4LightPosY0, unity_4LightPosZ0,
-            unity_LightColor[0].rgb, unity_LightColor[1].rgb, unity_LightColor[2].rgb, unity_LightColor[3].rgb,
-            unity_4LightAtten0, worldPos, worldNormal);
-        #endif
-        o.sh = ShadeSHPerVertex (worldNormal, o.sh);
-    #endif
+    // SH/ambient light
+    #if UNITY_SHOULD_SAMPLE_SH
+        float3 shlight = ShadeSH9 (float4(worldNormal,1.0));
+        o.vlight = shlight;
+    #else
+        o.vlight = 0.0;
+    #endif // UNITY_SHOULD_SAMPLE_SH
+    
+    // vertex light
+    #ifdef VERTEXLIGHT_ON
+        o.vlight += Shade4PointLights (
+        unity_4LightPosX0, unity_4LightPosY0, unity_4LightPosZ0,
+        unity_LightColor[0].rgb, unity_LightColor[1].rgb, unity_LightColor[2].rgb, unity_LightColor[3].rgb,
+        unity_4LightAtten0, worldPos, worldNormal );
+    #endif // VERTEXLIGHT_ON
     
     UNITY_TRANSFER_LIGHTING(o, 0.0); // pass shadow and, possibly, light cookie coordinates to pixel shader
     
@@ -95,7 +97,6 @@ fixed4 frag_forward_base(v2f IN) : SV_Target
     UNITY_EXTRACT_TBN(IN);
     
     float3 worldPos = float3(IN.tSpace0.w, IN.tSpace1.w, IN.tSpace2.w);
-    
     float3 worldTan = float3(IN.tSpace0.x, IN.tSpace1.x, IN.tSpace2.x);
 
     #ifndef USING_DIRECTIONAL_LIGHT
@@ -134,34 +135,11 @@ fixed4 frag_forward_base(v2f IN) : SV_Target
     worldN = normalize(worldN);
     o.Normal = worldN;
     
-    // Setup lighting environment
-    UnityGI gi;
-    UNITY_INITIALIZE_OUTPUT(UnityGI, gi);
-    gi.indirect.diffuse = 0;
-    gi.indirect.specular = 0;
-    gi.light.color = _LightColor0.rgb;
-    gi.light.dir = lightDir;
-    
-    // Call GI (lightmaps/SH/reflections) lighting function
-    UnityGIInput giInput;
-    UNITY_INITIALIZE_OUTPUT(UnityGIInput, giInput);
-    giInput.light = gi.light;
-    giInput.worldPos = worldPos;
-    giInput.worldViewDir = worldViewDir;
-    giInput.atten = atten;
-    giInput.lightmapUV = 0.0;
-    #if UNITY_SHOULD_SAMPLE_SH && !UNITY_SAMPLE_FULL_SH_PER_PIXEL
-      giInput.ambient = IN.sh;
-    #else
-      giInput.ambient.rgb = 0.0;
-    #endif
-    
-    LightingBlinnPhong_GI(o, giInput, gi);
     
     //KSP lighting function
-    //c += LightingBlinnPhongSmooth(o, lightDir, viewDir, atten);
-    c += LightingBlinnPhong(o, worldViewDir, gi);
+    c += LightingBlinnPhongSmooth(o, lightDir, viewDir, atten);
     c.rgb += o.Emission;
+    c.rgb += o.Albedo * IN.vlight;
     return c;
 }
 

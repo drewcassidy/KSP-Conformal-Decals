@@ -1,4 +1,4 @@
-Shader "ConformalDecals/Feature/BumpedVert"
+Shader "ConformalDecals/Feature/Bumped"
 {
     Properties
     {
@@ -25,11 +25,12 @@ Shader "ConformalDecals/Feature/BumpedVert"
             #pragma vertex vert_forward_base
             #pragma fragment frag_forward_base
 
-            #pragma multi_compile_fwdbase nolightmap nodirlightmap nodynlightmap novertexlight
+            #pragma multi_compile_fwdbase nolightmap nodirlightmap nodynlightmap
             
             #include "UnityCG.cginc"
             #include "Lighting.cginc"
             #include "AutoLight.cginc"
+            #include "LightingKSP.cginc"
             #include "DecalsCommon.cginc"
 
             sampler2D _Decal;

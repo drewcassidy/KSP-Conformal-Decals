@@ -162,8 +162,6 @@ fixed4 frag_forward_base(v2f IN) : SV_Target
     //c += LightingBlinnPhongSmooth(o, lightDir, viewDir, atten);
     c += LightingBlinnPhong(o, worldViewDir, gi);
     c.rgb += o.Emission;
-    c.xyz = (worldTan * 0.5) + 0.5;
-    c.a = 1;
     return c;
 }
 

@@ -10,8 +10,10 @@ Shader "ConformalDecals/Feature/BumpedVert"
     }
     SubShader
     {
+        Tags { "Queue" = "Geometry+400" }
         ZWrite Off
         ZTest LEqual
+        Offset -1, -1
         
         Pass
         {
@@ -56,8 +58,6 @@ Shader "ConformalDecals/Feature/BumpedVert"
                 o.Alpha = 1;//color.a * _Opacity;
             }
 
-            #include "DecalsSurface.cginc"
-            
             ENDCG
         } 
         

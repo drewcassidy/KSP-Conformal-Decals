@@ -54,8 +54,8 @@ Shader "ConformalDecals/Feature/BumpedVert"
                 //clip(color.a - _Cutoff);
                 
                 o.Normal = normal;
-                o.Albedo = 1;//normal;//color.rgb;
-                o.Alpha = 1;//color.a * _Opacity;
+                o.Albedo = color.rgb;
+                o.Alpha = color.a * _Opacity;
             }
 
             ENDCG

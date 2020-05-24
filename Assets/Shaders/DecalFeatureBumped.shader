@@ -52,7 +52,7 @@ Shader "ConformalDecals/Feature/Bumped"
 
                 float4 color = tex2D(_Decal, projUV);
                 float3 normal = UnpackNormal(tex2D(_DecalBumpMap, projUV));
-                //clip(color.a - _Cutoff);
+                clip(color.a - _Cutoff);
                 
                 o.Normal = normal;
                 o.Albedo = color.rgb;
@@ -99,7 +99,7 @@ Shader "ConformalDecals/Feature/Bumped"
 
                 float4 color = tex2D(_Decal, projUV);
                 float3 normal = UnpackNormal(tex2D(_DecalBumpMap, projUV));
-                //clip(color.a - _Cutoff);
+                clip(color.a - _Cutoff);
                 
                 o.Normal = normal;
                 o.Albedo = color.rgb;

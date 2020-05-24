@@ -1,6 +1,17 @@
 #ifndef DECALS_COMMON_INCLUDED
 #define DECALS_COMMON_INCLUDED
 
+inline fixed3 OrientNormal(float3 normal, float4 tSpace0, float4 tSpace1, float4 tSpace2) {
+    float3 WorldNormal;
+    WorldNormal.x = dot(tSpace0.xyz, normal);
+    WorldNormal.y = dot(tSpace1.xyz, normal);
+    WorldNormal.z = dot(tSpace2.xyz, normal);
+    WorldNormal = normalize(WorldNormal);
+    return WorldNormal;
+} 
+
+#define DECAL_ORIENT_NORMAL(normal, IN)  OrientNormal(normal, IN.tSpace0, IN.tSpace1, IN.tSpace2) 
+
 struct DecalSurfaceInput
 {
     float4 uv_decal;
@@ -9,6 +20,11 @@ struct DecalSurfaceInput
     #endif //DECAL_BASE_NORMAL
     float3 normal;
     float3 viewDir;
+    float3 worldPosition;
+    
+    float4 tSpace0;
+    float4 tSpace1;
+    float4 tSpace2;
 };
 
 struct appdata_decal
@@ -140,6 +156,10 @@ fixed4 frag_forward(v2f IN) : SV_Target
     #endif
     i.normal = IN.normal;
     i.viewDir = viewDir;
+    i.worldPosition = worldPosition;
+    i.tSpace0 = IN.tSpace0;
+    i.tSpace1 = IN.tSpace1;
+    i.tSpace2 = IN.tSpace2;
     
     // initialize surface output
     o.Albedo = 0.0;
@@ -154,14 +174,6 @@ fixed4 frag_forward(v2f IN) : SV_Target
     
     // compute lighting & shadowing factor
     UNITY_LIGHT_ATTENUATION(atten, IN, worldPosition)
-    
-    // compute world normal
-    float3 WorldNormal;
-    WorldNormal.x = dot(_unity_tbn_0, o.Normal);
-    WorldNormal.y = dot(_unity_tbn_1, o.Normal);
-    WorldNormal.z = dot(_unity_tbn_2, o.Normal);
-    WorldNormal = normalize(WorldNormal);
-    o.Normal = WorldNormal;
     
     //KSP lighting function
     c += LightingBlinnPhongSmooth(o, lightDir, viewDir, atten);

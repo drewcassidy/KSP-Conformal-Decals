@@ -2,11 +2,18 @@ Shader "ConformalDecals/Feature/Bumped"
 {
     Properties
     {
+        [Header(Texture Maps)]
 		_Decal("Decal Texture", 2D) = "gray" {}
-		_DecalBumpMap("Decal Normal Map", 2D) = "bump" {}
+		_DecalBumpMap("Decal Bump Map", 2D) = "bump" {}
 		
 	    _Cutoff ("Alpha cutoff", Range(0,1)) = 0.5
 		_Opacity("_Opacity", Range(0,1) ) = 1
+		
+		[Header(Effects)]
+		[PerRendererData]_Opacity("_Opacity", Range(0,1) ) = 1
+			[PerRendererData]_RimFalloff("_RimFalloff", Range(0.01,5) ) = 0.1
+			[PerRendererData]_RimColor("_RimColor", Color) = (0,0,0,0)
+			[PerRendererData]_UnderwaterFogFactor ("Underwater Fog Factor", Range(0,1)) = 0
     }
     SubShader
     {
@@ -35,9 +42,11 @@ Shader "ConformalDecals/Feature/Bumped"
 
             sampler2D _Decal;
             sampler2D _DecalBumpMap;
-            
+  
             float _Cutoff;
             float _Opacity;
+            float _RimFalloff;
+            float4 _RimColor;
             
             void surf (DecalSurfaceInput IN, inout SurfaceOutput o)
             {
@@ -52,11 +61,16 @@ Shader "ConformalDecals/Feature/Bumped"
 
                 float4 color = tex2D(_Decal, projUV);
                 float3 normal = UnpackNormal(tex2D(_DecalBumpMap, projUV));
+                half rim = 1.0 - saturate(dot (normalize(IN.viewDir), normal));
+                float3 emission = (_RimColor.rgb * pow(rim, _RimFalloff)) * _RimColor.a;
+
+                // clip alpha
                 clip(color.a - _Cutoff);
                 
-                o.Normal = normal;
-                o.Albedo = color.rgb;
+                o.Albedo = UnderwaterFog(IN.worldPosition, color).rgb;
                 o.Alpha = color.a * _Opacity;
+                o.Emission = emission;
+                o.Normal = DECAL_ORIENT_NORMAL(normal, IN);
             }
 
             ENDCG
@@ -85,6 +99,8 @@ Shader "ConformalDecals/Feature/Bumped"
             
             float _Cutoff;
             float _Opacity;
+            float _RimFalloff;
+            float4 _RimColor;
             
             void surf (DecalSurfaceInput IN, inout SurfaceOutput o)
             {
@@ -99,11 +115,16 @@ Shader "ConformalDecals/Feature/Bumped"
 
                 float4 color = tex2D(_Decal, projUV);
                 float3 normal = UnpackNormal(tex2D(_DecalBumpMap, projUV));
+                half rim = 1.0 - saturate(dot (normalize(IN.viewDir), normal));
+                float3 emission = (_RimColor.rgb * pow(rim, _RimFalloff)) * _RimColor.a;
+
+                // clip alpha
                 clip(color.a - _Cutoff);
                 
-                o.Normal = normal;
-                o.Albedo = color.rgb;
+                o.Albedo = UnderwaterFog(IN.worldPosition, color).rgb;
                 o.Alpha = color.a * _Opacity;
+                o.Emission = emission;
+                o.Normal = DECAL_ORIENT_NORMAL(normal, IN);
             }
 
             ENDCG

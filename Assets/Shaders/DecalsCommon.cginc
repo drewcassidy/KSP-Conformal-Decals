@@ -148,7 +148,6 @@ fixed4 frag_forward(v2f IN) : SV_Target
     o.Alpha = 0.0;
     o.Gloss = 0.0;
     o.Normal = fixed3(0,0,1);
-    fixed3 normalWorldVertex = fixed3(0,0,1);
     
     // call surface function
     surf(i, o);

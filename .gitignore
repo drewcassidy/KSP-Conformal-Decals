@@ -1,6 +1,7 @@
 # Unity Project Directories
 Assets/*
-!Assets/Editor/
+!Assets/Plugins/
+Assets/Plugins/Editor/
 !Assets/Shaders/
 !Assets/Textures/
 KSP/
@@ -35,3 +36,5 @@ ExportedObj/
 # Misc Files
 .ds_store
 *.sublime*
+.idea
+obj

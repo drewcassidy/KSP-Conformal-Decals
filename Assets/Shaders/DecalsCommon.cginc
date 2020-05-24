@@ -41,9 +41,7 @@ struct v2f
     
     #ifdef UNITY_PASS_FORWARDADD
         UNITY_LIGHTING_COORDS(5,6)
-    #endif
-
-    
+    #endif //UNITY_PASS_FORWARDADD
 };
 
 // Projection matrix, normal, and tangent vectors
@@ -68,14 +66,24 @@ v2f vert_forward(appdata_decal v)
         o.uv_base = TRANSFORM_TEX(v.texcoord, _BumpMap);
     #endif //DECAL_BASE_NORMAL
     
-    float3 worldPos = mul(unity_ObjectToWorld, v.vertex).xyz;
+    float3 worldPosition = mul(unity_ObjectToWorld, v.vertex).xyz;
     float3 worldNormal = UnityObjectToWorldNormal(v.normal);
-    fixed3 worldTangent = UnityObjectToWorldDir(_DecalTangent);
-    fixed3 worldBinormal = cross(worldTangent, worldNormal);
-    worldTangent = cross(worldNormal, worldBinormal);
-    o.tSpace0 = float4(worldTangent.x, worldBinormal.x, worldNormal.x, worldPos.x);
-    o.tSpace1 = float4(worldTangent.y, worldBinormal.y, worldNormal.y, worldPos.y);
-    o.tSpace2 = float4(worldTangent.z, worldBinormal.z, worldNormal.z, worldPos.z);
+    
+    #ifdef DECAL_BASE_NORMAL
+        // use tangent of base geometry
+        fixed3 worldTangent = UnityObjectToWorldDir(v.tangent.xyz);
+        fixed tangentSign = v.tangent.w * unity_WorldTransformParams.w;
+        fixed3 worldBinormal = cross(worldNormal, worldTangent) * tangentSign;
+    #else
+        // use tangent of projector
+        fixed3 decalTangent = UnityObjectToWorldDir(_DecalTangent);
+        fixed3 worldBinormal = cross(decalTangent, worldNormal);
+        fixed3 worldTangent = cross(worldNormal, worldBinormal);
+    #endif //DECAL_BASE_NORMAL
+    
+    o.tSpace0 = float4(worldTangent.x, worldBinormal.x, worldNormal.x, worldPosition.x);
+    o.tSpace1 = float4(worldTangent.y, worldBinormal.y, worldNormal.y, worldPosition.y);
+    o.tSpace2 = float4(worldTangent.z, worldBinormal.z, worldNormal.z, worldPosition.z);
     
     // forward base pass specific lighting code
     #ifdef UNITY_PASS_FORWARDBASE
@@ -92,7 +100,7 @@ v2f vert_forward(appdata_decal v)
             o.vlight += Shade4PointLights (
             unity_4LightPosX0, unity_4LightPosY0, unity_4LightPosZ0,
             unity_LightColor[0].rgb, unity_LightColor[1].rgb, unity_LightColor[2].rgb, unity_LightColor[3].rgb,
-            unity_4LightAtten0, worldPos, worldNormal );
+            unity_4LightAtten0, worldPosition, worldNormal );
         #endif // VERTEXLIGHT_ON
     #endif // UNITY_PASS_FORWARDBASE
     
@@ -104,23 +112,27 @@ v2f vert_forward(appdata_decal v)
 
 fixed4 frag_forward(v2f IN) : SV_Target
 {
+    // declare data
     DecalSurfaceInput i;
     SurfaceOutput o;
     fixed4 c = 0;
     
+    // setup world-space TBN vectors
     UNITY_EXTRACT_TBN(IN);
     
-    float3 worldPos = float3(IN.tSpace0.w, IN.tSpace1.w, IN.tSpace2.w);
-    float3 worldTan = float3(IN.tSpace0.x, IN.tSpace1.x, IN.tSpace2.x);
+    float3 worldPosition = float3(IN.tSpace0.w, IN.tSpace1.w, IN.tSpace2.w);
+    float3 worldTangent = float3(IN.tSpace0.x, IN.tSpace1.x, IN.tSpace2.x);
     
+    // setup world-space light and view direction vectors
     #ifndef USING_DIRECTIONAL_LIGHT
-        fixed3 lightDir = normalize(UnityWorldSpaceLightDir(worldPos));
+        fixed3 lightDir = normalize(UnityWorldSpaceLightDir(worldPosition));
     #else
         fixed3 lightDir = _WorldSpaceLightPos0.xyz;
     #endif
-    float3 worldViewDir = normalize(UnityWorldSpaceViewDir(worldPos));
+    float3 worldViewDir = normalize(UnityWorldSpaceViewDir(worldPosition));
     float3 viewDir = _unity_tbn_0 * worldViewDir.x + _unity_tbn_1 * worldViewDir.y  + _unity_tbn_2 * worldViewDir.z;
     
+    // initialize surface input
     UNITY_INITIALIZE_OUTPUT(DecalSurfaceInput, i)
     i.uv_decal = IN.uv_decal;
     #ifdef DECAL_BASE_NORMAL
@@ -129,6 +141,7 @@ fixed4 frag_forward(v2f IN) : SV_Target
     i.normal = IN.normal;
     i.viewDir = viewDir;
     
+    // initialize surface output
     o.Albedo = 0.0;
     o.Emission = 0.0;
     o.Specular = 0.0;
@@ -141,22 +154,26 @@ fixed4 frag_forward(v2f IN) : SV_Target
     surf(i, o);
     
     // compute lighting & shadowing factor
-    UNITY_LIGHT_ATTENUATION(atten, IN, worldPos)
-    float3 worldN;
-    worldN.x = dot(_unity_tbn_0, o.Normal);
-    worldN.y = dot(_unity_tbn_1, o.Normal);
-    worldN.z = dot(_unity_tbn_2, o.Normal);
-    worldN = normalize(worldN);
-    o.Normal = worldN;
+    UNITY_LIGHT_ATTENUATION(atten, IN, worldPosition)
+    
+    // compute world normal
+    float3 WorldNormal;
+    WorldNormal.x = dot(_unity_tbn_0, o.Normal);
+    WorldNormal.y = dot(_unity_tbn_1, o.Normal);
+    WorldNormal.z = dot(_unity_tbn_2, o.Normal);
+    WorldNormal = normalize(WorldNormal);
+    o.Normal = WorldNormal;
     
     //KSP lighting function
     c += LightingBlinnPhongSmooth(o, lightDir, viewDir, atten);
     
+    // Forward base emission and ambient/vertex lighting
     #ifdef UNITY_PASS_FORWARDBASE
         c.rgb += o.Emission;
         c.rgb += o.Albedo * IN.vlight;
     #endif //UNITY_PASS_FORWARDBASE
     
+    // Forward add multiply by alpha
     #ifdef UNITY_PASS_FORWARDADD
         c.rgb *= c.a;
         c.a = 0.0;

@@ -42,6 +42,9 @@ Shader "ConformalDecals/Feature/Bumped"
 
             sampler2D _Decal;
             sampler2D _DecalBumpMap;
+            
+            float4 _Decal_ST;
+            float4 _DecalBumpMap_ST;
   
             float _Cutoff;
             float _Opacity;
@@ -50,27 +53,29 @@ Shader "ConformalDecals/Feature/Bumped"
             
             void surf (DecalSurfaceInput IN, inout SurfaceOutput o)
             {
-                fixed4 projUV = UNITY_PROJ_COORD(IN.uv_decal);
+                 fixed4 uv_projected = UNITY_PROJ_COORD(IN.uv_decal);
 
                 // since I cant easily affect the clamping mode in KSP, do it here
-                clip(projUV.xyz);
-                clip(1-projUV.xyz);
+                clip(uv_projected.xyz);
+                clip(1-uv_projected.xyz);
                 
                 // clip backsides
                 clip(dot(_DecalNormal, IN.normal));
-
-                float4 color = tex2D(_Decal, projUV);
-                float3 normal = UnpackNormal(tex2D(_DecalBumpMap, projUV));
-                half rim = 1.0 - saturate(dot (normalize(IN.viewDir), normal));
-                float3 emission = (_RimColor.rgb * pow(rim, _RimFalloff)) * _RimColor.a;
-
+                
+                float2 uv_decal = TRANSFORM_TEX(uv_projected, _Decal);
+                float4 color = tex2D(_Decal, uv_decal);
+                float3 normal = UnpackNormal(tex2D(_DecalBumpMap, uv_decal));
+ 
                 // clip alpha
                 clip(color.a - _Cutoff);
                 
+                half rim = 1.0 - saturate(dot (normalize(IN.viewDir), normal));
+                float3 emission = (_RimColor.rgb * pow(rim, _RimFalloff)) * _RimColor.a;
+
                 o.Albedo = UnderwaterFog(IN.worldPosition, color).rgb;
                 o.Alpha = color.a * _Opacity;
                 o.Emission = emission;
-                o.Normal = DECAL_ORIENT_NORMAL(normal, IN);
+                o.Normal = normal;
             }
 
             ENDCG
@@ -97,6 +102,9 @@ Shader "ConformalDecals/Feature/Bumped"
             sampler2D _Decal;
             sampler2D _DecalBumpMap;
             
+            float4 _Decal_ST;
+            float4 _DecalBumpMap_ST;
+            
             float _Cutoff;
             float _Opacity;
             float _RimFalloff;
@@ -104,27 +112,29 @@ Shader "ConformalDecals/Feature/Bumped"
             
             void surf (DecalSurfaceInput IN, inout SurfaceOutput o)
             {
-                fixed4 projUV = UNITY_PROJ_COORD(IN.uv_decal);
+                 fixed4 uv_projected = UNITY_PROJ_COORD(IN.uv_decal);
 
                 // since I cant easily affect the clamping mode in KSP, do it here
-                clip(projUV.xyz);
-                clip(1-projUV.xyz);
+                clip(uv_projected.xyz);
+                clip(1-uv_projected.xyz);
                 
                 // clip backsides
                 clip(dot(_DecalNormal, IN.normal));
-
-                float4 color = tex2D(_Decal, projUV);
-                float3 normal = UnpackNormal(tex2D(_DecalBumpMap, projUV));
-                half rim = 1.0 - saturate(dot (normalize(IN.viewDir), normal));
-                float3 emission = (_RimColor.rgb * pow(rim, _RimFalloff)) * _RimColor.a;
-
+                
+                float2 uv_decal = TRANSFORM_TEX(uv_projected, _Decal);
+                float4 color = tex2D(_Decal, uv_decal);
+                float3 normal = UnpackNormal(tex2D(_DecalBumpMap, uv_decal));
+ 
                 // clip alpha
                 clip(color.a - _Cutoff);
                 
+                half rim = 1.0 - saturate(dot (normalize(IN.viewDir), normal));
+                float3 emission = (_RimColor.rgb * pow(rim, _RimFalloff)) * _RimColor.a;
+
                 o.Albedo = UnderwaterFog(IN.worldPosition, color).rgb;
                 o.Alpha = color.a * _Opacity;
                 o.Emission = emission;
-                o.Normal = DECAL_ORIENT_NORMAL(normal, IN);
+                o.Normal = normal;
             }
 
             ENDCG

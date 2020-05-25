@@ -1,80 +1,169 @@
 Shader "ConformalDecals/Paint/Diffuse"
 {
-	Properties 
-	{
-		_Decal ("Cookie", 2D) = "gray" {}
-		_BumpMap("_BumpMap", 2D) = "bump" {}
+    Properties
+    {
+        [Header(Texture Maps)]
+		_Decal("Decal Texture", 2D) = "gray" {}
+		_BumpMap("Bump Map", 2D) = "bump" {}
 		
+		_EdgeWearStrength("Edge Wear Strength", Range(0,100)) = 0
+		_EdgeWearOffset("Edge Wear Offset", Range(0,1)) = 0
+	
 	    _Cutoff ("Alpha cutoff", Range(0,1)) = 0.5
 		_Opacity("_Opacity", Range(0,1) ) = 1
-		_NormalWear("_NormalWear", Range(0,100)) = 50
-	}
-	
-	SubShader 
-	{
-		Tags { "Queue" = "Geometry" }
-
-		ZWrite On
-		ZTest LEqual
-		Blend SrcAlpha OneMinusSrcAlpha  
-
-		CGPROGRAM
-
-		#pragma surface surf Lambert alpha vertex:vert
-		#pragma target 4.0
-
-		float4x4 _ProjectionMatrix;
-		float3 _DecalNormal;
-		float3 _DecalBiNormal;
 		
-		sampler2D _Decal;
-		sampler2D _DecalBumpMap;
-		sampler2D _BumpMap;
-		
-        float _Cutoff;
-		float _Opacity;
-		float _NormalWear;
+		[Header(Effects)]
+		[PerRendererData]_Opacity("_Opacity", Range(0,1) ) = 1
+			[PerRendererData]_RimFalloff("_RimFalloff", Range(0.01,5) ) = 0.1
+			[PerRendererData]_RimColor("_RimColor", Color) = (0,0,0,0)
+			[PerRendererData]_UnderwaterFogFactor ("Underwater Fog Factor", Range(0,1)) = 0
+    }
+    SubShader
+    {
+        Tags { "Queue" = "Geometry+400" }
+        ZWrite Off
+        ZTest LEqual
+        Offset -1, -1
+        
+        Pass
+        {
+            Name "FORWARD"
+       		Tags { "LightMode" = "ForwardBase" }
+     		Blend SrcAlpha OneMinusSrcAlpha
 
-		struct Input
-		{
-			float4 decal : TEXCOORD0;
-			float2 uv_BumpMap : TEXCOORD1;
-			float4 position : SV_POSITION;
-			float3 normal : NORMAL;
-		};
+            CGPROGRAM
+            #pragma vertex vert_forward
+            #pragma fragment frag_forward
 
-		void vert (inout appdata_full v, out Input o) {
-			o.decal = mul (_ProjectionMatrix, v.vertex);
-			o.uv_BumpMap = v.texcoord.xy;
-            o.position = UnityObjectToClipPos(v.vertex);
-            o.normal = v.normal;
-		}
+            #pragma multi_compile_fwdbase nolightmap nodirlightmap nodynlightmap
+            
+            sampler2D _Decal;
+            sampler2D _BumpMap;
+            
+            float4 _Decal_ST;
+            float4 _BumpMap_ST;
+            
+            float _EdgeWearStrength;
+            float _EdgeWearOffset;
+            
+            float _Cutoff;
+            float _Opacity;
+            float _RimFalloff;
+            float4 _RimColor;
+            
+            #define DECAL_BASE_NORMAL
+            
+            #include "UnityCG.cginc"
+            #include "Lighting.cginc"
+            #include "AutoLight.cginc"
+            #include "LightingKSP.cginc"
+            #include "DecalsCommon.cginc"
 
-		void surf (Input IN, inout SurfaceOutput o)
-		{
-			fixed4 projUV = UNITY_PROJ_COORD(IN.decal);
+            void surf (DecalSurfaceInput IN, inout SurfaceOutput o)
+            {
+                 fixed4 uv_projected = UNITY_PROJ_COORD(IN.uv_decal);
 
-			// since I cant easily affect the clamping mode in KSP, do it here
-			clip(projUV.xyz);
-			clip(1-projUV.xyz);
-			
-			// clip backsides
-			clip(dot(_DecalNormal, IN.normal));
+                // since I cant easily affect the clamping mode in KSP, do it here
+                clip(uv_projected.xyz);
+                clip(1-uv_projected.xyz);
+                
+                // clip backsides
+                clip(dot(_DecalNormal, IN.normal));
+                
+                float2 uv_decal = TRANSFORM_TEX(uv_projected, _Decal);
+                float4 color = tex2D(_Decal, uv_decal);
+                
+                // clip alpha
+                clip(color.a - _Cutoff);
 
-			float4 color = tex2D(_Decal, projUV);
-			float3 normal = UnpackNormal(tex2D(_BumpMap, IN.uv_BumpMap));
-			
-			color.a *= (1 - (_NormalWear * (1 - dot(normal, fixed3(0,0,1)))));
-			clip (color.a - _Cutoff);
-			
-			fixed2 normalGradient = fixed2(ddx(normal.z), ddy(normal.z));
+                float3 normal = UnpackNormal(tex2D(_BumpMap, IN.uv_base));
+                half rim = 1.0 - saturate(dot (normalize(IN.viewDir), normal));
+                float3 emission = (_RimColor.rgb * pow(rim, _RimFalloff)) * _RimColor.a;
+                
+                float wearFactor = 1 - normal.z;
+                float wearFactorAlpha = saturate(_EdgeWearStrength * wearFactor);
 
-			o.Albedo = color.rgb;
-			//o.Albedo = projUV;
-			o.Normal = normal;
-			o.Alpha = color.a * _Opacity;
-		}
+                color.a *= saturate(1 + _EdgeWearOffset - saturate(_EdgeWearStrength * wearFactor));
+                
+                o.Albedo = UnderwaterFog(IN.worldPosition, color).rgb;
+                o.Alpha = color.a * _Opacity;
+                o.Emission = emission;
+                o.Normal = normal;
+            }
 
-		ENDCG
-	}
-}
+            ENDCG
+        } 
+        
+        Pass
+        {
+            Name "FORWARD"
+       		Tags { "LightMode" = "ForwardAdd" }
+     		Blend One One
+
+            CGPROGRAM
+            #pragma vertex vert_forward
+            #pragma fragment frag_forward
+
+            #pragma multi_compile_fwdadd nolightmap nodirlightmap nodynlightmap
+            
+            sampler2D _Decal;
+            sampler2D _BumpMap;
+            
+            float4 _Decal_ST;
+            float4 _BumpMap_ST;
+            
+            float _EdgeWearStrength;
+            float _EdgeWearOffset;
+            
+            float _Cutoff;
+            float _Opacity;
+            float _RimFalloff;
+            float4 _RimColor;
+            
+            #define DECAL_BASE_NORMAL
+            
+            #include "UnityCG.cginc"
+            #include "Lighting.cginc"
+            #include "AutoLight.cginc"
+            #include "LightingKSP.cginc"
+            #include "DecalsCommon.cginc"
+            
+            void surf (DecalSurfaceInput IN, inout SurfaceOutput o)
+            {
+                fixed4 uv_projected = UNITY_PROJ_COORD(IN.uv_decal);
+
+                // since I cant easily affect the clamping mode in KSP, do it here
+                clip(uv_projected.xyz);
+                clip(1-uv_projected.xyz);
+                
+                // clip backsides
+                clip(dot(_DecalNormal, IN.normal));
+                
+                float2 uv_decal = TRANSFORM_TEX(uv_projected, _Decal);
+                float4 color = tex2D(_Decal, uv_decal);
+                
+                // clip alpha
+                clip(color.a - _Cutoff);
+
+                float3 normal = UnpackNormal(tex2D(_BumpMap, IN.uv_base));
+                half rim = 1.0 - saturate(dot (normalize(IN.viewDir), normal));
+                float3 emission = (_RimColor.rgb * pow(rim, _RimFalloff)) * _RimColor.a;
+                
+                float wearFactor = 1 - normal.z;
+                float wearFactorAlpha = saturate(_EdgeWearStrength * wearFactor);
+
+                color.a *= saturate(1 + _EdgeWearOffset - saturate(_EdgeWearStrength * wearFactor));
+                
+                o.Albedo = UnderwaterFog(IN.worldPosition, color).rgb;
+                o.Alpha = color.a * _Opacity;
+                o.Emission = emission;
+                o.Normal = normal;
+            }
+
+            ENDCG
+        } 
+        
+        // shadow casting support
+        UsePass "Legacy Shaders/VertexLit/SHADOWCASTER"
+    }
+}	

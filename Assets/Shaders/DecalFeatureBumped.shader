@@ -34,12 +34,6 @@ Shader "ConformalDecals/Feature/Bumped"
 
             #pragma multi_compile_fwdbase nolightmap nodirlightmap nodynlightmap
             
-            #include "UnityCG.cginc"
-            #include "Lighting.cginc"
-            #include "AutoLight.cginc"
-            #include "LightingKSP.cginc"
-            #include "DecalsCommon.cginc"
-
             sampler2D _Decal;
             sampler2D _DecalBumpMap;
             
@@ -49,22 +43,18 @@ Shader "ConformalDecals/Feature/Bumped"
             float _Cutoff;
             float _Opacity;
             float _RimFalloff;
-            float4 _RimColor;
+            float4 _RimColor; 
+            
+            #include "UnityCG.cginc"
+            #include "Lighting.cginc"
+            #include "AutoLight.cginc"
+            #include "LightingKSP.cginc"
+            #include "DecalsCommon.cginc"
             
             void surf (DecalSurfaceInput IN, inout SurfaceOutput o)
             {
-                 fixed4 uv_projected = UNITY_PROJ_COORD(IN.uv_decal);
-
-                // since I cant easily affect the clamping mode in KSP, do it here
-                clip(uv_projected.xyz);
-                clip(1-uv_projected.xyz);
-                
-                // clip backsides
-                clip(dot(_DecalNormal, IN.normal));
-                
-                float2 uv_decal = TRANSFORM_TEX(uv_projected, _Decal);
-                float4 color = tex2D(_Decal, uv_decal);
-                float3 normal = UnpackNormal(tex2D(_DecalBumpMap, uv_decal));
+                float4 color = tex2D(_Decal, IN.uv_decal);
+                float3 normal = UnpackNormal(tex2D(_DecalBumpMap, IN.uv_decal));
  
                 // clip alpha
                 clip(color.a - _Cutoff);
@@ -93,37 +83,27 @@ Shader "ConformalDecals/Feature/Bumped"
 
             #pragma multi_compile_fwdadd nolightmap nodirlightmap nodynlightmap
             
-            #include "UnityCG.cginc"
-            #include "Lighting.cginc"
-            #include "AutoLight.cginc"
-            #include "LightingKSP.cginc"
-            #include "DecalsCommon.cginc"
-
             sampler2D _Decal;
             sampler2D _DecalBumpMap;
             
             float4 _Decal_ST;
             float4 _DecalBumpMap_ST;
-            
+  
             float _Cutoff;
             float _Opacity;
             float _RimFalloff;
-            float4 _RimColor;
+            float4 _RimColor; 
+            
+            #include "UnityCG.cginc"
+            #include "Lighting.cginc"
+            #include "AutoLight.cginc"
+            #include "LightingKSP.cginc"
+            #include "DecalsCommon.cginc"
             
             void surf (DecalSurfaceInput IN, inout SurfaceOutput o)
             {
-                 fixed4 uv_projected = UNITY_PROJ_COORD(IN.uv_decal);
-
-                // since I cant easily affect the clamping mode in KSP, do it here
-                clip(uv_projected.xyz);
-                clip(1-uv_projected.xyz);
-                
-                // clip backsides
-                clip(dot(_DecalNormal, IN.normal));
-                
-                float2 uv_decal = TRANSFORM_TEX(uv_projected, _Decal);
-                float4 color = tex2D(_Decal, uv_decal);
-                float3 normal = UnpackNormal(tex2D(_DecalBumpMap, uv_decal));
+                float4 color = tex2D(_Decal, IN.uv_decal);
+                float3 normal = UnpackNormal(tex2D(_DecalBumpMap, IN.uv_decal));
  
                 // clip alpha
                 clip(color.a - _Cutoff);

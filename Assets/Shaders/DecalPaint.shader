@@ -61,22 +61,12 @@ Shader "ConformalDecals/Paint/Diffuse"
 
             void surf (DecalSurfaceInput IN, inout SurfaceOutput o)
             {
-                 fixed4 uv_projected = UNITY_PROJ_COORD(IN.uv_decal);
-
-                // since I cant easily affect the clamping mode in KSP, do it here
-                clip(uv_projected.xyz);
-                clip(1-uv_projected.xyz);
-                
-                // clip backsides
-                clip(dot(_DecalNormal, IN.normal));
-                
-                float2 uv_decal = TRANSFORM_TEX(uv_projected, _Decal);
-                float4 color = tex2D(_Decal, uv_decal);
+                float4 color = tex2D(_Decal, IN.uv_decal);
+                float3 normal = UnpackNormal(tex2D(_BumpMap, IN.uv_base));
                 
                 // clip alpha
                 clip(color.a - _Cutoff);
 
-                float3 normal = UnpackNormal(tex2D(_BumpMap, IN.uv_base));
                 half rim = 1.0 - saturate(dot (normalize(IN.viewDir), normal));
                 float3 emission = (_RimColor.rgb * pow(rim, _RimFalloff)) * _RimColor.a;
                 
@@ -130,22 +120,12 @@ Shader "ConformalDecals/Paint/Diffuse"
             
             void surf (DecalSurfaceInput IN, inout SurfaceOutput o)
             {
-                fixed4 uv_projected = UNITY_PROJ_COORD(IN.uv_decal);
-
-                // since I cant easily affect the clamping mode in KSP, do it here
-                clip(uv_projected.xyz);
-                clip(1-uv_projected.xyz);
-                
-                // clip backsides
-                clip(dot(_DecalNormal, IN.normal));
-                
-                float2 uv_decal = TRANSFORM_TEX(uv_projected, _Decal);
-                float4 color = tex2D(_Decal, uv_decal);
+                float4 color = tex2D(_Decal, IN.uv_decal);
+                float3 normal = UnpackNormal(tex2D(_BumpMap, IN.uv_base));
                 
                 // clip alpha
                 clip(color.a - _Cutoff);
 
-                float3 normal = UnpackNormal(tex2D(_BumpMap, IN.uv_base));
                 half rim = 1.0 - saturate(dot (normalize(IN.viewDir), normal));
                 float3 emission = (_RimColor.rgb * pow(rim, _RimFalloff)) * _RimColor.a;
                 

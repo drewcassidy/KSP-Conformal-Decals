@@ -3,7 +3,7 @@
 
 struct DecalSurfaceInput
 {
-    float4 uv_decal;
+    float2 uv_decal;
     #ifdef DECAL_BASE_NORMAL
         float2 uv_base;
     #endif //DECAL_BASE_NORMAL
@@ -134,9 +134,19 @@ fixed4 frag_forward(v2f IN) : SV_Target
     float3 worldViewDir = normalize(UnityWorldSpaceViewDir(worldPosition));
     float3 viewDir = _unity_tbn_0 * worldViewDir.x + _unity_tbn_1 * worldViewDir.y  + _unity_tbn_2 * worldViewDir.z;
     
+    // perform decal projection
+    fixed4 uv_projected = UNITY_PROJ_COORD(IN.uv_decal);
+
+    // clip texture outside of xyz bounds
+    clip(uv_projected.xyz);
+    clip(1-uv_projected.xyz);
+                
+    // clip backsides
+    clip(dot(_DecalNormal, IN.normal));
+                
     // initialize surface input
     UNITY_INITIALIZE_OUTPUT(DecalSurfaceInput, i)
-    i.uv_decal = IN.uv_decal;
+    i.uv_decal = TRANSFORM_TEX(uv_projected, _Decal);;
     #ifdef DECAL_BASE_NORMAL
         i.uv_base = IN.uv_base;
     #endif

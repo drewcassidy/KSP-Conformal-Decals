@@ -4,9 +4,23 @@
 struct DecalSurfaceInput
 {
     float2 uv_decal;
+    
+    #ifdef DECAL_NORMAL
+        float2 uv_bump;
+    #endif //DECAL_NORMAL
+    
+    #ifdef DECAL_SPECULAR
+        float2 uv_spec;
+    #endif //DECAL_SPECULAR
+    
+    #ifdef DECAL_EMISSIVE
+        float2 uv_glow;
+    #endif //DECAL_EMISSIVE
+    
     #ifdef DECAL_BASE_NORMAL
         float2 uv_base;
     #endif //DECAL_BASE_NORMAL
+    
     float3 normal;
     float3 viewDir;
     float3 worldPosition;
@@ -146,10 +160,24 @@ fixed4 frag_forward(v2f IN) : SV_Target
                 
     // initialize surface input
     UNITY_INITIALIZE_OUTPUT(DecalSurfaceInput, i)
-    i.uv_decal = TRANSFORM_TEX(uv_projected, _Decal);;
+    i.uv_decal = TRANSFORM_TEX(uv_projected, _Decal);
+    
+    #ifdef DECAL_NORMAL
+        i.uv_bump = TRANSFORM_TEX(uv_projected, _BumpMap);
+    #endif //DECAL_NORMAL
+        
+    #ifdef DECAL_SPECULAR
+        i.uv_spec = TRANSFORM_TEX(uv_projected, _SpecMap);
+    #endif //DECAL_SPECULAR
+    
+    #ifdef DECAL_EMISSIVE
+        i.uv_glow = TRANSFORM_TEX(uv_projected, _GlowMap);
+    #endif //DECAL_EMISSIVE
+
     #ifdef DECAL_BASE_NORMAL
         i.uv_base = IN.uv_base;
-    #endif
+    #endif //DECAL_BASE_NORMAL
+    
     i.normal = IN.normal;
     i.viewDir = viewDir;
     i.worldPosition = worldPosition;
@@ -178,12 +206,13 @@ fixed4 frag_forward(v2f IN) : SV_Target
 
     
     //KSP lighting function
-    c += LightingBlinnPhongSmooth(o, lightDir, viewDir, atten);
+    c += LightingBlinnPhongSmooth(o, lightDir, worldViewDir, atten);
     
     // Forward base emission and ambient/vertex lighting
     #ifdef UNITY_PASS_FORWARDBASE
         c.rgb += o.Emission;
         c.rgb += o.Albedo * IN.vlight;
+        c.a = saturate(c.a);
     #endif //UNITY_PASS_FORWARDBASE
     
     // Forward add multiply by alpha

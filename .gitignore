@@ -33,6 +33,12 @@ ExportedObj/
 *.opendb
 *.VC.db
 
+# Binaries and support files
+Source/ConformalDecals/dlls
+
+!Source/ConformalDecals.sln
+!Source/ConformalDecals/ConformalDecals.csproj
+
 # Misc Files
 .ds_store
 *.sublime*

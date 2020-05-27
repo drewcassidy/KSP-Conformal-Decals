@@ -3,24 +3,24 @@ using System.Collections.Generic;
 using UnityEngine;
 
 namespace ConformalDecals.MaterialModifiers {
-    public class MaterialModifierCollection {
+    public class MaterialPropertyCollection {
         public Shader ShaderRef { get; }
-        public TexturePropertyMaterialModifier MainTexture { get; }
+        public TextureMaterialProperty MainTextureMaterial { get; }
 
-        private List<MaterialModifier>                _materialModifiers;
-        private List<TexturePropertyMaterialModifier> _texturePropertyMaterialModifiers;
+        private List<MaterialProperty>                _materialModifiers;
+        private List<TextureMaterialProperty> _texturePropertyMaterialModifiers;
 
-        public MaterialModifierCollection(ConfigNode node) {
+        public MaterialPropertyCollection(ConfigNode node) {
             var shaderString = node.GetValue("shader");
 
             if (shaderString == null)
-                throw new FormatException($"Missing shader name in material");
+                throw new FormatException("Missing shader name in material");
 
             if (shaderString == string.Empty)
-                throw new FormatException($"Empty shader name in material");
+                throw new FormatException("Empty shader name in material");
 
-            _materialModifiers = new List<MaterialModifier>();
-            _texturePropertyMaterialModifiers = new List<TexturePropertyMaterialModifier>();
+            _materialModifiers = new List<MaterialProperty>();
+            _texturePropertyMaterialModifiers = new List<TextureMaterialProperty>();
 
             //TODO: USE SHABBY PROVIDED METHOD HERE INSTEAD
             ShaderRef = Shader.Find(shaderString);
@@ -29,27 +29,27 @@ namespace ConformalDecals.MaterialModifiers {
 
             foreach (ConfigNode propertyNode in node.nodes) {
                 try {
-                    MaterialModifier modifier;
+                    MaterialProperty property;
                     switch (propertyNode.name) {
                         case "FLOAT":
-                            modifier = new FloatPropertyMaterialModifier(propertyNode);
+                            property = new FloatMaterialProperty(propertyNode);
                             break;
 
                         case "COLOR":
-                            modifier = new ColorPropertyMaterialModifier(propertyNode);
+                            property = new ColorMaterialProperty(propertyNode);
                             break;
 
                         case "TEXTURE":
-                            modifier = new TexturePropertyMaterialModifier(propertyNode);
-                            var textureModifier = modifier as TexturePropertyMaterialModifier;
+                            property = new TextureMaterialProperty(propertyNode);
+                            var textureModifier = (TextureMaterialProperty) property;
                             if (textureModifier.IsMain) {
-                                if (MainTexture != null) {
-                                    MainTexture = textureModifier;
+                                if (MainTextureMaterial == null) {
+                                    MainTextureMaterial = textureModifier;
                                 }
                                 else {
                                     Debug.LogWarning(
                                         $"Material texture property {textureModifier.TextureUrl} is marked as main, but material already has a main texture! \n" +
-                                        $"Defaulting to {MainTexture.TextureUrl}");
+                                        $"Defaulting to {MainTextureMaterial.TextureUrl}");
                                 }
                             }
 
@@ -58,10 +58,9 @@ namespace ConformalDecals.MaterialModifiers {
 
                         default:
                             throw new FormatException($"Invalid property type '{propertyNode.name}' in material");
-                            break;
                     }
 
-                    _materialModifiers.Add(modifier);
+                    _materialModifiers.Add(property);
                 }
 
                 catch (Exception e) {

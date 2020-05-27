@@ -2,10 +2,10 @@ using System;
 using UnityEngine;
 
 namespace ConformalDecals.MaterialModifiers {
-    public class FloatPropertyMaterialModifier : MaterialModifier {
+    public class FloatMaterialProperty : MaterialProperty {
         private readonly float _value;
 
-        public FloatPropertyMaterialModifier(ConfigNode node) : base(node) {
+        public FloatMaterialProperty(ConfigNode node) : base(node) {
             _value = ParsePropertyFloat(node, "value", false);
         }
 

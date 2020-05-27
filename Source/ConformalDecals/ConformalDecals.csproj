@@ -44,11 +44,11 @@
         </Reference>
     </ItemGroup>
     <ItemGroup>
-        <Compile Include="MaterialModifiers\ColorPropertyMaterialModifier.cs" />
-        <Compile Include="MaterialModifiers\FloatPropertyMaterialModifier.cs" />
-        <Compile Include="MaterialModifiers\MaterialModifier.cs" />
-        <Compile Include="MaterialModifiers\MaterialModifierCollection.cs" />
-        <Compile Include="MaterialModifiers\TexturePropertyMaterialModifier.cs" />
+        <Compile Include="MaterialModifiers\ColorMaterialProperty.cs" />
+        <Compile Include="MaterialModifiers\FloatMaterialProperty.cs" />
+        <Compile Include="MaterialModifiers\MaterialProperty.cs" />
+        <Compile Include="MaterialModifiers\MaterialPropertyCollection.cs" />
+        <Compile Include="MaterialModifiers\TextureMaterialProperty.cs" />
         <Compile Include="ModuleConformalDecal.cs" />
         <Compile Include="Logging.cs" />
         <Compile Include="Properties\AssemblyInfo.cs" />

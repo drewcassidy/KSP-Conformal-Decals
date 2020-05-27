@@ -25,30 +25,30 @@ namespace ConformalDecals.MaterialModifiers {
         private delegate bool TryParseDelegate<T>(string valueString, out T value);
 
         protected bool ParsePropertyBool(ConfigNode node, string valueName, bool isOptional = false, bool defaultValue = false) {
-            return ParseProperty<bool>(node, valueName, bool.TryParse, isOptional, defaultValue);
+            return ParsePropertyValue<bool>(node, valueName, bool.TryParse, isOptional, defaultValue);
         }
 
         protected float ParsePropertyFloat(ConfigNode node, string valueName, bool isOptional = false, float defaultValue = 0.0f) {
-            return ParseProperty<float>(node, valueName, float.TryParse, isOptional, defaultValue);
+            return ParsePropertyValue<float>(node, valueName, float.TryParse, isOptional, defaultValue);
         }
 
         protected int ParsePropertyInt(ConfigNode node, string valueName, bool isOptional = false, int defaultValue = 0) {
-            return ParseProperty<int>(node, valueName, int.TryParse, isOptional, defaultValue);
+            return ParsePropertyValue<int>(node, valueName, int.TryParse, isOptional, defaultValue);
         }
 
         protected Color ParsePropertyColor(ConfigNode node, string valueName, bool isOptional = false, Color defaultValue = default(Color)) {
-            return ParseProperty<Color>(node, valueName, ParseExtensions.TryParseColor, isOptional, defaultValue);
+            return ParsePropertyValue<Color>(node, valueName, ParseExtensions.TryParseColor, isOptional, defaultValue);
         }
 
         protected Rect ParsePropertyRect(ConfigNode node, string valueName, bool isOptional = false, Rect defaultValue = default(Rect)) {
-            return ParseProperty<Rect>(node, valueName, ParseExtensions.TryParseRect, isOptional, defaultValue);
+            return ParsePropertyValue<Rect>(node, valueName, ParseExtensions.TryParseRect, isOptional, defaultValue);
         }
         
         protected Vector2 ParsePropertyVector2(ConfigNode node, string valueName, bool isOptional = false, Vector2 defaultValue = default(Vector2)) {
-            return ParseProperty<Vector2>(node, valueName, ParseExtensions.TryParseVector2, isOptional, defaultValue);
+            return ParsePropertyValue<Vector2>(node, valueName, ParseExtensions.TryParseVector2, isOptional, defaultValue);
         }
 
-        private T ParseProperty<T>(ConfigNode node, string valueName, TryParseDelegate<T> tryParse, bool isOptional = false, T defaultValue = default(T)) {
+        private T ParsePropertyValue<T>(ConfigNode node, string valueName, TryParseDelegate<T> tryParse, bool isOptional = false, T defaultValue = default(T)) {
             string valueString = node.GetValue(valueName);
 
             if (isOptional) {

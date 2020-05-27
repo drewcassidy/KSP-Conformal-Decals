@@ -12,7 +12,7 @@ namespace ConformalDecals.MaterialModifiers {
         private List<MaterialProperty>        _materialModifiers;
         private List<TextureMaterialProperty> _texturePropertyMaterialModifiers;
 
-        public MaterialPropertyCollection(ConfigNode node) {
+        public MaterialPropertyCollection(ConfigNode node, PartModule module) {
             _materialModifiers = new List<MaterialProperty>();
             _texturePropertyMaterialModifiers = new List<TextureMaterialProperty>();
 
@@ -64,7 +64,9 @@ namespace ConformalDecals.MaterialModifiers {
                                     MainTextureMaterial = textureModifier;
                                 }
                                 else {
-                                    Debug.LogWarning(
+                                    // multiple textures have been marked as main!
+                                    // non-fatal issue, ignore this one and keep using current main texture
+                                    module.LogWarning(
                                         $"Material texture property {textureModifier.TextureUrl} is marked as main, but material already has a main texture! \n" +
                                         $"Defaulting to {MainTextureMaterial.TextureUrl}");
                                 }
@@ -81,7 +83,9 @@ namespace ConformalDecals.MaterialModifiers {
                 }
 
                 catch (Exception e) {
-                    Debug.LogError(e.Message);
+                    // Catch exception from parsing current material property
+                    // And print it to the log as an Error
+                    module.LogError(e.Message);
                 }
             }
         }

@@ -10,7 +10,8 @@
         <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
         <FileAlignment>512</FileAlignment>
         <Deterministic>true</Deterministic>
-        <LangVersion>7</LangVersion>
+        <LangVersion>7.3</LangVersion>
+        <RootNamespace>ConformalDecals</RootNamespace>
     </PropertyGroup>
     <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
         <DebugSymbols>true</DebugSymbols>
@@ -43,6 +44,12 @@
         </Reference>
     </ItemGroup>
     <ItemGroup>
+        <Compile Include="MaterialModifiers\ColorPropertyMaterialModifier.cs" />
+        <Compile Include="MaterialModifiers\FloatPropertyMaterialModifier.cs" />
+        <Compile Include="MaterialModifiers\MaterialModifier.cs" />
+        <Compile Include="MaterialModifiers\TexturePropertyMaterialModifier.cs" />
+        <Compile Include="ModuleConformalDecal.cs" />
+        <Compile Include="Logging.cs" />
         <Compile Include="Properties\AssemblyInfo.cs" />
     </ItemGroup>
     <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

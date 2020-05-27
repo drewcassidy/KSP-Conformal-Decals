@@ -2,13 +2,13 @@ using System;
 using UnityEngine;
 
 namespace ConformalDecals.MaterialModifiers {
-    public abstract class MaterialModifier {
+    public abstract class MaterialProperty {
         public string PropertyName { get; }
 
         protected readonly int _propertyID;
 
 
-        protected MaterialModifier(ConfigNode node) {
+        protected MaterialProperty(ConfigNode node) {
             PropertyName = node.GetValue("name");
 
             if (PropertyName == null)

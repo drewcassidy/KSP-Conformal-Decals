@@ -2,7 +2,7 @@ using System;
 using UnityEngine;
 
 namespace ConformalDecals.MaterialModifiers {
-    public class TexturePropertyMaterialModifier : MaterialModifier {
+    public class TextureMaterialProperty : MaterialProperty {
         public string TextureUrl { get; }
         public Texture2D TextureRef { get; }
 
@@ -15,7 +15,7 @@ namespace ConformalDecals.MaterialModifiers {
 
         public Rect TileRect { get; }
 
-        public TexturePropertyMaterialModifier(ConfigNode node) : base(node) {
+        public TextureMaterialProperty(ConfigNode node) : base(node) {
             TextureUrl = node.GetValue("textureURL");
 
             var textureInfo = GameDatabase.Instance.GetTextureInfo(TextureUrl);

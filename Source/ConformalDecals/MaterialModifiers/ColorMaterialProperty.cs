@@ -2,10 +2,10 @@ using System;
 using UnityEngine;
 
 namespace ConformalDecals.MaterialModifiers {
-    public class ColorPropertyMaterialModifier : MaterialModifier {
+    public class ColorMaterialProperty : MaterialProperty {
         private readonly Color _color;
 
-        public ColorPropertyMaterialModifier(ConfigNode node) : base(node) {
+        public ColorMaterialProperty(ConfigNode node) : base(node) {
             _color = ParsePropertyColor(node, "color", false);
         }
 

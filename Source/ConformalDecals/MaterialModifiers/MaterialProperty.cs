@@ -43,7 +43,7 @@ namespace ConformalDecals.MaterialModifiers {
         protected Rect ParsePropertyRect(ConfigNode node, string valueName, bool isOptional = false, Rect defaultValue = default) {
             return ParsePropertyValue(node, valueName, ParseExtensions.TryParseRect, isOptional, defaultValue);
         }
-        
+
         protected Vector2 ParsePropertyVector2(ConfigNode node, string valueName, bool isOptional = false, Vector2 defaultValue = default) {
             return ParsePropertyValue(node, valueName, ParseExtensions.TryParseVector2, isOptional, defaultValue);
         }
@@ -56,10 +56,10 @@ namespace ConformalDecals.MaterialModifiers {
             }
             else {
                 if (valueString == null)
-                    throw new FormatException($"Missing {typeof(T)} value {valueName} in property '{PropertyName}'");
+                    throw new FormatException($"Missing {typeof(T)} value for {valueName} in property '{PropertyName}'");
 
                 if (valueString == string.Empty)
-                    throw new FormatException($"Empty {typeof(T)} value {valueName} in property '{PropertyName}'");
+                    throw new FormatException($"Empty {typeof(T)} value for {valueName} in property '{PropertyName}'");
             }
 
             if (tryParse(valueString, out var value)) {
@@ -71,7 +71,7 @@ namespace ConformalDecals.MaterialModifiers {
             }
 
             else {
-                throw new FormatException($"Improperly formatted {typeof(T)} value {valueName} in property '{PropertyName}'");
+                throw new FormatException($"Improperly formatted {typeof(T)} value for {valueName} in property '{PropertyName}' : '{valueString}");
             }
         }
     }

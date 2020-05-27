@@ -7,10 +7,15 @@ namespace ConformalDecals.MaterialModifiers {
         public Shader ShaderRef { get; }
         public TextureMaterialProperty MainTextureMaterial { get; }
 
-        private List<MaterialProperty>                _materialModifiers;
+        public bool UseBaseNormal { get; }
+
+        private List<MaterialProperty>        _materialModifiers;
         private List<TextureMaterialProperty> _texturePropertyMaterialModifiers;
 
         public MaterialPropertyCollection(ConfigNode node) {
+            _materialModifiers = new List<MaterialProperty>();
+            _texturePropertyMaterialModifiers = new List<TextureMaterialProperty>();
+
             var shaderString = node.GetValue("shader");
 
             if (shaderString == null)
@@ -19,13 +24,25 @@ namespace ConformalDecals.MaterialModifiers {
             if (shaderString == string.Empty)
                 throw new FormatException("Empty shader name in material");
 
-            _materialModifiers = new List<MaterialProperty>();
-            _texturePropertyMaterialModifiers = new List<TextureMaterialProperty>();
 
             //TODO: USE SHABBY PROVIDED METHOD HERE INSTEAD
             ShaderRef = Shader.Find(shaderString);
 
             if (ShaderRef == null) throw new FormatException($"Shader not found: {shaderString}");
+
+            var useBaseNormalString = node.GetValue("useBaseNormal");
+
+            if (useBaseNormalString != null) {
+                if (bool.TryParse(useBaseNormalString, out var useBaseNormalRef)) {
+                    UseBaseNormal = useBaseNormalRef;
+                }
+                else {
+                    throw new FormatException($"Improperly formatted bool value for 'useBaseNormal' : {useBaseNormalString}");
+                }
+            }
+            else {
+                UseBaseNormal = false;
+            }
 
             foreach (ConfigNode propertyNode in node.nodes) {
                 try {

@@ -47,6 +47,7 @@
         <Compile Include="MaterialModifiers\ColorPropertyMaterialModifier.cs" />
         <Compile Include="MaterialModifiers\FloatPropertyMaterialModifier.cs" />
         <Compile Include="MaterialModifiers\MaterialModifier.cs" />
+        <Compile Include="MaterialModifiers\MaterialModifierCollection.cs" />
         <Compile Include="MaterialModifiers\TexturePropertyMaterialModifier.cs" />
         <Compile Include="ModuleConformalDecal.cs" />
         <Compile Include="Logging.cs" />

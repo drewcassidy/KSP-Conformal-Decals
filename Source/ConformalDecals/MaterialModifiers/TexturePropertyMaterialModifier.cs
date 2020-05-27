@@ -3,8 +3,8 @@ using UnityEngine;
 
 namespace ConformalDecals.MaterialModifiers {
     public class TexturePropertyMaterialModifier : MaterialModifier {
-        private readonly string    _textureURL;
-        private readonly Texture2D _texture;
+        public string TextureUrl { get; }
+        public Texture2D TextureRef { get; }
 
         private Vector2 _textureOffset;
         private Vector2 _textureScale;
@@ -16,32 +16,32 @@ namespace ConformalDecals.MaterialModifiers {
         public Rect TileRect { get; }
 
         public TexturePropertyMaterialModifier(ConfigNode node) : base(node) {
-            _textureURL = node.GetValue("textureURL");
+            TextureUrl = node.GetValue("textureURL");
 
-            var textureInfo = GameDatabase.Instance.GetTextureInfo(_textureURL);
+            var textureInfo = GameDatabase.Instance.GetTextureInfo(TextureUrl);
 
             if (textureInfo == null)
-                throw new Exception($"Cannot find texture: '{_textureURL}'");
+                throw new Exception($"Cannot find texture: '{TextureUrl}'");
 
-            _texture = IsNormal ? textureInfo.normalMap : textureInfo.texture;
+            TextureRef = IsNormal ? textureInfo.normalMap : textureInfo.texture;
 
-            if (_texture == null)
-                throw new Exception($"Cannot get texture from texture info '{_textureURL}' isNormalMap = {IsNormal}");
+            if (TextureRef == null)
+                throw new Exception($"Cannot get texture from texture info '{TextureUrl}' isNormalMap = {IsNormal}");
 
             IsNormal = ParsePropertyBool(node, "isNormalMap", true, false);
             IsMain = ParsePropertyBool(node, "isMain", true, false);
             AutoScale = ParsePropertyBool(node, "autoScale", true, false);
-            TileRect = ParsePropertyRect(node, "tileRect", true, new Rect(0, 0, _texture.width, _texture.height));
+            TileRect = ParsePropertyRect(node, "tileRect", true, new Rect(0, 0, TextureRef.width, TextureRef.height));
 
-            _textureScale.x = TileRect.width / _texture.width;
-            _textureScale.y = TileRect.height / _texture.height;
+            _textureScale.x = TileRect.width / TextureRef.width;
+            _textureScale.y = TileRect.height / TextureRef.height;
 
-            _textureOffset.x = TileRect.x / _texture.width;
-            _textureOffset.y = TileRect.y / _texture.height;
+            _textureOffset.x = TileRect.x / TextureRef.width;
+            _textureOffset.y = TileRect.y / TextureRef.height;
         }
 
         public override void Modify(Material material) {
-            material.SetTexture(_propertyID, _texture);
+            material.SetTexture(_propertyID, TextureRef);
             material.SetTextureOffset(_propertyID, _textureOffset);
             material.SetTextureScale(_propertyID, _textureScale);
         }

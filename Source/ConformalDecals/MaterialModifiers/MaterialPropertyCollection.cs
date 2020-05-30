@@ -98,7 +98,7 @@ namespace ConformalDecals.MaterialModifiers {
                 catch (Exception e) {
                     // Catch exception from parsing current material property
                     // And print it to the log as an Error
-                    module.LogError(e.Message);
+                    module.LogException("Exception while parsing material node", e);
                 }
             }
         }

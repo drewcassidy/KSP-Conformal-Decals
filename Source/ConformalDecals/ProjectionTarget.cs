@@ -15,9 +15,9 @@ namespace ConformalDecals {
         // Target object data
         public readonly Transform Target;
 
-        private readonly Renderer       _targetRenderer;
-        private readonly Mesh           _targetMesh;
-        private Boolean _projectionEnabled;
+        private readonly Renderer _targetRenderer;
+        private readonly Mesh     _targetMesh;
+        private          bool     _projectionEnabled;
 
         // property block
         public readonly MaterialPropertyBlock DecalMPB;
@@ -65,19 +65,11 @@ namespace ConformalDecals {
 
         public bool Render(Material decalMaterial) {
             if (_projectionEnabled) {
-                if (HighLogic.LoadedSceneIsEditor) {
-                    var camera = EditorLogic.fetch.editorCamera;
+                foreach (var camera in Camera.allCameras) {
                     Graphics.DrawMesh(_targetMesh, Target.worldToLocalMatrix, decalMaterial, 0, camera, 0, DecalMPB, ShadowCastingMode.Off, true);
-                    return true;
                 }
 
-                if (HighLogic.LoadedSceneIsFlight) {
-                    foreach (var camera in FlightCamera.fetch.cameras)
-                    {
-                        Graphics.DrawMesh(_targetMesh, Target.worldToLocalMatrix, decalMaterial, 0, camera, 0, DecalMPB, ShadowCastingMode.Off, true);
-                    }
-                    return true;
-                }
+                return true;
             }
 
             return false;

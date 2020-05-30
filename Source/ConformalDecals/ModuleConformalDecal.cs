@@ -35,10 +35,12 @@ namespace ConformalDecals {
         public override void OnLoad(ConfigNode node) {
             if (HighLogic.LoadedSceneIsGame) {
                 try {
+                    // parse MATERIAL node
                     var materialNode = node.GetNode("MATERIAL") ?? throw new FormatException("Missing MATERIAL node in module");
                     _materialProperties = new MaterialPropertyCollection(materialNode, this);
                     _material = _materialProperties.ParsedMaterial;
 
+                    // get aspect ratio from main texture, if it exists
                     var mainTexture = _materialProperties.MainTextureProperty;
                     if (mainTexture != null) {
                         aspectRatio = mainTexture.AspectRatio;
@@ -47,6 +49,7 @@ namespace ConformalDecals {
                         aspectRatio = 1;
                     }
 
+                    // find preview object references
                     _decalPreviewTransform = part.FindModelTransform(decalPreviewTransform);
                     if (_decalPreviewTransform == null) throw new FormatException("Missing decal preview reference");
 
@@ -60,16 +63,19 @@ namespace ConformalDecals {
         }
 
         public override void OnStart(StartState state) {
+            // generate orthogonal projection matrix and offset it by 0.5 on x and y axes
             _orthoMatrix = Matrix4x4.identity;
             _orthoMatrix[0, 3] = 0.5f;
             _orthoMatrix[1, 3] = 0.5f;
 
             if ((state & StartState.Editor) != 0) {
+                // setup OnTweakEvent for scale and depth fields in editor
                 GameEvents.onEditorPartEvent.Add(OnEditorEvent);
                 Fields[nameof(scale)].uiControlEditor.onFieldChanged = OnTweakEvent;
                 Fields[nameof(depth)].uiControlEditor.onFieldChanged = OnTweakEvent;
             }
             else {
+                // if we start in the flight scene attached, call Attach
                 if (IsAttached) Attach();
             }
         }
@@ -132,7 +138,7 @@ namespace ConformalDecals {
             Camera.onPreCull -= Render;
         }
 
-        [KSPEvent(guiActive = false, guiName = "Project", guiActiveEditor =true, active = true)]
+        [KSPEvent(guiActive = false, guiName = "Project", guiActiveEditor = true, active = true)]
         public void Project() {
             if (!IsAttached) return;
 
@@ -147,7 +153,7 @@ namespace ConformalDecals {
 
             // project to each target object
             foreach (var target in _targets) {
-                target.Project(_orthoMatrix, _decalBounds);
+                target.Project(_orthoMatrix, _decalBounds, this.transform);
             }
         }
 

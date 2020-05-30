@@ -48,7 +48,7 @@ namespace ConformalDecals {
             }
         }
 
-        public void Project(Matrix4x4 orthoMatrix, OrientedBounds projectorBounds) {
+        public void Project(Matrix4x4 orthoMatrix, Bounds projectorBounds) {
             var projectorToTargetMatrix = Target.worldToLocalMatrix * Projector.localToWorldMatrix;
 
             var projectionMatrix = orthoMatrix * projectorToTargetMatrix.inverse;
@@ -60,7 +60,7 @@ namespace ConformalDecals {
             DecalMPB.SetVector(_decalTangentID, decalTangent);
 
             var targetBounds = new OrientedBounds(Target.localToWorldMatrix, _targetRenderer.bounds);
-            _projectionEnabled = projectorBounds.Intersects(targetBounds);
+            _projectionEnabled = targetBounds.Intersects(projectorBounds);
         }
 
         public bool Render(Material decalMaterial, MaterialPropertyBlock partMPB, Camera camera) {

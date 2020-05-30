@@ -108,7 +108,5 @@ namespace ConformalDecals.MaterialModifiers {
                 textureProperty.UpdateScale(ParsedMaterial, scale);
             }
         }
-        
-        
     }
 }

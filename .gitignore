@@ -35,6 +35,7 @@ ExportedObj/
 
 # Binaries and support files
 Source/ConformalDecals/dlls
+Source/ConformalDecals/bin
 
 !Source/ConformalDecals.sln
 !Source/ConformalDecals/ConformalDecals.csproj

@@ -38,6 +38,9 @@
             <HintPath>dlls/Shabby.dll</HintPath>
         </Reference>
         <Reference Include="System" />
+        <Reference Include="UnityEngine, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null">
+          <HintPath>dlls\UnityEngine.dll</HintPath>
+        </Reference>
         <Reference Include="UnityEngine.CoreModule, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null">
           <HintPath>dlls\UnityEngine.CoreModule.dll</HintPath>
         </Reference>
@@ -56,6 +59,6 @@
     </ItemGroup>
     <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
     <PropertyGroup>
-        <PostBuildEvent>sh -e -c "cp -v '$(TargetPath)' '$(SolutionDir)/Releases/ConformalDecals/Gamedata'"</PostBuildEvent>
+        <PostBuildEvent>sh -e -c "cp -v '$(TargetPath)' '$(SolutionDir)/../Distribution/GameData/ConformalDecals/Plugins'"</PostBuildEvent>
     </PropertyGroup>
 </Project>

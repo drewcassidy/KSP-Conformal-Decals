@@ -63,11 +63,12 @@ namespace ConformalDecals {
             _projectionEnabled = projectorBounds.Intersects(targetBounds);
         }
 
-        public bool Render(Material decalMaterial) {
+        public bool Render(Material decalMaterial, MaterialPropertyBlock partMPB, Camera camera) {
             if (_projectionEnabled) {
-                foreach (var camera in Camera.allCameras) {
-                    Graphics.DrawMesh(_targetMesh, Target.worldToLocalMatrix, decalMaterial, 0, camera, 0, DecalMPB, ShadowCastingMode.Off, true);
-                }
+                DecalMPB.SetFloat(PropertyIDs._RimFalloff, partMPB.GetFloat(PropertyIDs._RimFalloff));
+                DecalMPB.SetColor(PropertyIDs._RimFalloff, partMPB.GetColor(PropertyIDs._RimFalloff));
+
+                Graphics.DrawMesh(_targetMesh, Target.localToWorldMatrix, decalMaterial, 0, camera, 0, DecalMPB, ShadowCastingMode.Off, true);
 
                 return true;
             }

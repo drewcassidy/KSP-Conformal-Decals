@@ -5,13 +5,13 @@ namespace ConformalDecals.MaterialModifiers {
     public class TextureMaterialProperty : MaterialProperty {
         public string TextureUrl { get; }
         public Texture2D TextureRef { get; }
-        
+
         public bool IsNormal { get; }
         public bool IsMain { get; }
         public bool AutoScale { get; }
 
         public Rect TileRect { get; }
-        
+
         public float AspectRatio => TileRect.height / TileRect.width;
 
         private readonly Vector2 _textureOffset;

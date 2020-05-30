@@ -4,32 +4,39 @@ using UnityEngine;
 
 namespace ConformalDecals.MaterialModifiers {
     public class MaterialPropertyCollection {
-        public Shader ShaderRef { get; }
-        public TextureMaterialProperty MainTextureMaterial { get; }
+        public TextureMaterialProperty MainTextureProperty { get; }
+
+        public Material ParsedMaterial { get; }
 
         public bool UseBaseNormal { get; }
 
-        private List<MaterialProperty>        _materialModifiers;
-        private List<TextureMaterialProperty> _texturePropertyMaterialModifiers;
+        private readonly List<MaterialProperty>        _materialProperties;
+        private readonly List<TextureMaterialProperty> _textureMaterialProperties;
+
+        public String BaseNormalSrc { get; }
+        public String BaseNormalDest { get; }
+
+        private const string _normalTextureName = "_BumpMap";
 
         public MaterialPropertyCollection(ConfigNode node, PartModule module) {
-            _materialModifiers = new List<MaterialProperty>();
-            _texturePropertyMaterialModifiers = new List<TextureMaterialProperty>();
 
-            var shaderString = node.GetValue("shader");
+            // Initialize fields
+            _materialProperties = new List<MaterialProperty>();
+            _textureMaterialProperties = new List<TextureMaterialProperty>();
 
-            if (shaderString == null)
-                throw new FormatException("Missing shader name in material");
+            // Get shader
+            var shaderString = node.GetValue("shader") ?? throw new FormatException("Missing shader name in material");
 
-            if (shaderString == string.Empty)
-                throw new FormatException("Empty shader name in material");
+            var shaderRef = Shabby.Shabby.FindShader(shaderString);
 
+            // note to self: null coalescing does not work on UnityEngine classes
+            if (shaderRef == null) {
+                throw new FormatException($"Shader not found: '{shaderString}'");
+            }
 
-            //TODO: USE SHABBY PROVIDED METHOD HERE INSTEAD
-            ShaderRef = Shader.Find(shaderString);
+            ParsedMaterial = new Material(shaderRef);
 
-            if (ShaderRef == null) throw new FormatException($"Shader not found: {shaderString}");
-
+            // Get useBaseNormal value
             var useBaseNormalString = node.GetValue("useBaseNormal");
 
             if (useBaseNormalString != null) {
@@ -44,6 +51,11 @@ namespace ConformalDecals.MaterialModifiers {
                 UseBaseNormal = false;
             }
 
+            // Get basenormal source and destination property names
+            BaseNormalSrc = node.GetValue("baseNormalSource") ?? _normalTextureName;
+            BaseNormalDest = node.GetValue("baseNormalDestination") ?? _normalTextureName;
+
+            // Parse all materialProperties
             foreach (ConfigNode propertyNode in node.nodes) {
                 try {
                     MaterialProperty property;
@@ -60,26 +72,27 @@ namespace ConformalDecals.MaterialModifiers {
                             property = new TextureMaterialProperty(propertyNode);
                             var textureModifier = (TextureMaterialProperty) property;
                             if (textureModifier.IsMain) {
-                                if (MainTextureMaterial == null) {
-                                    MainTextureMaterial = textureModifier;
+                                if (MainTextureProperty == null) {
+                                    MainTextureProperty = textureModifier;
                                 }
                                 else {
                                     // multiple textures have been marked as main!
                                     // non-fatal issue, ignore this one and keep using current main texture
                                     module.LogWarning(
                                         $"Material texture property {textureModifier.TextureUrl} is marked as main, but material already has a main texture! \n" +
-                                        $"Defaulting to {MainTextureMaterial.TextureUrl}");
+                                        $"Defaulting to {MainTextureProperty.TextureUrl}");
                                 }
                             }
 
-                            _texturePropertyMaterialModifiers.Add(textureModifier);
+                            _textureMaterialProperties.Add(textureModifier);
                             break;
 
                         default:
                             throw new FormatException($"Invalid property type '{propertyNode.name}' in material");
                     }
 
-                    _materialModifiers.Add(property);
+                    _materialProperties.Add(property);
+                    property.Modify(ParsedMaterial);
                 }
 
                 catch (Exception e) {
@@ -89,5 +102,13 @@ namespace ConformalDecals.MaterialModifiers {
                 }
             }
         }
+
+        public void UpdateMaterial(Vector2 scale) {
+            foreach (var textureProperty in _textureMaterialProperties) {
+                textureProperty.UpdateScale(ParsedMaterial, scale);
+            }
+        }
+        
+        
     }
 }

@@ -5,15 +5,17 @@ namespace ConformalDecals.MaterialModifiers {
     public class TextureMaterialProperty : MaterialProperty {
         public string TextureUrl { get; }
         public Texture2D TextureRef { get; }
-
-        private Vector2 _textureOffset;
-        private Vector2 _textureScale;
-
+        
         public bool IsNormal { get; }
         public bool IsMain { get; }
         public bool AutoScale { get; }
 
         public Rect TileRect { get; }
+        
+        public float AspectRatio => TileRect.height / TileRect.width;
+
+        private readonly Vector2 _textureOffset;
+        private readonly Vector2 _textureScale;
 
         public TextureMaterialProperty(ConfigNode node) : base(node) {
             TextureUrl = node.GetValue("textureURL");
@@ -28,9 +30,9 @@ namespace ConformalDecals.MaterialModifiers {
             if (TextureRef == null)
                 throw new Exception($"Cannot get texture from texture info '{TextureUrl}' isNormalMap = {IsNormal}");
 
-            IsNormal = ParsePropertyBool(node, "isNormalMap", true, false);
-            IsMain = ParsePropertyBool(node, "isMain", true, false);
-            AutoScale = ParsePropertyBool(node, "autoScale", true, false);
+            IsNormal = ParsePropertyBool(node, "isNormalMap", true);
+            IsMain = ParsePropertyBool(node, "isMain", true);
+            AutoScale = ParsePropertyBool(node, "autoScale", true);
             TileRect = ParsePropertyRect(node, "tileRect", true, new Rect(0, 0, TextureRef.width, TextureRef.height));
 
             _textureScale.x = TileRect.width / TextureRef.width;

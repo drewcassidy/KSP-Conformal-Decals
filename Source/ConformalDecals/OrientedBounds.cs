@@ -58,9 +58,10 @@ namespace ConformalDecals {
             Vector3 unitZ = matrix.GetColumn(2);
             var scale = new Vector3(unitX.magnitude, unitY.magnitude, unitZ.magnitude);
 
-            _localBounds = new Bounds();
-            _localBounds.center = matrix.MultiplyPoint3x4(aabb.center);
-            _localBounds.extents = new Vector3(aabb.extents.x / scale.x, aabb.extents.y / scale.y, aabb.extents.z / scale.z);
+            _localBounds = new Bounds {
+                center = matrix.MultiplyPoint3x4(aabb.center),
+                extents = new Vector3(aabb.extents.x / scale.x, aabb.extents.y / scale.y, aabb.extents.z / scale.z)
+            };
 
             OrientationMatrix = Matrix4x4.zero;
             UnitX = unitX / scale.x;
@@ -95,7 +96,7 @@ namespace ConformalDecals {
             // compute translation vector t in our coordinate frame
             var t = R.MultiplyVector(other.center - Center);
 
-            return IntersectOBBSeperatingAxis(R, t, Extents, other.extents);  
+            return IntersectOBBSeperatingAxis(R, t, Extents, other.extents);
         }
 
         private static bool IntersectOBBSeperatingAxis(Matrix4x4 R, Vector3 t, Vector3 a, Vector3 b) {

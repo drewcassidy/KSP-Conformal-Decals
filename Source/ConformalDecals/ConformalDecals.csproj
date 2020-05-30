@@ -52,6 +52,7 @@
         <Compile Include="ModuleConformalDecal.cs"/>
         <Compile Include="Logging.cs"/>
         <Compile Include="Properties\AssemblyInfo.cs"/>
+        <Compile Include="OrientedBounds.cs" />
     </ItemGroup>
     <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets"/>
     <PropertyGroup>

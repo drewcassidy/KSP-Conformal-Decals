@@ -46,24 +46,28 @@ namespace ConformalDecals {
         }
 
         public void Project(Matrix4x4 orthoMatrix, Bounds projectorBounds, Transform projector) {
-            var projectorToTargetMatrix = target.worldToLocalMatrix * projector.localToWorldMatrix;
+            var targetBounds = _targetRenderer.bounds;
+            if (targetBounds.Intersects(projectorBounds)) {
+                _projectionEnabled = true;
+                var projectorToTargetMatrix = target.worldToLocalMatrix * projector.localToWorldMatrix;
 
-            var projectionMatrix = orthoMatrix * projectorToTargetMatrix.inverse;
-            var decalNormal = projectorToTargetMatrix.MultiplyVector(Vector3.back).normalized;
-            var decalTangent = projectorToTargetMatrix.MultiplyVector(Vector3.right).normalized;
+                var projectionMatrix = orthoMatrix * projectorToTargetMatrix.inverse;
+                var decalNormal = projectorToTargetMatrix.MultiplyVector(Vector3.back).normalized;
+                var decalTangent = projectorToTargetMatrix.MultiplyVector(Vector3.right).normalized;
 
-            decalMPB.SetMatrix(_projectionMatrixID, projectionMatrix);
-            decalMPB.SetVector(_decalNormalID, decalNormal);
-            decalMPB.SetVector(_decalTangentID, decalTangent);
-
-            var targetBounds = new OrientedBounds(target.localToWorldMatrix, _targetRenderer.bounds);
-            _projectionEnabled = targetBounds.Intersects(projectorBounds);
+                decalMPB.SetMatrix(_projectionMatrixID, projectionMatrix);
+                decalMPB.SetVector(_decalNormalID, decalNormal);
+                decalMPB.SetVector(_decalTangentID, decalTangent);
+            }
+            else {
+                _projectionEnabled = false;
+            }
         }
 
         public bool Render(Material decalMaterial, MaterialPropertyBlock partMPB, Camera camera) {
-            if (true) {
+            if (_projectionEnabled) {
                 decalMPB.SetFloat(PropertyIDs._RimFalloff, partMPB.GetFloat(PropertyIDs._RimFalloff));
-                decalMPB.SetColor(PropertyIDs._RimFalloff, partMPB.GetColor(PropertyIDs._RimFalloff));
+                decalMPB.SetColor(PropertyIDs._RimColor, partMPB.GetColor(PropertyIDs._RimFalloff));
 
                 Graphics.DrawMesh(_targetMesh, target.localToWorldMatrix, decalMaterial, 0, camera, 0, decalMPB, ShadowCastingMode.Off, true);
 

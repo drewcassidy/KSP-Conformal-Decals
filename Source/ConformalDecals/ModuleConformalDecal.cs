@@ -20,49 +20,49 @@ namespace ConformalDecals {
         [KSPField(guiActive = true, guiFormat = "F2", guiName = "Aspect Ratio")]
         public float aspectRatio = 1.0f;
 
-        private List<ProjectionTarget>     _targets;
-        private MaterialPropertyCollection _materialProperties;
-        private Material                   _material;
+        [KSPField] public MaterialPropertyCollection materialProperties;
+
+        [KSPField] public Transform decalPreviewTransformRef;
+        [KSPField] public Transform decalModelTransformRef;
+
+        private List<ProjectionTarget> _targets;
 
         private Matrix4x4 _orthoMatrix;
         private Bounds    _decalBounds;
 
-        private Transform _decalPreviewTransform;
-        private Transform _decalModelTransform;
-
         private bool IsAttached => part.parent != null;
 
         public override void OnLoad(ConfigNode node) {
-            if (HighLogic.LoadedSceneIsGame) {
-                try {
-                    // parse MATERIAL node
-                    var materialNode = node.GetNode("MATERIAL") ?? throw new FormatException("Missing MATERIAL node in module");
-                    _materialProperties = new MaterialPropertyCollection(materialNode, this);
-                    _material = _materialProperties.ParsedMaterial;
+            this.Log("Loading module");
+            try {
+                // parse MATERIAL node
+                var materialNode = node.GetNode("MATERIAL") ?? throw new FormatException("Missing MATERIAL node in module");
+                materialProperties = ScriptableObject.CreateInstance<MaterialPropertyCollection>();
+                materialProperties.Initialize(materialNode, this);
 
-                    // get aspect ratio from main texture, if it exists
-                    var mainTexture = _materialProperties.MainTextureProperty;
-                    if (mainTexture != null) {
-                        aspectRatio = mainTexture.AspectRatio;
-                    }
-                    else {
-                        aspectRatio = 1;
-                    }
-
-                    // find preview object references
-                    _decalPreviewTransform = part.FindModelTransform(decalPreviewTransform);
-                    if (_decalPreviewTransform == null) throw new FormatException("Missing decal preview reference");
-
-                    _decalModelTransform = part.FindModelTransform(decalModelTransform);
-                    if (_decalModelTransform == null) throw new FormatException("Missing decal mesh reference");
+                // get aspect ratio from main texture, if it exists
+                var mainTexture = materialProperties.MainTextureProperty;
+                if (mainTexture != null) {
+                    aspectRatio = mainTexture.AspectRatio;
                 }
-                catch (Exception e) {
-                    this.LogException("Exception parsing partmodule", e);
+                else {
+                    aspectRatio = 1;
                 }
+
+                // find preview object references
+                decalPreviewTransformRef = part.FindModelTransform(decalPreviewTransform);
+                if (decalPreviewTransformRef == null) throw new FormatException("Missing decal preview reference");
+
+                decalModelTransformRef = part.FindModelTransform(decalModelTransform);
+                if (decalModelTransformRef == null) throw new FormatException("Missing decal mesh reference");
+            }
+            catch (Exception e) {
+                this.LogException("Exception parsing partmodule", e);
             }
         }
 
         public override void OnStart(StartState state) {
+            this.Log("Starting module");
             // generate orthogonal projection matrix and offset it by 0.5 on x and y axes
             _orthoMatrix = Matrix4x4.identity;
             _orthoMatrix[0, 3] = 0.5f;
@@ -113,13 +113,37 @@ namespace ConformalDecals {
                 return;
             }
 
+            this.Log($"Decal attached to {part.parent.partName}");
+            this.Log($"{materialProperties == null}");
+            this.Log($"{decalModelTransformRef == null}");
+
+            if (_targets == null) {
+                _targets = new List<ProjectionTarget>();
+            }
+            else {
+                _targets.Clear();
+            }
+
             // find all valid renderers
-            var renderers = part.parent.transform.GetComponentsInChildren<MeshRenderer>(false).Where(o => o.GetComponent<MeshFilter>() != null);
-            // generate ProjectionTarget objects for each valid meshrenderer
-            _targets = renderers.Select(o => new ProjectionTarget(o, o.GetComponent<MeshFilter>().mesh, _materialProperties)).ToList();
+            var renderers = part.parent.FindModelComponents<MeshRenderer>();
+            foreach (var renderer in renderers) {
+                var meshFilter = renderer.GetComponent<MeshFilter>();
+                if (meshFilter == null) continue; // object has a meshRenderer with no filter, invalid
+                var mesh = meshFilter.mesh;
+                if (mesh == null) continue; // object has a null mesh, invalid
+
+                this.Log($"Adding target for object {meshFilter.gameObject.name} with the mesh {mesh.name}");
+                // create new ProjectionTarget to represent the renderer
+                var target = new ProjectionTarget(renderer, mesh, materialProperties);
+
+                this.Log("done.");
+
+                // add the target to the list
+                _targets.Add(target);
+            }
 
             // hide preview model
-            _decalModelTransform.gameObject.SetActive(false);
+            //decalModelTransformRef.gameObject.SetActive(false);
 
             // add to preCull delegate
             Camera.onPreCull += Render;
@@ -132,7 +156,7 @@ namespace ConformalDecals {
             }
 
             // unhide preview model
-            _decalModelTransform.gameObject.SetActive(true);
+            //decalModelTransformRef.gameObject.SetActive(true);
 
             // remove from preCull delegate
             Camera.onPreCull -= Render;
@@ -162,7 +186,7 @@ namespace ConformalDecals {
 
             // render on each target object
             foreach (var target in _targets) {
-                target.Render(_material, part.mpb, camera);
+                target.Render(materialProperties.parsedMaterial, part.mpb, camera);
             }
         }
     }

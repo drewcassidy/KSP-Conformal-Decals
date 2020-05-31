@@ -3,22 +3,22 @@ using System.Collections.Generic;
 using UnityEngine;
 
 namespace ConformalDecals.MaterialModifiers {
-    public class MaterialPropertyCollection {
-        public TextureMaterialProperty MainTextureProperty { get; }
+    public class MaterialPropertyCollection : ScriptableObject {
+        public TextureMaterialProperty MainTextureProperty { get; set; }
 
-        public Material ParsedMaterial { get; }
+        public Material parsedMaterial;
 
-        public bool UseBaseNormal { get; }
+        public bool UseBaseNormal { get; private set; }
 
-        private readonly List<MaterialProperty>        _materialProperties;
-        private readonly List<TextureMaterialProperty> _textureMaterialProperties;
+        private List<MaterialProperty>        _materialProperties;
+        private List<TextureMaterialProperty> _textureMaterialProperties;
 
-        public String BaseNormalSrc { get; }
-        public String BaseNormalDest { get; }
+        public String BaseNormalSrc { get; private set; }
+        public String BaseNormalDest { get; private set; }
 
         private const string _normalTextureName = "_BumpMap";
 
-        public MaterialPropertyCollection(ConfigNode node, PartModule module) {
+        public void Initialize(ConfigNode node, PartModule module) {
 
             // Initialize fields
             _materialProperties = new List<MaterialProperty>();
@@ -34,7 +34,7 @@ namespace ConformalDecals.MaterialModifiers {
                 throw new FormatException($"Shader not found: '{shaderString}'");
             }
 
-            ParsedMaterial = new Material(shaderRef);
+            parsedMaterial = new Material(shaderRef);
 
             // Get useBaseNormal value
             var useBaseNormalString = node.GetValue("useBaseNormal");
@@ -92,7 +92,7 @@ namespace ConformalDecals.MaterialModifiers {
                     }
 
                     _materialProperties.Add(property);
-                    property.Modify(ParsedMaterial);
+                    property.Modify(parsedMaterial);
                 }
 
                 catch (Exception e) {
@@ -101,11 +101,13 @@ namespace ConformalDecals.MaterialModifiers {
                     module.LogException("Exception while parsing material node", e);
                 }
             }
+
+            module.Log($"Parsed {_materialProperties.Count} properties");
         }
 
         public void UpdateMaterial(Vector2 scale) {
             foreach (var textureProperty in _textureMaterialProperties) {
-                textureProperty.UpdateScale(ParsedMaterial, scale);
+                textureProperty.UpdateScale(parsedMaterial, scale);
             }
         }
     }

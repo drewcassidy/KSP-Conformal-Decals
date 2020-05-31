@@ -18,7 +18,8 @@ Shader "ConformalDecals/Feature/Bumped"
     SubShader
     {
         Tags { "Queue" = "Geometry+400" }
-        ZWrite Off
+        ZWrite On
+        Cull Off
         ZTest LEqual
         Offset -1, -1
         

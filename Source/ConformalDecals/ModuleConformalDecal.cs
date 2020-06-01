@@ -14,14 +14,14 @@ namespace ConformalDecals {
         public float depth = 1.0f;
 
         [KSPField(guiName = "#LOC_ConformalDecals_gui-opacity", guiActive = false, guiActiveEditor = true, isPersistant = true, guiFormat = "F2", guiUnits = "m"),
-         UI_FloatRange(minValue = 0.05f, maxValue = 4f, stepIncrement = 0.05f)]
+         UI_FloatRange(minValue = 0.0f, maxValue = 1f, stepIncrement = 0.05f)]
         public float opacity = 1.0f;
 
         [KSPField(guiName = "#LOC_ConformalDecals_gui-cutoff", guiActive = false, guiActiveEditor = true, isPersistant = true, guiFormat = "F2", guiUnits = "m"),
-         UI_FloatRange(minValue = 0.05f, maxValue = 4f, stepIncrement = 0.05f)]
+         UI_FloatRange(minValue = 0.0f, maxValue = 1f, stepIncrement = 0.05f)]
         public float cutoff = 0.5f;
 
-        [KSPField(guiName = "#LOC_ConformalDecals_gui-aspectratio", guiActive = true, guiFormat = "F2")]
+        [KSPField(guiName = "#LOC_ConformalDecals_gui-aspectratio", guiActive = false, guiActiveEditor = true, guiFormat = "F2")]
         public float aspectRatio = 1.0f;
 
         [KSPField] public string decalFront     = string.Empty;
@@ -74,8 +74,6 @@ namespace ConformalDecals {
                 if (decalFrontTransform == null) throw new FormatException($"Could not find decalFront transform: '{decalFront}'.");
 
                 // find back transform
-                this.Log($"decalBack name is {decalBack}");
-                this.Log($"updateBaseScale is {updateBackScale}");
                 if (string.IsNullOrEmpty(decalBack)) {
                     if (updateBackScale) {
                         this.LogWarning("updateBackScale is true but has no specified decalBack transform!");
@@ -90,7 +88,7 @@ namespace ConformalDecals {
 
                 // find model transform
                 if (string.IsNullOrEmpty(decalModel)) {
-                    decalModelTransform = decalFrontTransform;
+                    decalModelTransform = part.transform.Find("model");
                 }
                 else {
                     decalModelTransform = part.FindModelTransform(decalModel);
@@ -232,7 +230,8 @@ namespace ConformalDecals {
             }
 
             // hide preview model
-            decalModelTransform.gameObject.SetActive(false);
+            decalFrontTransform.gameObject.SetActive(false);
+            decalBackTransform.gameObject.SetActive(false);
 
             // add to preCull delegate
             Camera.onPreCull += Render;
@@ -245,7 +244,8 @@ namespace ConformalDecals {
             _isAttached = false;
 
             // unhide preview model
-            decalModelTransform.gameObject.SetActive(true);
+            decalFrontTransform.gameObject.SetActive(true);
+            decalBackTransform.gameObject.SetActive(true);
 
             // remove from preCull delegate
             Camera.onPreCull -= Render;

@@ -17,17 +17,16 @@ Shader "ConformalDecals/Feature/Bumped"
     }
     SubShader
     {
-        Tags { "Queue" = "Geometry+400" }
-        ZWrite On
+        Tags { "Queue" = "Geometry+100" }
         Cull Off
-        ZTest LEqual
-        Offset -1, -1
         
         Pass
         {
             Name "FORWARD"
        		Tags { "LightMode" = "ForwardBase" }
      		Blend SrcAlpha OneMinusSrcAlpha
+     		ZWrite Off
+     		ZTest LEqual
 
             CGPROGRAM
             #pragma vertex vert_forward
@@ -60,7 +59,7 @@ Shader "ConformalDecals/Feature/Bumped"
                 float3 normal = UnpackNormal(tex2D(_BumpMap, IN.uv_bump));
  
                 // clip alpha
-                clip(color.a - _Cutoff);
+                clip(color.a - saturate(_Cutoff + 0.01));
                 
                 half rim = 1.0 - saturate(dot (normalize(IN.viewDir), normal));
                 float3 emission = (_RimColor.rgb * pow(rim, _RimFalloff)) * _RimColor.a;
@@ -79,6 +78,9 @@ Shader "ConformalDecals/Feature/Bumped"
             Name "FORWARD"
        		Tags { "LightMode" = "ForwardAdd" }
      		Blend One One
+            ZWrite On
+            ZTest Less
+            Offset -1, -1
 
             CGPROGRAM
             #pragma vertex vert_forward
@@ -111,7 +113,7 @@ Shader "ConformalDecals/Feature/Bumped"
                 float3 normal = UnpackNormal(tex2D(_BumpMap, IN.uv_bump));
  
                 // clip alpha
-                clip(color.a - _Cutoff);
+                clip(color.a - saturate(_Cutoff + 0.01));
                 
                 half rim = 1.0 - saturate(dot (normalize(IN.viewDir), normal));
                 float3 emission = (_RimColor.rgb * pow(rim, _RimFalloff)) * _RimColor.a;

@@ -10,15 +10,23 @@ namespace ConformalDecals {
         [KSPField] public string decalModelTransform     = "";
         [KSPField] public string decalProjectorTransform = "";
 
-        [KSPField(guiName = "Scale", guiActive = false, guiActiveEditor = true, isPersistant = true, guiFormat = "F2", guiUnits = "m"),
+        [KSPField(guiName = "#LOC_ConformalDecals_gui-scale", guiActive = false, guiActiveEditor = true, isPersistant = true, guiFormat = "F2", guiUnits = "m"),
          UI_FloatRange(minValue = 0.05f, maxValue = 4f, stepIncrement = 0.05f)]
         public float scale = 1.0f;
 
-        [KSPField(guiName = "Depth", guiActive = false, guiActiveEditor = true, isPersistant = true, guiFormat = "F2", guiUnits = "m"),
+        [KSPField(guiName = "#LOC_ConformalDecals_gui-depth", guiActive = false, guiActiveEditor = true, isPersistant = true, guiFormat = "F2", guiUnits = "m"),
          UI_FloatRange(minValue = 0.05f, maxValue = 4f, stepIncrement = 0.05f)]
         public float depth = 1.0f;
+        
+        [KSPField(guiName = "#LOC_ConformalDecals_gui-opacity", guiActive = false, guiActiveEditor = true, isPersistant = true, guiFormat = "F2", guiUnits = "m"),
+         UI_FloatRange(minValue = 0.05f, maxValue = 4f, stepIncrement = 0.05f)]
+        public float opacity= 1.0f; 
+        
+        [KSPField(guiName = "#LOC_ConformalDecals_gui-cutoff", guiActive = false, guiActiveEditor = true, isPersistant = true, guiFormat = "F2", guiUnits = "m"),
+         UI_FloatRange(minValue = 0.05f, maxValue = 4f, stepIncrement = 0.05f)]
+        public float cutoff = 0.5f; 
 
-        [KSPField(guiActive = true, guiFormat = "F2", guiName = "Aspect Ratio")]
+        [KSPField(guiName = "#LOC_ConformalDecals_gui-aspectratio", guiActive = true, guiFormat = "F2")]
         public float aspectRatio = 1.0f;
 
         [KSPField] public MaterialPropertyCollection materialProperties;

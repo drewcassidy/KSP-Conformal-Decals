@@ -45,9 +45,9 @@ namespace ConformalDecals {
             }
         }
 
-        public void Project(Matrix4x4 orthoMatrix, Bounds projectorBounds, Transform projector) {
+        public void Project(Matrix4x4 orthoMatrix, OrientedBounds projectorBounds, Transform projector) {
             var targetBounds = _targetRenderer.bounds;
-            if (targetBounds.Intersects(projectorBounds)) {
+            if (projectorBounds.Intersects(targetBounds)) {
                 _projectionEnabled = true;
                 var projectorToTargetMatrix = target.worldToLocalMatrix * projector.localToWorldMatrix;
 
@@ -58,9 +58,11 @@ namespace ConformalDecals {
                 decalMPB.SetMatrix(_projectionMatrixID, projectionMatrix);
                 decalMPB.SetVector(_decalNormalID, decalNormal);
                 decalMPB.SetVector(_decalTangentID, decalTangent);
+                Debug.Log($"Projection enabled for {target.gameObject}");
             }
             else {
                 _projectionEnabled = false;
+                Debug.Log($"Projection disabled for {target.gameObject}");
             }
         }
 

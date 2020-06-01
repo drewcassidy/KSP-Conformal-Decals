@@ -13,11 +13,11 @@ namespace ConformalDecals {
          UI_FloatRange(minValue = 0.05f, maxValue = 4f, stepIncrement = 0.05f)]
         public float depth = 1.0f;
 
-        [KSPField(guiName = "#LOC_ConformalDecals_gui-opacity", guiActive = false, guiActiveEditor = true, isPersistant = true, guiFormat = "F2", guiUnits = "m"),
+        [KSPField(guiName = "#LOC_ConformalDecals_gui-opacity", guiActive = false, guiActiveEditor = true, isPersistant = true, guiFormat = "P0"),
          UI_FloatRange(minValue = 0.0f, maxValue = 1f, stepIncrement = 0.05f)]
         public float opacity = 1.0f;
 
-        [KSPField(guiName = "#LOC_ConformalDecals_gui-cutoff", guiActive = false, guiActiveEditor = true, isPersistant = true, guiFormat = "F2", guiUnits = "m"),
+        [KSPField(guiName = "#LOC_ConformalDecals_gui-cutoff", guiActive = false, guiActiveEditor = true, isPersistant = true, guiFormat = "P0"),
          UI_FloatRange(minValue = 0.0f, maxValue = 1f, stepIncrement = 0.05f)]
         public float cutoff = 0.5f;
 
@@ -97,7 +97,7 @@ namespace ConformalDecals {
 
                 // find projector transform
                 if (string.IsNullOrEmpty(decalProjector)) {
-                    decalProjectorTransform = part.transform.Find("model");
+                    decalProjectorTransform = part.transform;
                 }
                 else {
                     decalProjectorTransform = part.FindModelTransform(decalProjector);

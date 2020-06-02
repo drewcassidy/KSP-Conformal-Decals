@@ -19,14 +19,13 @@ Shader "ConformalDecals/Feature/Bumped"
     {
         Tags { "Queue" = "Geometry+100" }
         Cull Off
-        
+        Zwrite Off
+        Ztest LEqual       
         Pass
         {
             Name "FORWARD"
        		Tags { "LightMode" = "ForwardBase" }
      		Blend SrcAlpha OneMinusSrcAlpha
-     		ZWrite Off
-     		ZTest LEqual
 
             CGPROGRAM
             #pragma vertex vert_forward
@@ -78,9 +77,6 @@ Shader "ConformalDecals/Feature/Bumped"
             Name "FORWARD"
        		Tags { "LightMode" = "ForwardAdd" }
      		Blend One One
-            ZWrite On
-            ZTest Less
-            Offset -1, -1
 
             CGPROGRAM
             #pragma vertex vert_forward

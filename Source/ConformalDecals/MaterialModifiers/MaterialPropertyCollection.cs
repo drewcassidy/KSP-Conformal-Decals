@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using Smooth.Delegates;
 using UnityEngine;
 
 namespace ConformalDecals.MaterialModifiers {
@@ -9,8 +10,6 @@ namespace ConformalDecals.MaterialModifiers {
 
         public TextureMaterialProperty MainTextureProperty { get; set; }
 
-        public Material parsedMaterial;
-
         public bool UseBaseNormal { get; private set; }
 
         private List<MaterialProperty>        _materialProperties;
@@ -18,6 +17,19 @@ namespace ConformalDecals.MaterialModifiers {
 
         public String BaseNormalSrc { get; private set; }
         public String BaseNormalDest { get; private set; }
+
+        public Material DecalMaterial {
+            get {
+                if (_protoDecalMaterial == null) {
+                    _protoDecalMaterial = MakeMaterial(_decalShader);
+                }
+
+                return _protoDecalMaterial;
+            }
+        }
+
+        private Shader _decalShader;
+        private Material _protoDecalMaterial;
 
         private const string _normalTextureName = "_BumpMap";
 
@@ -30,14 +42,12 @@ namespace ConformalDecals.MaterialModifiers {
             // Get shader
             var shaderString = node.GetValue("shader") ?? throw new FormatException("Missing shader name in material");
 
-            var shaderRef = Shabby.Shabby.FindShader(shaderString);
+            _decalShader = Shabby.Shabby.FindShader(shaderString);
 
             // note to self: null coalescing does not work on UnityEngine classes
-            if (shaderRef == null) {
+            if (_decalShader == null) {
                 throw new FormatException($"Shader not found: '{shaderString}'");
             }
-
-            parsedMaterial = new Material(shaderRef);
 
             // Get useBaseNormal value
             var useBaseNormalString = node.GetValue("useBaseNormal");
@@ -95,7 +105,6 @@ namespace ConformalDecals.MaterialModifiers {
                     }
 
                     _materialProperties.Add(property);
-                    property.Modify(parsedMaterial);
                 }
 
                 catch (Exception e) {
@@ -107,19 +116,28 @@ namespace ConformalDecals.MaterialModifiers {
 
             module.Log($"Parsed {_materialProperties.Count} properties");
         }
-
-        public void SetScale(Vector2 scale) {
+        
+        public void SetScale(Material material, Vector2 scale) {
             foreach (var textureProperty in _textureMaterialProperties) {
-                textureProperty.UpdateScale(parsedMaterial, scale);
+                textureProperty.UpdateScale(material, scale);
             }
         }
-
-        public void SetOpacity(float opacity) {
-            parsedMaterial.SetFloat(_opacityID, opacity);
+        
+        public void SetOpacity(Material material, float opacity) {
+            material.SetFloat(_opacityID, opacity);
         }
 
-        public void SetCutoff(float cutoff) {
-            parsedMaterial.SetFloat(_cutoffID, cutoff);
+        public void SetCutoff(Material material, float cutoff) {
+            material.SetFloat(_cutoffID, cutoff);
+        }
+
+        private Material MakeMaterial(Shader shader) {
+            var material = new Material(shader);
+            foreach (MaterialProperty property in _materialProperties) {
+                property.Modify(material);
+            }
+
+            return material;
         }
     }
 }

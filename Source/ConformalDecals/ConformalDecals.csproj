@@ -49,11 +49,11 @@
         </Reference>
     </ItemGroup>
     <ItemGroup>
-        <Compile Include="MaterialModifiers\ColorMaterialProperty.cs" />
-        <Compile Include="MaterialModifiers\FloatMaterialProperty.cs" />
+        <Compile Include="MaterialModifiers\MaterialColorProperty.cs" />
+        <Compile Include="MaterialModifiers\MaterialFloatProperty.cs" />
         <Compile Include="MaterialModifiers\MaterialProperty.cs" />
         <Compile Include="MaterialModifiers\MaterialPropertyCollection.cs" />
-        <Compile Include="MaterialModifiers\TextureMaterialProperty.cs" />
+        <Compile Include="MaterialModifiers\MaterialTextureProperty.cs" />
         <Compile Include="ProjectionTarget.cs" />
         <Compile Include="ModuleConformalDecal.cs" />
         <Compile Include="Logging.cs" />

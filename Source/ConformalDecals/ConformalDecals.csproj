@@ -49,6 +49,7 @@
         </Reference>
     </ItemGroup>
     <ItemGroup>
+        <Compile Include="ConformalDecalConfig.cs" />
         <Compile Include="MaterialModifiers\MaterialColorProperty.cs" />
         <Compile Include="MaterialModifiers\MaterialFloatProperty.cs" />
         <Compile Include="MaterialModifiers\MaterialProperty.cs" />

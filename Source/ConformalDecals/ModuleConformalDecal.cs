@@ -330,6 +330,12 @@ namespace ConformalDecals {
             foreach (var renderer in renderers) {
                 // skip disabled renderers
                 if (renderer.gameObject.activeInHierarchy == false) continue;
+                
+                // skip blacklisted shaders
+                if (ConformalDecalConfig.IsBlacklisted(renderer.material.shader)) {
+                    this.Log($"Skipping blacklisted shader '{renderer.material.shader.name}' in '{renderer.gameObject.name}'");
+                    continue;
+                }
 
                 var meshFilter = renderer.GetComponent<MeshFilter>();
                 if (meshFilter == null) continue; // object has a meshRenderer with no filter, invalid

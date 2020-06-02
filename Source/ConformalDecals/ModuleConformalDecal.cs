@@ -39,24 +39,39 @@ namespace ConformalDecals {
         [KSPField] public bool opacityAdjustable = true;
         [KSPField] public bool cutoffAdjustable  = true;
 
-        [KSPField] public Vector2 scaleRange   = new Vector2(0, 4);
-        [KSPField] public Vector2 depthRange   = new Vector2(0, 4);
-        [KSPField] public Vector2 opacityRange = new Vector2(0, 1);
-        [KSPField] public Vector2 cutoffRange  = new Vector2(0, 1);
+        [KSPField] public Vector2 scaleRange      = new Vector2(0, 4);
+        [KSPField] public Vector2 depthRange      = new Vector2(0, 4);
+        [KSPField] public Vector2 opacityRange    = new Vector2(0, 1);
+        [KSPField] public Vector2 cutoffRange     = new Vector2(0, 1);
+        [KSPField] public Vector2 decalQueueRange = new Vector2(2100, 2400);
 
         [KSPField] public bool updateBackScale = true;
 
         [KSPField] public MaterialPropertyCollection materialProperties;
+        [KSPField] public Material                   decalMaterial;
+
+        private static int _decalQueueCounter = -1;
 
         private List<ProjectionTarget> _targets;
 
-        private bool _isAttached;
-
+        private bool      _isAttached;
         private Matrix4x4 _orthoMatrix;
         private Bounds    _decalBounds;
         private Vector2   _backTextureBaseScale;
-        private Material  _backMaterial;
 
+        private Material _backMaterial;
+
+        private int DecalQueue {
+            get {
+                _decalQueueCounter++;
+                if (_decalQueueCounter > decalQueueRange.y || _decalQueueCounter < decalQueueRange.x) {
+                    _decalQueueCounter = (int) decalQueueRange.x;
+                }
+
+                this.Log($"returning decal queue value {_decalQueueCounter}");
+                return _decalQueueCounter;
+            }
+        }
 
         public override void OnLoad(ConfigNode node) {
             this.Log("Loading module");
@@ -65,6 +80,9 @@ namespace ConformalDecals {
                 var materialNode = node.GetNode("MATERIAL") ?? throw new FormatException("Missing MATERIAL node in module");
                 materialProperties = ScriptableObject.CreateInstance<MaterialPropertyCollection>();
                 materialProperties.Initialize(materialNode, this);
+
+                // get decal material
+                decalMaterial = materialProperties.DecalMaterial;
 
                 // get aspect ratio from main texture, if it exists
                 var mainTexture = materialProperties.MainTextureProperty;
@@ -134,43 +152,52 @@ namespace ConformalDecals {
                 var opacityField = Fields[nameof(opacity)];
                 var cutoffField = Fields[nameof(cutoff)];
 
-                if (scaleField.guiActiveEditor = scaleAdjustable) {
+                scaleField.guiActiveEditor = scaleAdjustable;
+                depthField.guiActiveEditor = depthAdjustable;
+                opacityField.guiActiveEditor = opacityAdjustable;
+                cutoffField.guiActiveEditor = cutoffAdjustable;
+
+                if (scaleAdjustable) {
                     var minValue = Mathf.Max(Mathf.Epsilon, scaleRange.x);
                     var maxValue = Mathf.Max(minValue, scaleRange.y);
 
-                    (scaleField.uiControlEditor as UI_FloatRange).minValue = minValue;
-                    (scaleField.uiControlEditor as UI_FloatRange).maxValue = maxValue;
+                    ((UI_FloatRange) scaleField.uiControlEditor).minValue = minValue;
+                    ((UI_FloatRange) scaleField.uiControlEditor).maxValue = maxValue;
                     scaleField.uiControlEditor.onFieldChanged = OnSizeTweakEvent;
                 }
 
-                if (depthField.guiActiveEditor = depthAdjustable) {
+                if (depthAdjustable) {
                     var minValue = Mathf.Max(Mathf.Epsilon, depthRange.x);
                     var maxValue = Mathf.Max(minValue, depthRange.y);
-                    (depthField.uiControlEditor as UI_FloatRange).minValue = minValue;
-                    (depthField.uiControlEditor as UI_FloatRange).maxValue = maxValue;
+                    ((UI_FloatRange) depthField.uiControlEditor).minValue = minValue;
+                    ((UI_FloatRange) depthField.uiControlEditor).maxValue = maxValue;
                     depthField.uiControlEditor.onFieldChanged = OnSizeTweakEvent;
                 }
 
-                if (opacityField.guiActiveEditor = opacityAdjustable) {
+                if (opacityAdjustable) {
                     var minValue = Mathf.Max(0, opacityRange.x);
                     var maxValue = Mathf.Max(minValue, opacityRange.y);
                     maxValue = Mathf.Min(1, maxValue);
 
-                    (opacityField.uiControlEditor as UI_FloatRange).minValue = minValue;
-                    (opacityField.uiControlEditor as UI_FloatRange).maxValue = maxValue;
+                    ((UI_FloatRange) opacityField.uiControlEditor).minValue = minValue;
+                    ((UI_FloatRange) opacityField.uiControlEditor).maxValue = maxValue;
                     opacityField.uiControlEditor.onFieldChanged = OnMaterialTweakEvent;
                 }
 
-                if (cutoffField.guiActiveEditor = cutoffAdjustable) {
+                if (cutoffAdjustable) {
                     var minValue = Mathf.Max(0, cutoffRange.x);
                     var maxValue = Mathf.Max(minValue, cutoffRange.y);
                     maxValue = Mathf.Min(1, maxValue);
 
-                    (cutoffField.uiControlEditor as UI_FloatRange).minValue = minValue;
-                    (cutoffField.uiControlEditor as UI_FloatRange).maxValue = maxValue;
+                    ((UI_FloatRange) cutoffField.uiControlEditor).minValue = minValue;
+                    ((UI_FloatRange) cutoffField.uiControlEditor).maxValue = maxValue;
                     cutoffField.uiControlEditor.onFieldChanged = OnMaterialTweakEvent;
                 }
             }
+
+            // instantiate decal material and set uniqueish queue
+            decalMaterial = Material.Instantiate(decalMaterial);
+            decalMaterial.renderQueue = DecalQueue;
 
             // get back material if necessary
             if (updateBackScale) {
@@ -214,8 +241,8 @@ namespace ConformalDecals {
         }
 
         private void OnMaterialTweakEvent(BaseField field, object obj) {
-            materialProperties.SetOpacity(opacity);
-            materialProperties.SetCutoff(cutoff);
+            materialProperties.SetOpacity(decalMaterial, opacity);
+            materialProperties.SetCutoff(decalMaterial, cutoff);
         }
 
         private void OnVariantApplied(Part eventPart, PartVariant variant) {
@@ -326,11 +353,12 @@ namespace ConformalDecals {
             }
 
             // update material scale
-            materialProperties.SetScale(size);
+            materialProperties.SetScale(decalMaterial, size);
         }
 
         private void UpdateProjection() {
             if (!_isAttached) return;
+
             // project to each target object
             foreach (var target in _targets) {
                 target.Project(_orthoMatrix, new OrientedBounds(decalProjectorTransform.localToWorldMatrix, _decalBounds), decalProjectorTransform);
@@ -342,7 +370,7 @@ namespace ConformalDecals {
 
             // render on each target object
             foreach (var target in _targets) {
-                target.Render(materialProperties.parsedMaterial, part.mpb, camera);
+                target.Render(decalMaterial, part.mpb, camera);
             }
         }
     }

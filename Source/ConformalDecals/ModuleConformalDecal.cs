@@ -28,6 +28,7 @@ namespace ConformalDecals {
         [KSPField] public string decalBack      = string.Empty;
         [KSPField] public string decalModel     = string.Empty;
         [KSPField] public string decalProjector = string.Empty;
+        [KSPField] public string decalShader    = string.Empty;
 
         [KSPField] public Transform decalFrontTransform;
         [KSPField] public Transform decalBackTransform;
@@ -46,9 +47,12 @@ namespace ConformalDecals {
         [KSPField] public Vector2 decalQueueRange = new Vector2(2100, 2400);
 
         [KSPField] public bool updateBackScale = true;
+        [KSPField] public bool useBaseNormal   = true;
 
         [KSPField] public MaterialPropertyCollection materialProperties;
-        [KSPField] public Material                   decalMaterial;
+
+        [KSPField] public Material decalMaterial;
+        [KSPField] public Material backMaterial;
 
         private static int _decalQueueCounter = -1;
 
@@ -59,7 +63,11 @@ namespace ConformalDecals {
         private Bounds    _decalBounds;
         private Vector2   _backTextureBaseScale;
 
-        private Material _backMaterial;
+        public ModuleConformalDecal() {
+            decalBackTransform = null;
+            decalModelTransform = null;
+            decalProjectorTransform = null;
+        }
 
         private int DecalQueue {
             get {
@@ -76,16 +84,40 @@ namespace ConformalDecals {
         public override void OnLoad(ConfigNode node) {
             this.Log("Loading module");
             try {
-                // parse MATERIAL node
-                var materialNode = node.GetNode("MATERIAL") ?? throw new FormatException("Missing MATERIAL node in module");
-                materialProperties = ScriptableObject.CreateInstance<MaterialPropertyCollection>();
-                materialProperties.Initialize(materialNode, this);
+
+                if (materialProperties == null) {
+                    // materialProperties is null, so make a new one
+                    materialProperties = ScriptableObject.CreateInstance<MaterialPropertyCollection>();
+                    materialProperties.Initialize();
+                }
+                else {
+                    // materialProperties already exists, so make a copy
+                    materialProperties = ScriptableObject.Instantiate(materialProperties);
+                }
+
+                // add texture nodes
+                foreach (var textureNode in node.GetNodes("TEXTURE")) {
+                    materialProperties.AddProperty(new MaterialTextureProperty(textureNode));
+                }
+
+                // add float nodes
+                foreach (var floatNode in node.GetNodes("FLOAT")) {
+                    materialProperties.AddProperty(new MaterialFloatProperty(floatNode));
+                }
+
+                // add color nodes
+                foreach (var colorNode in node.GetNodes("COLOR")) {
+                    materialProperties.AddProperty(new MaterialColorProperty(colorNode));
+                }
+
+                // set shader
+                materialProperties.SetShader(decalShader);
 
                 // get decal material
                 decalMaterial = materialProperties.DecalMaterial;
 
                 // get aspect ratio from main texture, if it exists
-                var mainTexture = materialProperties.MainTextureProperty;
+                var mainTexture = materialProperties.MainMaterialTextureProperty;
                 if (mainTexture != null) {
                     aspectRatio = mainTexture.AspectRatio;
                 }
@@ -126,6 +158,12 @@ namespace ConformalDecals {
                 else {
                     decalProjectorTransform = part.FindModelTransform(decalProjector);
                     if (decalProjectorTransform == null) throw new FormatException($"Could not find decalProjector transform: '{decalProjector}'.");
+                }
+
+                // update EVERYTHING if currently attached
+                if (_isAttached) {
+                    OnDetach();
+                    OnAttach();
                 }
             }
             catch (Exception e) {
@@ -207,12 +245,12 @@ namespace ConformalDecals {
                     this.LogError($"Specified decalBack transform {decalBack} has no renderer attached! Setting updateBackScale to false.");
                     updateBackScale = false;
                 }
-                else if ((_backMaterial = backRenderer.material) == null) {
+                else if ((backMaterial = backRenderer.material) == null) {
                     this.LogError($"Specified decalBack transform {decalBack} has a renderer but no material! Setting updateBackScale to false.");
                     updateBackScale = false;
                 }
                 else {
-                    _backTextureBaseScale = _backMaterial.GetTextureScale(PropertyIDs._MainTex);
+                    _backTextureBaseScale = backMaterial.GetTextureScale(PropertyIDs._MainTex);
                 }
             }
 
@@ -300,7 +338,7 @@ namespace ConformalDecals {
 
                 this.Log($"Adding target for object {meshFilter.gameObject.name} with the mesh {mesh.name}");
                 // create new ProjectionTarget to represent the renderer
-                var target = new ProjectionTarget(renderer, mesh, materialProperties);
+                var target = new ProjectionTarget(renderer, mesh, useBaseNormal);
 
                 this.Log("done.");
 
@@ -349,7 +387,7 @@ namespace ConformalDecals {
 
             // update back material scale
             if (updateBackScale) {
-                _backMaterial.SetTextureScale(PropertyIDs._MainTex, new Vector2(size.x * _backTextureBaseScale.x, size.y * _backTextureBaseScale.y));
+                backMaterial.SetTextureScale(PropertyIDs._MainTex, new Vector2(size.x * _backTextureBaseScale.x, size.y * _backTextureBaseScale.y));
             }
 
             // update material scale

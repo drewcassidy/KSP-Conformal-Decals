@@ -50,7 +50,7 @@ namespace ConformalDecals {
         [KSPField] public MaterialPropertyCollection materialProperties;
         [KSPField] public Material                   decalMaterial;
 
-        private static int _decalQueueCounter = 0;
+        private static int _decalQueueCounter = -1;
 
         private List<ProjectionTarget> _targets;
 
@@ -63,9 +63,9 @@ namespace ConformalDecals {
 
         private int DecalQueue {
             get {
-                _decalQueueCounter--;
-                if (_decalQueueCounter < decalQueueRange.x) {
-                    _decalQueueCounter = (int) decalQueueRange.y;
+                _decalQueueCounter++;
+                if (_decalQueueCounter > decalQueueRange.y || _decalQueueCounter < decalQueueRange.x) {
+                    _decalQueueCounter = (int) decalQueueRange.x;
                 }
 
                 this.Log($"returning decal queue value {_decalQueueCounter}");

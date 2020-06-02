@@ -4,6 +4,9 @@ using UnityEngine;
 
 namespace ConformalDecals.MaterialModifiers {
     public class MaterialPropertyCollection : ScriptableObject {
+        private static int _opacityID = Shader.PropertyToID("_Opacity");
+        private static int _cutoffID  = Shader.PropertyToID("_Cutoff");
+
         public TextureMaterialProperty MainTextureProperty { get; set; }
 
         public Material parsedMaterial;
@@ -105,10 +108,18 @@ namespace ConformalDecals.MaterialModifiers {
             module.Log($"Parsed {_materialProperties.Count} properties");
         }
 
-        public void UpdateMaterial(Vector2 scale) {
+        public void SetScale(Vector2 scale) {
             foreach (var textureProperty in _textureMaterialProperties) {
                 textureProperty.UpdateScale(parsedMaterial, scale);
             }
+        }
+
+        public void SetOpacity(float opacity) {
+            parsedMaterial.SetFloat(_opacityID, opacity);
+        }
+
+        public void SetCutoff(float cutoff) {
+            parsedMaterial.SetFloat(_cutoffID, cutoff);
         }
     }
 }

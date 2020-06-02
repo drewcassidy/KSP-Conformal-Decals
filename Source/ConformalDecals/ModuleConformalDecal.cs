@@ -34,10 +34,15 @@ namespace ConformalDecals {
         [KSPField] public Transform decalModelTransform;
         [KSPField] public Transform decalProjectorTransform;
 
-        [KSPField] public bool adjustableScale   = true;
-        [KSPField] public bool adjustableDepth   = true;
-        [KSPField] public bool adjustableOpacity = true;
-        [KSPField] public bool adjustableCutoff  = true;
+        [KSPField] public bool scaleAdjustable   = true;
+        [KSPField] public bool depthAdjustable   = true;
+        [KSPField] public bool opacityAdjustable = true;
+        [KSPField] public bool cutoffAdjustable  = true;
+
+        [KSPField] public Vector2 scaleRange   = new Vector2(0, 4);
+        [KSPField] public Vector2 depthRange   = new Vector2(0, 4);
+        [KSPField] public Vector2 opacityRange = new Vector2(0, 1);
+        [KSPField] public Vector2 cutoffRange  = new Vector2(0, 1);
 
         [KSPField] public bool updateBackScale = true;
 
@@ -51,6 +56,7 @@ namespace ConformalDecals {
         private Bounds    _decalBounds;
         private Vector2   _backTextureBaseScale;
         private Material  _backMaterial;
+
 
         public override void OnLoad(ConfigNode node) {
             this.Log("Loading module");
@@ -121,8 +127,49 @@ namespace ConformalDecals {
             if ((state & StartState.Editor) != 0) {
                 GameEvents.onEditorPartEvent.Add(OnEditorEvent);
                 GameEvents.onVariantApplied.Add(OnVariantApplied);
-                Fields[nameof(scale)].uiControlEditor.onFieldChanged = OnScaleTweakEvent;
-                Fields[nameof(depth)].uiControlEditor.onFieldChanged = OnScaleTweakEvent;
+
+                // setup tweakable fields
+                var scaleField = Fields[nameof(scale)];
+                var depthField = Fields[nameof(depth)];
+                var opacityField = Fields[nameof(opacity)];
+                var cutoffField = Fields[nameof(cutoff)];
+
+                if (scaleField.guiActiveEditor = scaleAdjustable) {
+                    var minValue = Mathf.Max(Mathf.Epsilon, scaleRange.x);
+                    var maxValue = Mathf.Max(minValue, scaleRange.y);
+
+                    (scaleField.uiControlEditor as UI_FloatRange).minValue = minValue;
+                    (scaleField.uiControlEditor as UI_FloatRange).maxValue = maxValue;
+                    scaleField.uiControlEditor.onFieldChanged = OnSizeTweakEvent;
+                }
+
+                if (depthField.guiActiveEditor = depthAdjustable) {
+                    var minValue = Mathf.Max(Mathf.Epsilon, depthRange.x);
+                    var maxValue = Mathf.Max(minValue, depthRange.y);
+                    (depthField.uiControlEditor as UI_FloatRange).minValue = minValue;
+                    (depthField.uiControlEditor as UI_FloatRange).maxValue = maxValue;
+                    depthField.uiControlEditor.onFieldChanged = OnSizeTweakEvent;
+                }
+
+                if (opacityField.guiActiveEditor = opacityAdjustable) {
+                    var minValue = Mathf.Max(0, opacityRange.x);
+                    var maxValue = Mathf.Max(minValue, opacityRange.y);
+                    maxValue = Mathf.Min(1, maxValue);
+
+                    (opacityField.uiControlEditor as UI_FloatRange).minValue = minValue;
+                    (opacityField.uiControlEditor as UI_FloatRange).maxValue = maxValue;
+                    opacityField.uiControlEditor.onFieldChanged = OnMaterialTweakEvent;
+                }
+
+                if (cutoffField.guiActiveEditor = cutoffAdjustable) {
+                    var minValue = Mathf.Max(0, cutoffRange.x);
+                    var maxValue = Mathf.Max(minValue, cutoffRange.y);
+                    maxValue = Mathf.Min(1, maxValue);
+
+                    (cutoffField.uiControlEditor as UI_FloatRange).minValue = minValue;
+                    (cutoffField.uiControlEditor as UI_FloatRange).maxValue = maxValue;
+                    cutoffField.uiControlEditor.onFieldChanged = OnMaterialTweakEvent;
+                }
             }
 
             // get back material if necessary
@@ -159,11 +206,16 @@ namespace ConformalDecals {
             Camera.onPreCull -= Render;
         }
 
-        private void OnScaleTweakEvent(BaseField field, object obj) {
+        private void OnSizeTweakEvent(BaseField field, object obj) {
             // scale or depth values have been changed, so update scale
             // and update projection matrices if attached
             UpdateScale();
             if (_isAttached) UpdateProjection();
+        }
+
+        private void OnMaterialTweakEvent(BaseField field, object obj) {
+            materialProperties.SetOpacity(opacity);
+            materialProperties.SetCutoff(cutoff);
         }
 
         private void OnVariantApplied(Part eventPart, PartVariant variant) {
@@ -274,7 +326,7 @@ namespace ConformalDecals {
             }
 
             // update material scale
-            materialProperties.UpdateMaterial(size);
+            materialProperties.SetScale(size);
         }
 
         private void UpdateProjection() {

@@ -1,7 +1,7 @@
 using System;
 using UnityEngine;
 
-namespace ConformalDecals {
+namespace ConformalDecals.Util {
     public static class Logging {
         public static void Log(this PartModule module, string message) => Debug.Log(FormatMessage(module, message));
 

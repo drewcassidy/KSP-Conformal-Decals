@@ -31,6 +31,12 @@ namespace ConformalDecals.MaterialModifiers {
         }
 
         public void AddProperty(MaterialProperty property) {
+            if (property == null) throw new ArgumentNullException("Tried to add a null property");
+            if (_materialProperties == null || _textureMaterialProperties == null) {
+                Initialize();
+                Debug.LogWarning("Tried to add a property to uninitialized property collection! correcting now.");
+            }
+            
             foreach (var p in _materialProperties) {
                 if (p.PropertyName == property.PropertyName) {
                     _materialProperties.Remove(property);
@@ -53,8 +59,14 @@ namespace ConformalDecals.MaterialModifiers {
         }
 
         public void SetShader(string shaderName) {
-            if (_decalShader == null && string.IsNullOrEmpty(shaderName)) {
-                throw new FormatException("Shader name not provided");
+            if (string.IsNullOrEmpty(shaderName)) {
+                if (_decalShader == null) {
+                    Debug.Log("Using default decal shader");
+                    shaderName = "ConformalDecals/Paint/Diffuse";
+                }
+                else {
+                    return;
+                }
             }
 
             var shader = Shabby.Shabby.FindShader(shaderName);

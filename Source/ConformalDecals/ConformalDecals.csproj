@@ -55,8 +55,10 @@
         <Compile Include="MaterialModifiers\MaterialProperty.cs" />
         <Compile Include="MaterialModifiers\MaterialPropertyCollection.cs" />
         <Compile Include="MaterialModifiers\MaterialTextureProperty.cs" />
+        <Compile Include="ModuleConformalDecalFlag.cs" />
+        <Compile Include="ModuleConformalDecalGeneric.cs" />
         <Compile Include="ProjectionTarget.cs" />
-        <Compile Include="ModuleConformalDecal.cs" />
+        <Compile Include="ModuleConformalDecalBase.cs" />
         <Compile Include="Properties\AssemblyInfo.cs" />
         <Compile Include="Util\Logging.cs" />
         <Compile Include="Util\OrientedBounds.cs" />

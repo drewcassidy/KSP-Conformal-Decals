@@ -85,6 +85,9 @@ namespace ConformalDecals {
         public override void OnLoad(ConfigNode node) {
             this.Log("Loading module");
             try {
+                if (HighLogic.LoadedSceneIsEditor) {
+                    UpdateTweakables();
+                }
 
                 if (materialProperties == null) {
                     // materialProperties is null, so make a new one
@@ -164,8 +167,8 @@ namespace ConformalDecals {
 
                 // update EVERYTHING if currently attached
                 if (_isAttached) {
-                    OnDetach();
-                    OnAttach();
+                    UpdateScale();
+                    UpdateTargets();
                 }
             }
             catch (Exception e) {
@@ -176,64 +179,17 @@ namespace ConformalDecals {
         public override void OnStart(StartState state) {
             this.Log("Starting module");
 
+            if (HighLogic.LoadedSceneIsEditor) {
+                GameEvents.onEditorPartEvent.Add(OnEditorEvent);
+                GameEvents.onVariantApplied.Add(OnVariantApplied);
+                
+                UpdateTweakables();
+            }
+            
             // generate orthogonal projection matrix and offset it by 0.5 on x and y axes
             _orthoMatrix = Matrix4x4.identity;
             _orthoMatrix[0, 3] = 0.5f;
             _orthoMatrix[1, 3] = 0.5f;
-
-            // setup OnTweakEvent for scale and depth fields in editor
-            if ((state & StartState.Editor) != 0) {
-                GameEvents.onEditorPartEvent.Add(OnEditorEvent);
-                GameEvents.onVariantApplied.Add(OnVariantApplied);
-
-                // setup tweakable fields
-                var scaleField = Fields[nameof(scale)];
-                var depthField = Fields[nameof(depth)];
-                var opacityField = Fields[nameof(opacity)];
-                var cutoffField = Fields[nameof(cutoff)];
-
-                scaleField.guiActiveEditor = scaleAdjustable;
-                depthField.guiActiveEditor = depthAdjustable;
-                opacityField.guiActiveEditor = opacityAdjustable;
-                cutoffField.guiActiveEditor = cutoffAdjustable;
-
-                if (scaleAdjustable) {
-                    var minValue = Mathf.Max(Mathf.Epsilon, scaleRange.x);
-                    var maxValue = Mathf.Max(minValue, scaleRange.y);
-
-                    ((UI_FloatRange) scaleField.uiControlEditor).minValue = minValue;
-                    ((UI_FloatRange) scaleField.uiControlEditor).maxValue = maxValue;
-                    scaleField.uiControlEditor.onFieldChanged = OnSizeTweakEvent;
-                }
-
-                if (depthAdjustable) {
-                    var minValue = Mathf.Max(Mathf.Epsilon, depthRange.x);
-                    var maxValue = Mathf.Max(minValue, depthRange.y);
-                    ((UI_FloatRange) depthField.uiControlEditor).minValue = minValue;
-                    ((UI_FloatRange) depthField.uiControlEditor).maxValue = maxValue;
-                    depthField.uiControlEditor.onFieldChanged = OnSizeTweakEvent;
-                }
-
-                if (opacityAdjustable) {
-                    var minValue = Mathf.Max(0, opacityRange.x);
-                    var maxValue = Mathf.Max(minValue, opacityRange.y);
-                    maxValue = Mathf.Min(1, maxValue);
-
-                    ((UI_FloatRange) opacityField.uiControlEditor).minValue = minValue;
-                    ((UI_FloatRange) opacityField.uiControlEditor).maxValue = maxValue;
-                    opacityField.uiControlEditor.onFieldChanged = OnMaterialTweakEvent;
-                }
-
-                if (cutoffAdjustable) {
-                    var minValue = Mathf.Max(0, cutoffRange.x);
-                    var maxValue = Mathf.Max(minValue, cutoffRange.y);
-                    maxValue = Mathf.Min(1, maxValue);
-
-                    ((UI_FloatRange) cutoffField.uiControlEditor).minValue = minValue;
-                    ((UI_FloatRange) cutoffField.uiControlEditor).maxValue = maxValue;
-                    cutoffField.uiControlEditor.onFieldChanged = OnMaterialTweakEvent;
-                }
-            }
 
             // instantiate decal material and set uniqueish queue
             decalMaterial = Material.Instantiate(decalMaterial);
@@ -287,8 +243,7 @@ namespace ConformalDecals {
 
         private void OnVariantApplied(Part eventPart, PartVariant variant) {
             if (_isAttached && eventPart == part.parent) {
-                OnDetach();
-                OnAttach();
+                UpdateTargets();
             }
         }
 
@@ -303,7 +258,6 @@ namespace ConformalDecals {
                     break;
                 case ConstructionEventType.PartOffsetting:
                 case ConstructionEventType.PartRotating:
-                case ConstructionEventType.PartDragging:
                     UpdateProjection();
                     break;
             }
@@ -320,39 +274,7 @@ namespace ConformalDecals {
 
             this.Log($"Decal attached to {part.parent.partName}");
 
-            if (_targets == null) {
-                _targets = new List<ProjectionTarget>();
-            }
-            else {
-                _targets.Clear();
-            }
-
-            // find all valid renderers
-            var renderers = part.parent.FindModelComponents<MeshRenderer>();
-            foreach (var renderer in renderers) {
-                // skip disabled renderers
-                if (renderer.gameObject.activeInHierarchy == false) continue;
-                
-                // skip blacklisted shaders
-                if (ConformalDecalConfig.IsBlacklisted(renderer.material.shader)) {
-                    this.Log($"Skipping blacklisted shader '{renderer.material.shader.name}' in '{renderer.gameObject.name}'");
-                    continue;
-                }
-
-                var meshFilter = renderer.GetComponent<MeshFilter>();
-                if (meshFilter == null) continue; // object has a meshRenderer with no filter, invalid
-                var mesh = meshFilter.mesh;
-                if (mesh == null) continue; // object has a null mesh, invalid
-
-                this.Log($"Adding target for object {meshFilter.gameObject.name} with the mesh {mesh.name}");
-                // create new ProjectionTarget to represent the renderer
-                var target = new ProjectionTarget(renderer, mesh, useBaseNormal);
-
-                this.Log("done.");
-
-                // add the target to the list
-                _targets.Add(target);
-            }
+            UpdateTargets();
 
             // hide preview model
             decalFrontTransform.gameObject.SetActive(false);
@@ -411,6 +333,92 @@ namespace ConformalDecals {
             }
         }
 
+        private void UpdateTargets() {
+            if (_targets == null) {
+                _targets = new List<ProjectionTarget>();
+            }
+            else {
+                _targets.Clear();
+            }
+
+            // find all valid renderers
+            var renderers = part.parent.FindModelComponents<MeshRenderer>();
+            foreach (var renderer in renderers) {
+                // skip disabled renderers
+                if (renderer.gameObject.activeInHierarchy == false) continue;
+
+                // skip blacklisted shaders
+                if (ConformalDecalConfig.IsBlacklisted(renderer.material.shader)) {
+                    this.Log($"Skipping blacklisted shader '{renderer.material.shader.name}' in '{renderer.gameObject.name}'");
+                    continue;
+                }
+
+                var meshFilter = renderer.GetComponent<MeshFilter>();
+                if (meshFilter == null) continue; // object has a meshRenderer with no filter, invalid
+                var mesh = meshFilter.mesh;
+                if (mesh == null) continue; // object has a null mesh, invalid
+
+                this.Log($"Adding target for object {meshFilter.gameObject.name} with the mesh {mesh.name}");
+                // create new ProjectionTarget to represent the renderer
+                var target = new ProjectionTarget(renderer, mesh, useBaseNormal);
+
+                this.Log("done.");
+
+                // add the target to the list
+                _targets.Add(target);
+            }
+        }
+
+        private void UpdateTweakables() {
+            // setup tweakable fields
+            var scaleField = Fields[nameof(scale)];
+            var depthField = Fields[nameof(depth)];
+            var opacityField = Fields[nameof(opacity)];
+            var cutoffField = Fields[nameof(cutoff)];
+
+            scaleField.guiActiveEditor = scaleAdjustable;
+            depthField.guiActiveEditor = depthAdjustable;
+            opacityField.guiActiveEditor = opacityAdjustable;
+            cutoffField.guiActiveEditor = cutoffAdjustable;
+
+            if (scaleAdjustable) {
+                var minValue = Mathf.Max(Mathf.Epsilon, scaleRange.x);
+                var maxValue = Mathf.Max(minValue, scaleRange.y);
+
+                ((UI_FloatRange) scaleField.uiControlEditor).minValue = minValue;
+                ((UI_FloatRange) scaleField.uiControlEditor).maxValue = maxValue;
+                scaleField.uiControlEditor.onFieldChanged = OnSizeTweakEvent;
+            }
+
+            if (depthAdjustable) {
+                var minValue = Mathf.Max(Mathf.Epsilon, depthRange.x);
+                var maxValue = Mathf.Max(minValue, depthRange.y);
+                ((UI_FloatRange) depthField.uiControlEditor).minValue = minValue;
+                ((UI_FloatRange) depthField.uiControlEditor).maxValue = maxValue;
+                depthField.uiControlEditor.onFieldChanged = OnSizeTweakEvent;
+            }
+
+            if (opacityAdjustable) {
+                var minValue = Mathf.Max(0, opacityRange.x);
+                var maxValue = Mathf.Max(minValue, opacityRange.y);
+                maxValue = Mathf.Min(1, maxValue);
+
+                ((UI_FloatRange) opacityField.uiControlEditor).minValue = minValue;
+                ((UI_FloatRange) opacityField.uiControlEditor).maxValue = maxValue;
+                opacityField.uiControlEditor.onFieldChanged = OnMaterialTweakEvent;
+            }
+
+            if (cutoffAdjustable) {
+                var minValue = Mathf.Max(0, cutoffRange.x);
+                var maxValue = Mathf.Max(minValue, cutoffRange.y);
+                maxValue = Mathf.Min(1, maxValue);
+
+                ((UI_FloatRange) cutoffField.uiControlEditor).minValue = minValue;
+                ((UI_FloatRange) cutoffField.uiControlEditor).maxValue = maxValue;
+                cutoffField.uiControlEditor.onFieldChanged = OnMaterialTweakEvent;
+            }
+        }
+        
         private void Render(Camera camera) {
             if (!_isAttached) return;
 
@@ -419,5 +427,6 @@ namespace ConformalDecals {
                 target.Render(decalMaterial, part.mpb, camera);
             }
         }
+
     }
 }

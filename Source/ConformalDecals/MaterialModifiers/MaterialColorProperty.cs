@@ -9,6 +9,10 @@ namespace ConformalDecals.MaterialModifiers {
             _color = ParsePropertyColor(node, "color", false);
         }
 
+        public MaterialColorProperty(string name, Color value) : base(name) {
+            _color = value;
+        }
+
         public override void Modify(Material material) {
             material.SetColor(_propertyID, _color);
         }

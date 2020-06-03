@@ -17,6 +17,9 @@ namespace ConformalDecals {
 
         // property block
         private readonly MaterialPropertyBlock _decalMPB;
+        
+        private static readonly int normalID   = Shader.PropertyToID("_BumpMap");
+        private static readonly int normalIDST = Shader.PropertyToID("_BumpMap_ST");
 
         public ProjectionTarget(MeshRenderer targetRenderer, Mesh targetMesh, bool useBaseNormal) {
             target = targetRenderer.transform;
@@ -26,10 +29,7 @@ namespace ConformalDecals {
 
             _decalMPB = new MaterialPropertyBlock();
 
-            if (useBaseNormal) {
-                var normalID = Shader.PropertyToID("_BumpMap");
-                var normalIDST = Shader.PropertyToID("_BumpMap_ST");
-
+            if (useBaseNormal && targetMaterial.HasProperty(normalID)) {
                 var normal = targetMaterial.GetTexture(normalID);
                 if (normal != null) {
 

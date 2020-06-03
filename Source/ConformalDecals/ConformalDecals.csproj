@@ -57,9 +57,9 @@
         <Compile Include="MaterialModifiers\MaterialTextureProperty.cs" />
         <Compile Include="ProjectionTarget.cs" />
         <Compile Include="ModuleConformalDecal.cs" />
-        <Compile Include="Logging.cs" />
-        <Compile Include="OrientedBounds.cs" />
         <Compile Include="Properties\AssemblyInfo.cs" />
+        <Compile Include="Util\Logging.cs" />
+        <Compile Include="Util\OrientedBounds.cs" />
     </ItemGroup>
     <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
     <PropertyGroup>

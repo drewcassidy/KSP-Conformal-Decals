@@ -1,6 +1,6 @@
 using UnityEngine;
 
-namespace ConformalDecals {
+namespace ConformalDecals.Util {
     public struct OrientedBounds {
         private Bounds _localBounds;
 

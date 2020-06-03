@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using ConformalDecals.MaterialModifiers;
+using ConformalDecals.Util;
 using UnityEngine;
 
 namespace ConformalDecals {

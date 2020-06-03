@@ -1,5 +1,3 @@
-using System;
-using ConformalDecals.MaterialModifiers;
 using ConformalDecals.Util;
 using UnityEngine;
 using UnityEngine.Rendering;

@@ -29,7 +29,7 @@ namespace ConformalDecals {
         [KSPField] public string decalBack      = string.Empty;
         [KSPField] public string decalModel     = string.Empty;
         [KSPField] public string decalProjector = string.Empty;
-        [KSPField] public string decalShader    = string.Empty;
+        [KSPField] public string decalShader    = "ConformalDecals/Paint/Diffuse";
 
         [KSPField] public Transform decalFrontTransform;
         [KSPField] public Transform decalBackTransform;
@@ -93,6 +93,7 @@ namespace ConformalDecals {
                 }
                 else {
                     // materialProperties already exists, so make a copy
+                    this.Log($"{materialProperties == null}");
                     materialProperties = ScriptableObject.Instantiate(materialProperties);
                 }
 

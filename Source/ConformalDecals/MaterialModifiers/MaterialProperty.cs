@@ -8,15 +8,16 @@ namespace ConformalDecals.MaterialModifiers {
         protected readonly int _propertyID;
 
 
-        protected MaterialProperty(ConfigNode node) {
-            PropertyName = node.GetValue("name");
+        protected MaterialProperty(ConfigNode node) : this(node.GetValue("name")) { }
 
-            if (PropertyName == null)
+        protected MaterialProperty(string name) {
+            if (name == null)
                 throw new FormatException("name not found, cannot create material modifier");
 
-            if (PropertyName == string.Empty)
+            if (name == string.Empty)
                 throw new FormatException("name is empty, cannot create material modifier");
 
+            PropertyName = name;
             _propertyID = Shader.PropertyToID(PropertyName);
         }
 

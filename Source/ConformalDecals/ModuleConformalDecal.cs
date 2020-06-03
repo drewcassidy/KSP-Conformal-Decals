@@ -427,6 +427,5 @@ namespace ConformalDecals {
                 target.Render(decalMaterial, part.mpb, camera);
             }
         }
-
     }
 }

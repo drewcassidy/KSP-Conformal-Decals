@@ -60,12 +60,6 @@ namespace ConformalDecals {
         private Bounds    _decalBounds;
         private Vector2   _backTextureBaseScale;
 
-        public ModuleConformalDecalBase() {
-            decalBackTransform = null;
-            decalModelTransform = null;
-            decalProjectorTransform = null;
-        }
-
         private int DecalQueue {
             get {
                 _decalQueueCounter++;
@@ -82,36 +76,6 @@ namespace ConformalDecals {
             try {
                 if (HighLogic.LoadedSceneIsEditor) {
                     UpdateTweakables();
-                }
-                
-                if (materialProperties == null) {
-                    // materialProperties is null, so make a new one
-                    materialProperties = ScriptableObject.CreateInstance<MaterialPropertyCollection>();
-                    materialProperties.Initialize();
-                }
-                else {
-                    // materialProperties already exists, so make a copy
-                    materialProperties = ScriptableObject.Instantiate(materialProperties);
-                }
-                
-                // set shader
-                materialProperties.SetShader(decalShader);
-
-                // get back material if necessary
-                if (updateBackScale) {
-                    this.Log("Getting material and base scale for back material");
-                    var backRenderer = decalBackTransform.GetComponent<MeshRenderer>();
-                    if (backRenderer == null) {
-                        this.LogError($"Specified decalBack transform {decalBack} has no renderer attached! Setting updateBackScale to false.");
-                        updateBackScale = false;
-                    }
-                    else if ((backMaterial = backRenderer.material) == null) {
-                        this.LogError($"Specified decalBack transform {decalBack} has a renderer but no material! Setting updateBackScale to false.");
-                        updateBackScale = false;
-                    }
-                    else {
-                        _backTextureBaseScale = backMaterial.GetTextureScale(PropertyIDs._MainTex);
-                    }
                 }
 
                 // find front transform
@@ -147,6 +111,26 @@ namespace ConformalDecals {
                 else {
                     decalProjectorTransform = part.FindModelTransform(decalProjector);
                     if (decalProjectorTransform == null) throw new FormatException($"Could not find decalProjector transform: '{decalProjector}'.");
+                }
+                
+                // get back material if necessary
+                if (updateBackScale) {
+                    this.Log("Getting material and base scale for back material");
+                    var backRenderer = decalBackTransform.GetComponent<MeshRenderer>();
+                    if (backRenderer == null) {
+                        this.LogError($"Specified decalBack transform {decalBack} has no renderer attached! Setting updateBackScale to false.");
+                        updateBackScale = false;
+                    }
+                    else {
+                        backMaterial = backRenderer.material;
+                        if (backMaterial == null) {
+                            this.LogError($"Specified decalBack transform {decalBack} has a renderer but no material! Setting updateBackScale to false.");
+                            updateBackScale = false;
+                        }
+                        else {
+                            _backTextureBaseScale = backMaterial.GetTextureScale(PropertyIDs._MainTex);
+                        }
+                    }
                 }
 
                 // update EVERYTHING if currently attached

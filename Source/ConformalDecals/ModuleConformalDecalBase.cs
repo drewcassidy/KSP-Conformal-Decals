@@ -5,7 +5,7 @@ using ConformalDecals.Util;
 using UnityEngine;
 
 namespace ConformalDecals {
-    public class ModuleConformalDecal : PartModule {
+    public abstract class ModuleConformalDecalBase : PartModule {
         [KSPField(guiName = "#LOC_ConformalDecals_gui-scale", guiActive = false, guiActiveEditor = true, isPersistant = true, guiFormat = "F2", guiUnits = "m"),
          UI_FloatRange(minValue = 0.05f, maxValue = 4f, stepIncrement = 0.05f)]
         public float scale = 1.0f;
@@ -21,9 +21,6 @@ namespace ConformalDecals {
         [KSPField(guiName = "#LOC_ConformalDecals_gui-cutoff", guiActive = false, guiActiveEditor = true, isPersistant = true, guiFormat = "P0"),
          UI_FloatRange(minValue = 0.0f, maxValue = 1f, stepIncrement = 0.05f)]
         public float cutoff = 0.5f;
-
-        [KSPField(guiName = "#LOC_ConformalDecals_gui-aspectratio", guiActive = false, guiActiveEditor = true, guiFormat = "F2")]
-        public float aspectRatio = 1.0f;
 
         [KSPField] public string decalFront     = string.Empty;
         [KSPField] public string decalBack      = string.Empty;
@@ -52,7 +49,6 @@ namespace ConformalDecals {
 
         [KSPField] public MaterialPropertyCollection materialProperties;
 
-        [KSPField] public Material decalMaterial;
         [KSPField] public Material backMaterial;
 
         private static int _decalQueueCounter = -1;
@@ -64,7 +60,7 @@ namespace ConformalDecals {
         private Bounds    _decalBounds;
         private Vector2   _backTextureBaseScale;
 
-        public ModuleConformalDecal() {
+        public ModuleConformalDecalBase() {
             decalBackTransform = null;
             decalModelTransform = null;
             decalProjectorTransform = null;
@@ -77,7 +73,6 @@ namespace ConformalDecals {
                     _decalQueueCounter = (int) decalQueueRange.x;
                 }
 
-                this.Log($"returning decal queue value {_decalQueueCounter}");
                 return _decalQueueCounter;
             }
         }
@@ -88,7 +83,7 @@ namespace ConformalDecals {
                 if (HighLogic.LoadedSceneIsEditor) {
                     UpdateTweakables();
                 }
-
+                
                 if (materialProperties == null) {
                     // materialProperties is null, so make a new one
                     materialProperties = ScriptableObject.CreateInstance<MaterialPropertyCollection>();
@@ -96,38 +91,27 @@ namespace ConformalDecals {
                 }
                 else {
                     // materialProperties already exists, so make a copy
-                    this.Log($"{materialProperties == null}");
                     materialProperties = ScriptableObject.Instantiate(materialProperties);
                 }
-
-                // add texture nodes
-                foreach (var textureNode in node.GetNodes("TEXTURE")) {
-                    materialProperties.AddProperty(new MaterialTextureProperty(textureNode));
-                }
-
-                // add float nodes
-                foreach (var floatNode in node.GetNodes("FLOAT")) {
-                    materialProperties.AddProperty(new MaterialFloatProperty(floatNode));
-                }
-
-                // add color nodes
-                foreach (var colorNode in node.GetNodes("COLOR")) {
-                    materialProperties.AddProperty(new MaterialColorProperty(colorNode));
-                }
-
+                
                 // set shader
                 materialProperties.SetShader(decalShader);
 
-                // get decal material
-                decalMaterial = materialProperties.DecalMaterial;
-
-                // get aspect ratio from main texture, if it exists
-                var mainTexture = materialProperties.MainMaterialTextureProperty;
-                if (mainTexture != null) {
-                    aspectRatio = mainTexture.AspectRatio;
-                }
-                else {
-                    aspectRatio = 1;
+                // get back material if necessary
+                if (updateBackScale) {
+                    this.Log("Getting material and base scale for back material");
+                    var backRenderer = decalBackTransform.GetComponent<MeshRenderer>();
+                    if (backRenderer == null) {
+                        this.LogError($"Specified decalBack transform {decalBack} has no renderer attached! Setting updateBackScale to false.");
+                        updateBackScale = false;
+                    }
+                    else if ((backMaterial = backRenderer.material) == null) {
+                        this.LogError($"Specified decalBack transform {decalBack} has a renderer but no material! Setting updateBackScale to false.");
+                        updateBackScale = false;
+                    }
+                    else {
+                        _backTextureBaseScale = backMaterial.GetTextureScale(PropertyIDs._MainTex);
+                    }
                 }
 
                 // find front transform
@@ -182,35 +166,17 @@ namespace ConformalDecals {
             if (HighLogic.LoadedSceneIsEditor) {
                 GameEvents.onEditorPartEvent.Add(OnEditorEvent);
                 GameEvents.onVariantApplied.Add(OnVariantApplied);
-                
+
                 UpdateTweakables();
             }
-            
+
             // generate orthogonal projection matrix and offset it by 0.5 on x and y axes
             _orthoMatrix = Matrix4x4.identity;
             _orthoMatrix[0, 3] = 0.5f;
             _orthoMatrix[1, 3] = 0.5f;
 
             // instantiate decal material and set uniqueish queue
-            decalMaterial = Material.Instantiate(decalMaterial);
-            decalMaterial.renderQueue = DecalQueue;
-
-            // get back material if necessary
-            if (updateBackScale) {
-                this.Log("Getting material and base scale for back material");
-                var backRenderer = decalBackTransform.GetComponent<MeshRenderer>();
-                if (backRenderer == null) {
-                    this.LogError($"Specified decalBack transform {decalBack} has no renderer attached! Setting updateBackScale to false.");
-                    updateBackScale = false;
-                }
-                else if ((backMaterial = backRenderer.material) == null) {
-                    this.LogError($"Specified decalBack transform {decalBack} has a renderer but no material! Setting updateBackScale to false.");
-                    updateBackScale = false;
-                }
-                else {
-                    _backTextureBaseScale = backMaterial.GetTextureScale(PropertyIDs._MainTex);
-                }
-            }
+            materialProperties.SetRenderQueue(DecalQueue);
 
             // set initial attachment state
             if (part.parent == null) {
@@ -237,8 +203,8 @@ namespace ConformalDecals {
         }
 
         private void OnMaterialTweakEvent(BaseField field, object obj) {
-            materialProperties.SetOpacity(decalMaterial, opacity);
-            materialProperties.SetCutoff(decalMaterial, cutoff);
+            materialProperties.SetOpacity(opacity);
+            materialProperties.SetCutoff(cutoff);
         }
 
         private void OnVariantApplied(Part eventPart, PartVariant variant) {
@@ -301,7 +267,7 @@ namespace ConformalDecals {
         }
 
         private void UpdateScale() {
-            var size = new Vector2(scale, scale * aspectRatio);
+            var size = new Vector2(scale, scale * materialProperties.AspectRatio);
 
             // update orthogonal matrix scale
             _orthoMatrix[0, 0] = 1 / size.x;
@@ -321,7 +287,7 @@ namespace ConformalDecals {
             }
 
             // update material scale
-            materialProperties.SetScale(decalMaterial, size);
+            materialProperties.SetScale(size);
         }
 
         private void UpdateProjection() {
@@ -418,13 +384,13 @@ namespace ConformalDecals {
                 cutoffField.uiControlEditor.onFieldChanged = OnMaterialTweakEvent;
             }
         }
-        
+
         private void Render(Camera camera) {
             if (!_isAttached) return;
 
             // render on each target object
             foreach (var target in _targets) {
-                target.Render(decalMaterial, part.mpb, camera);
+                target.Render(materialProperties.DecalMaterial, part.mpb, camera);
             }
         }
     }

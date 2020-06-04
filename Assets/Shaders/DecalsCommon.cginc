@@ -18,10 +18,9 @@ struct DecalSurfaceInput
     #endif //DECAL_EMISSIVE
     
     #ifdef DECAL_BASE_NORMAL
-        float2 uv_base;
-    #endif //DECAL_BASE_NORMAL
+        float3 normal;
+    #endif
     
-    float3 normal;
     float3 viewDir;
     float3 worldPosition;
 };
@@ -30,10 +29,10 @@ struct appdata_decal
 {
     float4 vertex : POSITION;
     float3 normal : NORMAL;
-    #ifdef DECAL_BASE_NORMAL
+    #if defined(DECAL_BASE_NORMAL) || defined(DECAL_PREVIEW)
         float4 texcoord : TEXCOORD0;
         float4 tangent : TANGENT;
-    #endif //DECAL_BASE_NORMAL
+    #endif
 };
 
 struct v2f
@@ -65,6 +64,23 @@ float4x4 _ProjectionMatrix;
 float3 _DecalNormal;
 float3 _DecalTangent;
 
+#ifdef DECAL_BASE_NORMAL
+    sampler2D _BumpMap;
+    float4 _BumpMap_ST;
+#endif //DECAL_BASE_NORMAL
+
+float _Cutoff;
+float _DecalOpacity;
+
+float _Opacity;
+float4 _Background;
+
+inline void decalClipAlpha(float alpha) {
+    #ifndef DECAL_PREVIEW 
+        clip(alpha - _Cutoff + 0.01);
+    #endif
+}
+
 // declare surf function, 
 // this must be defined in any shader using this cginc
 void surf (DecalSurfaceInput IN, inout SurfaceOutput o);
@@ -76,7 +92,12 @@ v2f vert_forward(appdata_decal v)
     
     o.pos = UnityObjectToClipPos(v.vertex);
     o.normal = v.normal;
-    o.uv_decal = mul (_ProjectionMatrix, v.vertex);
+    
+    #ifdef DECAL_PREVIEW
+        o.uv_decal = v.texcoord;
+    #else
+        o.uv_decal = mul (_ProjectionMatrix, v.vertex);
+    #endif //DECAL_PREVIEW
     
     #ifdef DECAL_BASE_NORMAL
         o.uv_base = TRANSFORM_TEX(v.texcoord, _BumpMap);
@@ -85,7 +106,7 @@ v2f vert_forward(appdata_decal v)
     float3 worldPosition = mul(unity_ObjectToWorld, v.vertex).xyz;
     float3 worldNormal = UnityObjectToWorldNormal(v.normal);
     
-    #ifdef DECAL_BASE_NORMAL
+    #if defined(DECAL_BASE_NORMAL) || defined(DECAL_PREVIEW)
         // use tangent of base geometry
         fixed3 worldTangent = UnityObjectToWorldDir(v.tangent.xyz);
         fixed tangentSign = v.tangent.w * unity_WorldTransformParams.w;
@@ -95,7 +116,7 @@ v2f vert_forward(appdata_decal v)
         fixed3 decalTangent = UnityObjectToWorldDir(_DecalTangent);
         fixed3 worldBinormal = cross(decalTangent, worldNormal);
         fixed3 worldTangent = cross(worldNormal, worldBinormal);
-    #endif //DECAL_BASE_NORMAL
+    #endif //defined(DECAL_BASE_NORMAL) || defined(DECAL_PREVIEW)
     
     o.tSpace0 = float4(worldTangent.x, worldBinormal.x, worldNormal.x, worldPosition.x);
     o.tSpace1 = float4(worldTangent.y, worldBinormal.y, worldNormal.y, worldPosition.y);
@@ -148,22 +169,26 @@ fixed4 frag_forward(v2f IN) : SV_Target
     float3 worldViewDir = normalize(UnityWorldSpaceViewDir(worldPosition));
     float3 viewDir = _unity_tbn_0 * worldViewDir.x + _unity_tbn_1 * worldViewDir.y  + _unity_tbn_2 * worldViewDir.z;
     
-    // perform decal projection
-    fixed4 uv_projected = UNITY_PROJ_COORD(IN.uv_decal);
+    #ifdef DECAL_PREVIEW
+        fixed4 uv_projected = IN.uv_decal;
+    #else
+        // perform decal projection
+        fixed4 uv_projected = UNITY_PROJ_COORD(IN.uv_decal);
 
-    // clip texture outside of xyz bounds
-    clip(uv_projected.xyz);
-    clip(1-uv_projected.xyz);
-                
-    // clip backsides
-    clip(dot(_DecalNormal, IN.normal));
+        // clip texture outside of xyz bounds
+        clip(uv_projected.xyz);
+        clip(1-uv_projected.xyz);
+                    
+        // clip backsides
+        clip(dot(_DecalNormal, IN.normal));
+    #endif //DECAL_PREVIEW
                 
     // initialize surface input
     UNITY_INITIALIZE_OUTPUT(DecalSurfaceInput, i)
     i.uv_decal = TRANSFORM_TEX(uv_projected, _Decal);
     
     #ifdef DECAL_NORMAL
-        i.uv_bump = TRANSFORM_TEX(uv_projected, _BumpMap);
+        i.uv_bump = TRANSFORM_TEX(uv_projected, _DecalBumpMap);
     #endif //DECAL_NORMAL
         
     #ifdef DECAL_SPECULAR
@@ -173,12 +198,16 @@ fixed4 frag_forward(v2f IN) : SV_Target
     #ifdef DECAL_EMISSIVE
         i.uv_glow = TRANSFORM_TEX(uv_projected, _GlowMap);
     #endif //DECAL_EMISSIVE
-
-    #ifdef DECAL_BASE_NORMAL
-        i.uv_base = IN.uv_base;
-    #endif //DECAL_BASE_NORMAL
     
-    i.normal = IN.normal;
+    #ifdef DECAL_BASE_NORMAL
+        #ifdef DECAL_PREVIEW
+           i.normal = fixed3(0,0,1);
+        #else
+           i.normal = UnpackNormal(tex2D(_BumpMap, IN.uv_base));
+        #endif //DECAL_PREVIEW
+    #endif //DECAL_BASE_NORMAL 
+    
+    //i.normal = IN.normal;
     i.viewDir = viewDir;
     i.worldPosition = worldPosition;
     
@@ -192,6 +221,14 @@ fixed4 frag_forward(v2f IN) : SV_Target
     
     // call surface function
     surf(i, o);
+   
+    #ifdef DECAL_PREVIEW
+        o.Albedo = lerp(_Background.rgb,o.Albedo, o.Alpha);
+        o.Normal = lerp(float3(0,0,1), o.Normal, o.Alpha);
+        o.Gloss = lerp(_Background.a, o.Gloss, o.Alpha);
+        o.Emission = lerp(0, o.Emission, o.Alpha);
+        o.Alpha = _Opacity;
+    #endif //DECAL_PREVIEW 
     
     // compute lighting & shadowing factor
     UNITY_LIGHT_ATTENUATION(atten, IN, worldPosition)
@@ -203,7 +240,6 @@ fixed4 frag_forward(v2f IN) : SV_Target
     WorldNormal.z = dot(_unity_tbn_2, o.Normal);
     WorldNormal = normalize(WorldNormal);
     o.Normal = WorldNormal;
-
     
     //KSP lighting function
     c += LightingBlinnPhongSmooth(o, lightDir, worldViewDir, atten);

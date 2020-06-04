@@ -5,35 +5,42 @@ using UnityEngine;
 namespace ConformalDecals {
     public class ModuleConformalDecalGeneric : ModuleConformalDecalBase {
         public override void OnLoad(ConfigNode node) {
-
-            if (materialProperties == null) {
-                // materialProperties is null, so make a new one
-                materialProperties = ScriptableObject.CreateInstance<MaterialPropertyCollection>();
-                materialProperties.Initialize();
-            }
-            else {
-                // materialProperties already exists, so make a copy
-                materialProperties = ScriptableObject.Instantiate(materialProperties);
-            }
+            base.OnLoad(node);
 
             // set shader
-            materialProperties.SetShader(decalShader);
+            materialProperties.SetShader(shader);
             // add texture nodes
             foreach (var textureNode in node.GetNodes("TEXTURE")) {
-                materialProperties.AddProperty(new MaterialTextureProperty(textureNode));
+                var textureProperty = ScriptableObject.CreateInstance<MaterialTextureProperty>();
+                textureProperty.ParseNode(textureNode);
+                materialProperties.AddProperty(textureProperty);
             }
 
             // add float nodes
             foreach (var floatNode in node.GetNodes("FLOAT")) {
-                materialProperties.AddProperty(new MaterialFloatProperty(floatNode));
+                var floatProperty = ScriptableObject.CreateInstance<MaterialFloatProperty>();
+                floatProperty.ParseNode(floatNode);
+                materialProperties.AddProperty(floatProperty);
             }
 
             // add color nodes
             foreach (var colorNode in node.GetNodes("COLOR")) {
-                materialProperties.AddProperty(new MaterialColorProperty(colorNode));
+                var colorProperty = ScriptableObject.CreateInstance<MaterialColorProperty>();
+                colorProperty.ParseNode(colorNode);
+                materialProperties.AddProperty(colorProperty);
             }
 
-            base.OnLoad(node);
+            if (HighLogic.LoadedSceneIsGame) {
+                UpdateMaterials();
+                UpdateScale();
+                UpdateProjection();
+            }
+        }
+
+        public override void OnIconCreate() {
+            this.Log("called OnIconCreate");
+            OnStart(StartState.None);
+            UpdateScale();
         }
     }
 }

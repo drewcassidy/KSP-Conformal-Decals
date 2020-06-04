@@ -3,18 +3,18 @@ using UnityEngine;
 
 namespace ConformalDecals.MaterialModifiers {
     public class MaterialColorProperty : MaterialProperty {
-        private readonly Color _color;
+        [SerializeField] public Color color;
 
-        public MaterialColorProperty(ConfigNode node) : base(node) {
-            _color = ParsePropertyColor(node, "color", false);
-        }
+        public override void ParseNode(ConfigNode node) {
+            base.ParseNode(node);
 
-        public MaterialColorProperty(string name, Color value) : base(name) {
-            _color = value;
+            color = ParsePropertyColor(node, "color", true, color);
         }
 
         public override void Modify(Material material) {
-            material.SetColor(_propertyID, _color);
+            if (material == null) throw new ArgumentNullException("material cannot be null");
+
+            material.SetColor(_propertyID, color);
         }
     }
 }

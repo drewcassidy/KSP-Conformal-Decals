@@ -10,6 +10,9 @@ Logs/
 Packages/
 ProjectSettings/
 Temp/
+Distribution/GameData/ConformalDecals/Resources/Resources
+Distribution/GameData/ConformalDecals/Resources/Resources.manifest
+Distribution/GameData/ConformalDecals/Resources/conformaldecals.shab.manifest
 
 # Unity Project Files
 PartTools.cfg

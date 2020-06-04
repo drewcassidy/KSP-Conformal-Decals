@@ -6,24 +6,27 @@ Shader "ConformalDecals/Paint/Diffuse"
 		_Decal("Decal Texture", 2D) = "gray" {}
 		_BumpMap("Bump Map", 2D) = "bump" {}
 		
-		_EdgeWearStrength("Edge Wear Strength", Range(0,100)) = 0
-		_EdgeWearOffset("Edge Wear Offset", Range(0,1)) = 0
+		_EdgeWearStrength("Edge Wear Strength", Range(0,500)) = 100
+		_EdgeWearOffset("Edge Wear Offset", Range(0,1)) = 0.1
 	
 	    _Cutoff ("Alpha cutoff", Range(0,1)) = 0.5
-		_Opacity("_Opacity", Range(0,1) ) = 1
+		_DecalOpacity("Opacity", Range(0,1) ) = 1
+		_Background("Background Color", Color) = (0.9,0.9,0.9,0.7)
 		
+        [Enum(UnityEngine.Rendering.CullMode)] _Cull ("Cull", Float) = 0
+        [Toggle(DECAL_PREVIEW)] _Preview ("Preview", Float) = 0
+
 		[Header(Effects)]
-		[PerRendererData]_Opacity("_Opacity", Range(0,1) ) = 1
+		    [PerRendererData]_Opacity("_Opacity", Range(0,1) ) = 1
 			[PerRendererData]_RimFalloff("_RimFalloff", Range(0.01,5) ) = 0.1
 			[PerRendererData]_RimColor("_RimColor", Color) = (0,0,0,0)
 			[PerRendererData]_UnderwaterFogFactor ("Underwater Fog Factor", Range(0,1)) = 0
     }
     SubShader
     {
-        Tags { "Queue" = "Geometry+400" }
-        ZWrite Off
-        ZTest LEqual
-        Offset -1, -1
+        Tags { "Queue" = "Geometry+100" }
+        Cull [_Cull]
+        Ztest LEqual  
         
         Pass
         {
@@ -36,18 +39,15 @@ Shader "ConformalDecals/Paint/Diffuse"
             #pragma fragment frag_forward
 
             #pragma multi_compile_fwdbase nolightmap nodirlightmap nodynlightmap
+            #pragma multi_compile __ DECAL_PREVIEW
             
             sampler2D _Decal;
-            sampler2D _BumpMap;
             
             float4 _Decal_ST;
-            float4 _BumpMap_ST;
             
             float _EdgeWearStrength;
             float _EdgeWearOffset;
-            
-            float _Cutoff;
-            float _Opacity;
+
             float _RimFalloff;
             float4 _RimColor;
             
@@ -62,11 +62,10 @@ Shader "ConformalDecals/Paint/Diffuse"
             void surf (DecalSurfaceInput IN, inout SurfaceOutput o)
             {
                 float4 color = tex2D(_Decal, IN.uv_decal);
-                float3 normal = UnpackNormal(tex2D(_BumpMap, IN.uv_base));
                 
-                // clip alpha
-                clip(color.a - _Cutoff);
+                decalClipAlpha(color.a);
 
+                float3 normal = IN.normal;
                 half rim = 1.0 - saturate(dot (normalize(IN.viewDir), normal));
                 float3 emission = (_RimColor.rgb * pow(rim, _RimFalloff)) * _RimColor.a;
                 
@@ -76,9 +75,8 @@ Shader "ConformalDecals/Paint/Diffuse"
                 color.a *= saturate(1 + _EdgeWearOffset - saturate(_EdgeWearStrength * wearFactor));
                 
                 o.Albedo = UnderwaterFog(IN.worldPosition, color).rgb;
-                o.Alpha = color.a * _Opacity;
+                o.Alpha = color.a * _DecalOpacity;
                 o.Emission = emission;
-                o.Normal = normal;
             }
 
             ENDCG
@@ -95,18 +93,15 @@ Shader "ConformalDecals/Paint/Diffuse"
             #pragma fragment frag_forward
 
             #pragma multi_compile_fwdadd nolightmap nodirlightmap nodynlightmap
+            #pragma multi_compile __ DECAL_PREVIEW
             
             sampler2D _Decal;
-            sampler2D _BumpMap;
             
             float4 _Decal_ST;
-            float4 _BumpMap_ST;
             
             float _EdgeWearStrength;
             float _EdgeWearOffset;
             
-            float _Cutoff;
-            float _Opacity;
             float _RimFalloff;
             float4 _RimColor;
             
@@ -121,11 +116,10 @@ Shader "ConformalDecals/Paint/Diffuse"
             void surf (DecalSurfaceInput IN, inout SurfaceOutput o)
             {
                 float4 color = tex2D(_Decal, IN.uv_decal);
-                float3 normal = UnpackNormal(tex2D(_BumpMap, IN.uv_base));
                 
-                // clip alpha
-                clip(color.a - _Cutoff);
+                decalClipAlpha(color.a);
 
+                float3 normal = IN.normal;
                 half rim = 1.0 - saturate(dot (normalize(IN.viewDir), normal));
                 float3 emission = (_RimColor.rgb * pow(rim, _RimFalloff)) * _RimColor.a;
                 
@@ -135,9 +129,8 @@ Shader "ConformalDecals/Paint/Diffuse"
                 color.a *= saturate(1 + _EdgeWearOffset - saturate(_EdgeWearStrength * wearFactor));
                 
                 o.Albedo = UnderwaterFog(IN.worldPosition, color).rgb;
-                o.Alpha = color.a * _Opacity;
+                o.Alpha = color.a * _DecalOpacity;
                 o.Emission = emission;
-                o.Normal = normal;
             }
 
             ENDCG

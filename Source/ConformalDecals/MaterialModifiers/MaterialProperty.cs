@@ -1,24 +1,24 @@
 using System;
 using UnityEngine;
+using Object = UnityEngine.Object;
 
 namespace ConformalDecals.MaterialModifiers {
-    public abstract class MaterialProperty {
-        public string PropertyName { get; }
+    public abstract class MaterialProperty : ScriptableObject {
+        public string Name {
+            get => _propertyName;
+            set {
+                _propertyName = value;
+                _propertyID = Shader.PropertyToID(_propertyName);
+            }
+        }
 
-        protected readonly int _propertyID;
+        [SerializeField] protected int    _propertyID;
+        [SerializeField] protected string _propertyName;
 
+        public virtual void ParseNode(ConfigNode node) {
+            if (node == null) throw new ArgumentNullException("node cannot be null");
 
-        protected MaterialProperty(ConfigNode node) : this(node.GetValue("name")) { }
-
-        protected MaterialProperty(string name) {
-            if (name == null)
-                throw new FormatException("name not found, cannot create material modifier");
-
-            if (name == string.Empty)
-                throw new FormatException("name is empty, cannot create material modifier");
-
-            PropertyName = name;
-            _propertyID = Shader.PropertyToID(PropertyName);
+            Name = node.GetValue("name");
         }
 
         public abstract void Modify(Material material);
@@ -57,10 +57,10 @@ namespace ConformalDecals.MaterialModifiers {
             }
             else {
                 if (valueString == null)
-                    throw new FormatException($"Missing {typeof(T)} value for {valueName} in property '{PropertyName}'");
+                    throw new FormatException($"Missing {typeof(T)} value for {valueName} in property '{Name}'");
 
                 if (valueString == string.Empty)
-                    throw new FormatException($"Empty {typeof(T)} value for {valueName} in property '{PropertyName}'");
+                    throw new FormatException($"Empty {typeof(T)} value for {valueName} in property '{Name}'");
             }
 
             if (tryParse(valueString, out var value)) {
@@ -72,7 +72,7 @@ namespace ConformalDecals.MaterialModifiers {
             }
 
             else {
-                throw new FormatException($"Improperly formatted {typeof(T)} value for {valueName} in property '{PropertyName}' : '{valueString}");
+                throw new FormatException($"Improperly formatted {typeof(T)} value for {valueName} in property '{Name}' : '{valueString}");
             }
         }
     }

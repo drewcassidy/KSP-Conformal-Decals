@@ -3,29 +3,54 @@ using UnityEngine;
 
 namespace ConformalDecals.MaterialModifiers {
     public class MaterialTextureProperty : MaterialProperty {
-        public Texture2D texture;
+        [SerializeField] public Texture2D texture;
 
-        public bool IsNormal { get; }
-        public bool IsMain { get; }
-        public bool AutoScale { get; }
+        [SerializeField] public bool isNormal;
+        [SerializeField] public bool isMain;
+        [SerializeField] public bool autoScale;
 
-        private readonly Rect _tileRect;
+        [SerializeField] private bool    _hasTile;
+        [SerializeField] private Rect    _tileRect;
+        [SerializeField] private Vector2 _textureOffset = Vector2.zero;
+        [SerializeField] private Vector2 _textureScale  = Vector2.one;
 
-        public float AspectRatio => _tileRect.height / _tileRect.width;
+        public float AspectRatio {
+            get {
+                if (texture == null) return 1;
+                if (!_hasTile || Mathf.Approximately(0, _tileRect.width)) return ((float) texture.height) / ((float) texture.width);
+                return _tileRect.height / _tileRect.width;
+            }
+        }
 
-        private readonly Vector2 _textureOffset;
-        private readonly Vector2 _textureScale;
+        public Rect TileRect {
+            get => _tileRect;
+            set {
+                _hasTile = !(Mathf.Abs(value.width) < 0.1) || !(Mathf.Abs(value.height) < 0.1);
 
-        public MaterialTextureProperty(ConfigNode node) : base(node) {
-            IsNormal = ParsePropertyBool(node, "isNormalMap", true, PropertyName == "_BumpMap");
-            IsMain = ParsePropertyBool(node, "isMain", true);
-            AutoScale = ParsePropertyBool(node, "autoScale", true);
-            var textureUrl = node.GetValue("textureURL");
+                _tileRect = value;
+                UpdateTiling();
+            }
+        }
 
-            if ((textureUrl == null && IsNormal) || textureUrl == "Bump") {
+        public override void ParseNode(ConfigNode node) {
+            base.ParseNode(node);
+
+            isNormal = ParsePropertyBool(node, "isNormalMap", true, (Name == "_BumpMap") || isNormal);
+            isMain = ParsePropertyBool(node, "isMain", true, isMain);
+            autoScale = ParsePropertyBool(node, "autoScale", true, autoScale);
+
+            SetTexture(node.GetValue("textureUrl"));
+
+            if (node.HasValue("tileRect")) {
+                TileRect = ParsePropertyRect(node, "tileRect", true, _tileRect);
+            }
+        }
+
+        public void SetTexture(string textureUrl) {
+            if ((textureUrl == null && isNormal) || textureUrl == "Bump") {
                 texture = Texture2D.normalTexture;
             }
-            else if ((textureUrl == null && !IsNormal) || textureUrl == "White") {
+            else if ((textureUrl == null && !isNormal) || textureUrl == "White") {
                 texture = Texture2D.whiteTexture;
             }
             else if (textureUrl == "Black") {
@@ -36,47 +61,42 @@ namespace ConformalDecals.MaterialModifiers {
 
                 if (textureInfo == null) throw new Exception($"Cannot find texture: '{textureUrl}'");
 
-                texture = IsNormal ? textureInfo.normalMap : textureInfo.texture;
+                texture = isNormal ? textureInfo.normalMap : textureInfo.texture;
             }
 
-            if (texture == null) throw new Exception($"Cannot get texture from texture info '{textureUrl}' isNormalMap = {IsNormal}");
-
-            _tileRect = ParsePropertyRect(node, "tileRect", true, new Rect(0, 0, texture.width, texture.height));
-
-            _textureScale.x = _tileRect.width / texture.width;
-            _textureScale.y = _tileRect.height / texture.height;
-
-            _textureOffset.x = _tileRect.x / texture.width;
-            _textureOffset.y = _tileRect.y / texture.height;
+            if (texture == null) throw new Exception($"Cannot get texture from texture info '{textureUrl}', isNormalMap = {isNormal}");
+            UpdateTiling();
         }
 
-        public MaterialTextureProperty(string name, Texture2D texture, Rect tileRect = default,
-            bool isNormal = false, bool isMain = false, bool autoScale = false) : base(name) {
-
-            this.texture = texture;
-
-            _tileRect = tileRect == default ? new Rect(0, 0, this.texture.width, this.texture.height) : tileRect;
-
-            IsNormal = isNormal;
-            IsMain = isMain;
-            AutoScale = autoScale;
-
-            _textureScale.x = _tileRect.width / this.texture.width;
-            _textureScale.y = _tileRect.height / this.texture.height;
-
-            _textureOffset.x = _tileRect.x / this.texture.width;
-            _textureOffset.y = _tileRect.y / this.texture.height;
-        }
-        
         public override void Modify(Material material) {
+            if (material == null) throw new ArgumentNullException(nameof(material));
+            if (texture == null) {
+                texture = Texture2D.whiteTexture;
+                throw new NullReferenceException("texture is null, but should not be");
+            }
+
             material.SetTexture(_propertyID, texture);
             material.SetTextureOffset(_propertyID, _textureOffset);
             material.SetTextureScale(_propertyID, _textureScale);
         }
 
         public void UpdateScale(Material material, Vector2 scale) {
-            if (AutoScale) {
+            if (autoScale) {
                 material.SetTextureScale(_propertyID, new Vector2(_textureScale.x * scale.x, _textureScale.y * scale.y));
+            }
+        }
+
+        private void UpdateTiling() {
+            if (_hasTile) {
+                _textureScale.x = Mathf.Approximately(0, _tileRect.width) ? 1 : _tileRect.width / texture.width;
+                _textureScale.y = Mathf.Approximately(0, _tileRect.height) ? 1 : _tileRect.height / texture.height;
+
+                _textureOffset.x = _tileRect.x / texture.width;
+                _textureOffset.y = _tileRect.y / texture.height;
+            }
+            else {
+                _textureScale = Vector2.one;
+                _textureOffset = Vector2.zero;
             }
         }
     }

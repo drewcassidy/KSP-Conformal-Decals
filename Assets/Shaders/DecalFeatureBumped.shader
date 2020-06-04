@@ -4,13 +4,17 @@ Shader "ConformalDecals/Feature/Bumped"
     {
         [Header(Texture Maps)]
 		_Decal("Decal Texture", 2D) = "gray" {}
-		_BumpMap("Decal Bump Map", 2D) = "bump" {}
+		_DecalBumpMap("Decal Bump Map", 2D) = "bump" {}
 		
 	    _Cutoff ("Alpha cutoff", Range(0,1)) = 0.5
-		_Opacity("_Opacity", Range(0,1) ) = 1
+		_DecalOpacity("Opacity", Range(0,1) ) = 1
+		_Background("Background Color", Color) = (0.9,0.9,0.9,0.7)
+	        
+        [Enum(UnityEngine.Rendering.CullMode)] _Cull ("Cull", Float) = 0
+        [Toggle(DECAL_PREVIEW)] _Preview ("Preview", Float) = 0
 		
 		[Header(Effects)]
-		[PerRendererData]_Opacity("_Opacity", Range(0,1) ) = 1
+		    [PerRendererData]_Opacity("_Opacity", Range(0,1) ) = 1
 			[PerRendererData]_RimFalloff("_RimFalloff", Range(0.01,5) ) = 0.1
 			[PerRendererData]_RimColor("_RimColor", Color) = (0,0,0,0)
 			[PerRendererData]_UnderwaterFogFactor ("Underwater Fog Factor", Range(0,1)) = 0
@@ -18,9 +22,9 @@ Shader "ConformalDecals/Feature/Bumped"
     SubShader
     {
         Tags { "Queue" = "Geometry+100" }
-        Cull Off
-        Zwrite Off
-        Ztest LEqual       
+        Cull [_Cull]
+        Ztest LEqual  
+        
         Pass
         {
             Name "FORWARD"
@@ -32,15 +36,14 @@ Shader "ConformalDecals/Feature/Bumped"
             #pragma fragment frag_forward
 
             #pragma multi_compile_fwdbase nolightmap nodirlightmap nodynlightmap
+            #pragma multi_compile DECAL_PROJECT DECAL_PREVIEW
             
             sampler2D _Decal;
-            sampler2D _BumpMap;
+            sampler2D _DecalBumpMap;
             
             float4 _Decal_ST;
-            float4 _BumpMap_ST;
-  
-            float _Cutoff;
-            float _Opacity;
+            float4 _DecalBumpMap_ST;
+
             float _RimFalloff;
             float4 _RimColor; 
             
@@ -55,16 +58,18 @@ Shader "ConformalDecals/Feature/Bumped"
             void surf (DecalSurfaceInput IN, inout SurfaceOutput o)
             {
                 float4 color = tex2D(_Decal, IN.uv_decal);
-                float3 normal = UnpackNormal(tex2D(_BumpMap, IN.uv_bump));
+                float3 normal = UnpackNormal(tex2D(_DecalBumpMap, IN.uv_bump));
  
-                // clip alpha
-                clip(color.a - saturate(_Cutoff + 0.01));
+                #ifdef DECAL_PROJECT
+                    // clip alpha
+                    clip(color.a - _Cutoff + 0.01);
+                #endif //DECAL_PROJECT
                 
                 half rim = 1.0 - saturate(dot (normalize(IN.viewDir), normal));
                 float3 emission = (_RimColor.rgb * pow(rim, _RimFalloff)) * _RimColor.a;
 
                 o.Albedo = UnderwaterFog(IN.worldPosition, color).rgb;
-                o.Alpha = color.a * _Opacity;
+                o.Alpha = color.a * _DecalOpacity;
                 o.Emission = emission;
                 o.Normal = normal;
             }
@@ -83,15 +88,14 @@ Shader "ConformalDecals/Feature/Bumped"
             #pragma fragment frag_forward
 
             #pragma multi_compile_fwdadd nolightmap nodirlightmap nodynlightmap
+            #pragma multi_compile DECAL_PROJECT DECAL_PREVIEW
             
             sampler2D _Decal;
-            sampler2D _BumpMap;
+            sampler2D _DecalBumpMap;
             
             float4 _Decal_ST;
-            float4 _BumpMap_ST;
+            float4 _DecalBumpMap_ST;
   
-            float _Cutoff;
-            float _Opacity;
             float _RimFalloff;
             float4 _RimColor; 
             
@@ -106,16 +110,18 @@ Shader "ConformalDecals/Feature/Bumped"
             void surf (DecalSurfaceInput IN, inout SurfaceOutput o)
             {
                 float4 color = tex2D(_Decal, IN.uv_decal);
-                float3 normal = UnpackNormal(tex2D(_BumpMap, IN.uv_bump));
+                float3 normal = UnpackNormal(tex2D(_DecalBumpMap, IN.uv_bump));
  
-                // clip alpha
-                clip(color.a - saturate(_Cutoff + 0.01));
+                #ifdef DECAL_PROJECT
+                    // clip alpha
+                    clip(color.a - _Cutoff + 0.01);
+                #endif //DECAL_PROJECT
                 
                 half rim = 1.0 - saturate(dot (normalize(IN.viewDir), normal));
                 float3 emission = (_RimColor.rgb * pow(rim, _RimFalloff)) * _RimColor.a;
 
                 o.Albedo = UnderwaterFog(IN.worldPosition, color).rgb;
-                o.Alpha = color.a * _Opacity;
+                o.Alpha = color.a * _DecalOpacity;
                 o.Emission = emission;
                 o.Normal = normal;
             }

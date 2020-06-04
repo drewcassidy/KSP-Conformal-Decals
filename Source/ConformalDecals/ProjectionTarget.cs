@@ -17,36 +17,23 @@ namespace ConformalDecals {
 
         // property block
         private readonly MaterialPropertyBlock _decalMPB;
-        
-        private static readonly int normalID   = Shader.PropertyToID("_BumpMap");
-        private static readonly int normalIDST = Shader.PropertyToID("_BumpMap_ST");
+
+        private static readonly int normalID        = Shader.PropertyToID("_BumpMap");
+        private static readonly int normalIDST      = Shader.PropertyToID("_BumpMap_ST");
 
         public ProjectionTarget(MeshRenderer targetRenderer, Mesh targetMesh, bool useBaseNormal) {
             target = targetRenderer.transform;
             _targetRenderer = targetRenderer;
             _targetMesh = targetMesh;
-            var targetMaterial = targetRenderer.sharedMaterial;
-
             _decalMPB = new MaterialPropertyBlock();
-
-            if (useBaseNormal && targetMaterial.HasProperty(normalID)) {
-                var normal = targetMaterial.GetTexture(normalID);
-                if (normal != null) {
-
-                    _decalMPB.SetTexture(normalID, targetMaterial.GetTexture(normalID));
-
-                    var normalScale = targetMaterial.GetTextureScale(normalID);
-                    var normalOffset = targetMaterial.GetTextureOffset(normalID);
-
-                    _decalMPB.SetVector(normalIDST, new Vector4(normalScale.x, normalScale.y, normalOffset.x, normalOffset.y));
-                }
-            }
         }
 
-        public void Project(Matrix4x4 orthoMatrix, OrientedBounds projectorBounds, Transform projector) {
+        public void Project(Matrix4x4 orthoMatrix, OrientedBounds projectorBounds, Transform projector, bool useBaseNormal) {
             var targetBounds = _targetRenderer.bounds;
             if (projectorBounds.Intersects(targetBounds)) {
                 _projectionEnabled = true;
+
+                var targetMaterial = _targetRenderer.sharedMaterial;
                 var projectorToTargetMatrix = target.worldToLocalMatrix * projector.localToWorldMatrix;
 
                 var projectionMatrix = orthoMatrix * projectorToTargetMatrix.inverse;
@@ -57,6 +44,19 @@ namespace ConformalDecals {
                 _decalMPB.SetVector(_decalNormalID, decalNormal);
                 _decalMPB.SetVector(_decalTangentID, decalTangent);
                 Debug.Log($"Projection enabled for {target.gameObject}");
+                
+                if (useBaseNormal && targetMaterial.HasProperty(normalID)) {
+                    var normal = targetMaterial.GetTexture(normalID);
+                    if (normal != null) {
+
+                        _decalMPB.SetTexture(normalID, targetMaterial.GetTexture(normalID));
+
+                        var normalScale = targetMaterial.GetTextureScale(normalID);
+                        var normalOffset = targetMaterial.GetTextureOffset(normalID);
+
+                        _decalMPB.SetVector(normalIDST, new Vector4(normalScale.x, normalScale.y, normalOffset.x, normalOffset.y));
+                    }
+                }
             }
             else {
                 _projectionEnabled = false;

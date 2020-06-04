@@ -7,16 +7,19 @@ Shader "ConformalDecals/Paint/Specular"
 		_BumpMap("Bump Map", 2D) = "bump" {}
 		_SpecMap("Specular Map", 2D) = "black" {}
 		
-		_EdgeWearStrength("Edge Wear Strength", Range(0,100)) = 0
-		_EdgeWearOffset("Edge Wear Offset", Range(0,1)) = 0
+		_EdgeWearStrength("Edge Wear Strength", Range(0,500)) = 100
+		_EdgeWearOffset("Edge Wear Offset", Range(0,1)) = 0.1
 	
 	    _Cutoff ("Alpha cutoff", Range(0,1)) = 0.5
-		_Opacity("_Opacity", Range(0,1) ) = 1
+		_DecalOpacity("Opacity", Range(0,1) ) = 1
+		_Background("Background Color", Color) = (0.9,0.9,0.9,0.7)
 		
         [Header(Specularity)]
-        _SpecColor ("_SpecColor", Color) = (0.5, 0.5, 0.5, 1)
-        _Shininess ("Shininess", Range (0.03, 10)) = 0.4
+        _SpecColor ("_SpecColor", Color) = (0.25, 0.25, 0.25, 1)
+        _Shininess ("Shininess", Range (0.03, 10)) = 0.3
         
+        [Enum(UnityEngine.Rendering.CullMode)] _Cull ("Cull", Float) = 0
+        [Toggle(DECAL_PREVIEW)] _Preview ("Preview", Float) = 0
 		
 		[Header(Effects)]
 		[PerRendererData]_Opacity("_Opacity", Range(0,1) ) = 1
@@ -26,10 +29,9 @@ Shader "ConformalDecals/Paint/Specular"
     }
     SubShader
     {
-        Tags { "Queue" = "Geometry+400" }
-        ZWrite Off
-        ZTest LEqual
-        Offset -1, -1
+        Tags { "Queue" = "Geometry+100" }
+        Cull [_Cull]
+        Ztest LEqual  
         
         Pass
         {
@@ -42,22 +44,19 @@ Shader "ConformalDecals/Paint/Specular"
             #pragma fragment frag_forward
 
             #pragma multi_compile_fwdbase nolightmap nodirlightmap nodynlightmap
+            #pragma multi_compile __ DECAL_PREVIEW
             
             sampler2D _Decal;
-            sampler2D _BumpMap;
             sampler2D _SpecMap;
             
             float4 _Decal_ST;
-            float4 _BumpMap_ST;
             float4 _SpecMap_ST;
             
             float _EdgeWearStrength;
             float _EdgeWearOffset;
             
             half _Shininess;
-            
-            float _Cutoff;
-            float _Opacity;
+
             float _RimFalloff;
             float4 _RimColor;
             
@@ -73,11 +72,13 @@ Shader "ConformalDecals/Paint/Specular"
             void surf (DecalSurfaceInput IN, inout SurfaceOutput o)
             {
                 float4 color = tex2D(_Decal, IN.uv_decal);
-                float3 normal = UnpackNormal(tex2D(_BumpMap, IN.uv_base));
                 float3 specular = tex2D(_SpecMap, IN.uv_spec);
-                
-                // clip alpha
-                clip(color.a - _Cutoff);
+                float3 normal = IN.normal;
+ 
+                #ifdef DECAL_PROJECT
+                    // clip alpha
+                    clip(color.a - _Cutoff + 0.01);
+                #endif //DECAL_PROJECT
 
                 half rim = 1.0 - saturate(dot (normalize(IN.viewDir), normal));
                 float3 emission = (_RimColor.rgb * pow(rim, _RimFalloff)) * _RimColor.a;
@@ -86,12 +87,11 @@ Shader "ConformalDecals/Paint/Specular"
                 float wearFactorAlpha = saturate(_EdgeWearStrength * wearFactor);
 
                 color.a *= saturate(1 + _EdgeWearOffset - saturate(_EdgeWearStrength * wearFactor));
-                color.a *= _Opacity;
+                color.a *= _DecalOpacity;
                 
                 o.Albedo = UnderwaterFog(IN.worldPosition, color).rgb;
                 o.Alpha = color.a;
                 o.Emission = emission;
-                o.Normal = normal;
                 o.Specular = _Shininess;
                 o.Gloss = specular.r * color.a;
             }
@@ -110,22 +110,19 @@ Shader "ConformalDecals/Paint/Specular"
             #pragma fragment frag_forward
 
             #pragma multi_compile_fwdadd nolightmap nodirlightmap nodynlightmap
-            
+            #pragma multi_compile __ DECAL_PREVIEW
+  
             sampler2D _Decal;
-            sampler2D _BumpMap;
             sampler2D _SpecMap;
             
             float4 _Decal_ST;
-            float4 _BumpMap_ST;
             float4 _SpecMap_ST;
             
             float _EdgeWearStrength;
             float _EdgeWearOffset;
             
             half _Shininess;
-            
-            float _Cutoff;
-            float _Opacity;
+
             float _RimFalloff;
             float4 _RimColor;
             
@@ -141,11 +138,13 @@ Shader "ConformalDecals/Paint/Specular"
             void surf (DecalSurfaceInput IN, inout SurfaceOutput o)
             {
                 float4 color = tex2D(_Decal, IN.uv_decal);
-                float3 normal = UnpackNormal(tex2D(_BumpMap, IN.uv_base));
                 float3 specular = tex2D(_SpecMap, IN.uv_spec);
+                float3 normal = IN.normal;
                 
-                // clip alpha
-                clip(color.a - _Cutoff);
+                #ifdef DECAL_PROJECT
+                    // clip alpha
+                    clip(color.a - _Cutoff + 0.01);
+                #endif //DECAL_PROJECT
 
                 half rim = 1.0 - saturate(dot (normalize(IN.viewDir), normal));
                 float3 emission = (_RimColor.rgb * pow(rim, _RimFalloff)) * _RimColor.a;
@@ -156,9 +155,8 @@ Shader "ConformalDecals/Paint/Specular"
                 color.a *= saturate(1 + _EdgeWearOffset - saturate(_EdgeWearStrength * wearFactor));
                 
                 o.Albedo = UnderwaterFog(IN.worldPosition, color).rgb;
-                o.Alpha = color.a * _Opacity;
+                o.Alpha = color.a * _DecalOpacity;
                 o.Emission = emission;
-                o.Normal = normal;
                 o.Specular = _Shininess;
                 o.Gloss = specular.r;
             }

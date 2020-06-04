@@ -4,18 +4,18 @@ using UnityEngine;
 
 namespace ConformalDecals.MaterialModifiers {
     public class MaterialPropertyCollection : ScriptableObject {
-        private static readonly int OpacityId = Shader.PropertyToID("_Opacity");
+        private static readonly int OpacityId = Shader.PropertyToID("_DecalOpacity");
         private static readonly int CutoffId  = Shader.PropertyToID("_Cutoff");
 
-        public MaterialTextureProperty MainMaterialTextureProperty { get; set; }
+        public MaterialTextureProperty MainMaterialTextureProperty => _mainTexture;
 
-        private List<MaterialProperty>        _materialProperties;
-        private List<MaterialTextureProperty> _textureMaterialProperties;
+        public Shader DecalShader => _shader;
 
         public Material DecalMaterial {
             get {
+                Debug.Log($"{_textureMaterialProperties == null}");
                 if (_decalMaterial == null) {
-                    _decalMaterial = new Material(_decalShader);
+                    _decalMaterial = new Material(_shader);
                     UpdateMaterial(_decalMaterial);
                 }
 
@@ -23,13 +23,32 @@ namespace ConformalDecals.MaterialModifiers {
             }
         }
 
-        public Shader DecalShader => _decalShader;
+        public Material PreviewMaterial {
+            get {
+                if (_previewMaterial == null) {
+                    _previewMaterial = new Material(_shader);
+                    UpdateMaterial(_previewMaterial);
+                    _previewMaterial.EnableKeyword("DECAL_PREVIEW");
+                }
 
-        public float AspectRatio => MainMaterialTextureProperty?.AspectRatio ?? 1f;
+                return _previewMaterial;
+            }
+        }
 
-        [SerializeField] private Shader _decalShader;
+        public float AspectRatio {
+            get {
+                if (MainMaterialTextureProperty == null) return 1;
+                return MainMaterialTextureProperty.AspectRatio;
+            }
+        }
+
+        [SerializeField] private Shader                        _shader;
+        [SerializeField] private List<MaterialProperty>        _materialProperties;
+        [SerializeField] private List<MaterialTextureProperty> _textureMaterialProperties;
+        [SerializeField] private MaterialTextureProperty       _mainTexture;
 
         private Material _decalMaterial;
+        private Material _previewMaterial;
 
         public void Initialize() {
             _materialProperties = new List<MaterialProperty>();
@@ -44,7 +63,7 @@ namespace ConformalDecals.MaterialModifiers {
             }
 
             foreach (var p in _materialProperties) {
-                if (p.PropertyName == property.PropertyName) {
+                if (p.Name == property.Name) {
                     _materialProperties.Remove(property);
                 }
             }
@@ -53,20 +72,20 @@ namespace ConformalDecals.MaterialModifiers {
 
             if (property is MaterialTextureProperty textureProperty) {
                 foreach (var p in _textureMaterialProperties) {
-                    if (p.PropertyName == textureProperty.PropertyName) {
+                    if (p.Name == textureProperty.Name) {
                         _textureMaterialProperties.Remove(textureProperty);
                     }
                 }
 
                 _textureMaterialProperties.Add(textureProperty);
 
-                if (textureProperty.IsMain) MainMaterialTextureProperty ??= textureProperty;
+                if (textureProperty.isMain) _mainTexture ??= textureProperty;
             }
         }
 
         public void SetShader(string shaderName) {
             if (string.IsNullOrEmpty(shaderName)) {
-                if (_decalShader == null) {
+                if (_shader == null) {
                     Debug.Log("Using default decal shader");
                     shaderName = "ConformalDecals/Paint/Diffuse";
                 }
@@ -79,13 +98,15 @@ namespace ConformalDecals.MaterialModifiers {
 
             if (shader == null) throw new FormatException($"Unable to find specified shader '{shaderName}'");
 
-            _decalShader = shader;
+            _shader = shader;
+            _decalMaterial = null;
+            _previewMaterial = null;
         }
 
         public void SetRenderQueue(int queue) {
             DecalMaterial.renderQueue = queue;
         }
-        
+
         public void SetScale(Vector2 scale) {
             foreach (var textureProperty in _textureMaterialProperties) {
                 textureProperty.UpdateScale(DecalMaterial, scale);
@@ -101,10 +122,21 @@ namespace ConformalDecals.MaterialModifiers {
         }
 
         public void UpdateMaterials() {
+            if (_decalMaterial == null) {
+                _decalMaterial = DecalMaterial;
+            }
+
+            if (_previewMaterial == null) {
+                _previewMaterial = PreviewMaterial;
+            }
+
             UpdateMaterial(_decalMaterial);
+            UpdateMaterial(_previewMaterial);
         }
 
         public void UpdateMaterial(Material material) {
+            if (material == null) throw new ArgumentNullException("material cannot be null");
+
             foreach (var property in _materialProperties) {
                 property.Modify(material);
             }

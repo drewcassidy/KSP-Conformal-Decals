@@ -3,18 +3,18 @@ using UnityEngine;
 
 namespace ConformalDecals.MaterialModifiers {
     public class MaterialFloatProperty : MaterialProperty {
-        private readonly float _value;
+        [SerializeField] public float value;
 
-        public MaterialFloatProperty(ConfigNode node) : base(node) {
-            _value = ParsePropertyFloat(node, "value", false);
-        }
+        public override void ParseNode(ConfigNode node) {
+            base.ParseNode(node);
 
-        public MaterialFloatProperty(string name, float value) : base(name) {
-            _value = value;
+            value = ParsePropertyFloat(node, "value", true, value);
         }
 
         public override void Modify(Material material) {
-            material.SetFloat(_propertyID, _value);
+            if (material == null) throw new ArgumentNullException("material cannot be null");
+
+            material.SetFloat(_propertyID, value);
         }
     }
 }

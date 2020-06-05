@@ -16,8 +16,16 @@ namespace ConformalDecals.MaterialModifiers {
 
         public float AspectRatio {
             get {
-                if (texture == null) return 1;
-                if (!_hasTile || Mathf.Approximately(0, _tileRect.width)) return ((float) texture.height) / ((float) texture.width);
+                if (texture == null) {
+                    Debug.Log("Returning 1");
+                    return 1;
+                }
+
+                if (!_hasTile) {
+                    Debug.Log("Returning texture aspect ratio");
+                    return ((float) texture.height) / ((float) texture.width);
+                }
+
                 return _tileRect.height / _tileRect.width;
             }
         }
@@ -35,7 +43,7 @@ namespace ConformalDecals.MaterialModifiers {
         public override void ParseNode(ConfigNode node) {
             base.ParseNode(node);
 
-            isNormal = ParsePropertyBool(node, "isNormalMap", true, (Name == "_BumpMap") || isNormal);
+            isNormal = ParsePropertyBool(node, "isNormalMap", true, (PropertyName == "_BumpMap") || isNormal);
             isMain = ParsePropertyBool(node, "isMain", true, isMain);
             autoScale = ParsePropertyBool(node, "autoScale", true, autoScale);
 

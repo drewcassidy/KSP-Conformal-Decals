@@ -14,7 +14,7 @@ Shader "ConformalDecals/Decal Back"
         _Shininess ("Shininess", Range (0.03, 10)) = 0.4
         
         [Header(Effects)]
-        [PerRendererData]_Opacity("_Opacity", Range(0,1) ) = 1
+            [PerRendererData]_Opacity("_Opacity", Range(0,1) ) = 1
             [PerRendererData]_RimFalloff("_RimFalloff", Range(0.01,5) ) = 0.1
             [PerRendererData]_RimColor("_RimColor", Color) = (0,0,0,0)
             [PerRendererData]_UnderwaterFogFactor ("Underwater Fog Factor", Range(0,1)) = 0
@@ -29,7 +29,7 @@ Shader "ConformalDecals/Decal Back"
         CGPROGRAM
 
         #include "LightingKSP.cginc"
-        #pragma surface surf BlinnPhongSmooth
+        #pragma surface surf BlinnPhongSmooth vertex:vert
         #pragma target 3.0
         
         sampler2D _MainTex;
@@ -50,14 +50,24 @@ Shader "ConformalDecals/Decal Back"
             float3 viewDir;
             float3 worldPos;
         };
+        
+        void vert (inout appdata_full v) {
 
+        }
+        
         void surf (Input IN, inout SurfaceOutput o)
         {
-            float2 uv_MainTex = IN.uv_MainTex;
             float2 uv_BumpMap = IN.uv_BumpMap;
+            float2 uv_MainTex = 0;
             
-            fixed row = floor(uv_MainTex.y);
+            // 45° rotation
+            uv_MainTex.x = IN.uv_MainTex.x - IN.uv_MainTex.y;
+            uv_MainTex.y = IN.uv_MainTex.x + IN.uv_MainTex.y;
+            
+            // stagger every other row
+            int row = floor(uv_MainTex.y);
             uv_MainTex.x += row * _RowOffset;
+            uv_MainTex.y *= 2;
             
             float4 color = _Color * tex2D(_MainTex,(uv_MainTex));
             float3 normal = UnpackNormal(tex2D(_BumpMap, uv_BumpMap));

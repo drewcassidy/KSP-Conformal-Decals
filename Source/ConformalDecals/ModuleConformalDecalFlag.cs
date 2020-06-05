@@ -11,11 +11,11 @@ namespace ConformalDecals {
         public override void OnLoad(ConfigNode node) {
             base.OnLoad(node);
 
-
             if (HighLogic.LoadedSceneIsGame) {
-                UpdateMaterials();
-                UpdateScale();
-                UpdateProjection();
+                UpdateFlag(EditorLogic.FlagURL != string.Empty ? EditorLogic.FlagURL : HighLogic.CurrentGame.flagURL);
+            }
+            else {
+                UpdateFlag(defaultFlag);
             }
         }
 
@@ -23,18 +23,18 @@ namespace ConformalDecals {
             base.OnStart(state);
 
             if (HighLogic.LoadedSceneIsGame) {
-                UpdateFlag(EditorLogic.FlagURL != string.Empty ? EditorLogic.FlagURL : HighLogic.CurrentGame.flagURL);
                 GameEvents.onMissionFlagSelect.Add(UpdateFlag);
-            }
-            else {
-                UpdateFlag(defaultFlag);
             }
         }
 
         public override void OnIconCreate() {
             this.Log("called OnIconCreate");
-            OnStart(StartState.None);
             UpdateScale();
+        }
+
+        public override void OnDestroy() {
+            GameEvents.onMissionFlagSelect.Remove(UpdateFlag);
+            base.OnDestroy();
         }
 
         private void UpdateFlag(string flagUrl) {
@@ -48,9 +48,10 @@ namespace ConformalDecals {
             if (flagTextureProperty == null) {
                 this.Log("Initializing flag property");
                 flagTextureProperty = ScriptableObject.CreateInstance<MaterialTextureProperty>();
-                flagTextureProperty.Name = "_Decal";
+                flagTextureProperty.PropertyName = "_Decal";
                 flagTextureProperty.isMain = true;
                 materialProperties.AddProperty(flagTextureProperty);
+                materialProperties.MainTexture = flagTextureProperty;
             }
             else { }
 

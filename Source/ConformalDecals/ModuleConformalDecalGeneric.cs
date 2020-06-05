@@ -5,41 +5,29 @@ using UnityEngine;
 namespace ConformalDecals {
     public class ModuleConformalDecalGeneric : ModuleConformalDecalBase {
         public override void OnLoad(ConfigNode node) {
-            base.OnLoad(node);
 
             // set shader
             materialProperties.SetShader(shader);
             // add texture nodes
             foreach (var textureNode in node.GetNodes("TEXTURE")) {
-                var textureProperty = ScriptableObject.CreateInstance<MaterialTextureProperty>();
-                textureProperty.ParseNode(textureNode);
-                materialProperties.AddProperty(textureProperty);
+                materialProperties.ParseProperty<MaterialTextureProperty>(textureNode);
             }
 
             // add float nodes
             foreach (var floatNode in node.GetNodes("FLOAT")) {
-                var floatProperty = ScriptableObject.CreateInstance<MaterialFloatProperty>();
-                floatProperty.ParseNode(floatNode);
-                materialProperties.AddProperty(floatProperty);
+                materialProperties.ParseProperty<MaterialTextureProperty>(floatNode);
             }
 
             // add color nodes
             foreach (var colorNode in node.GetNodes("COLOR")) {
-                var colorProperty = ScriptableObject.CreateInstance<MaterialColorProperty>();
-                colorProperty.ParseNode(colorNode);
-                materialProperties.AddProperty(colorProperty);
+                materialProperties.ParseProperty<MaterialColorProperty>(colorNode);
             }
 
-            if (HighLogic.LoadedSceneIsGame) {
-                UpdateMaterials();
-                UpdateScale();
-                UpdateProjection();
-            }
+            base.OnLoad(node);
         }
 
         public override void OnIconCreate() {
             this.Log("called OnIconCreate");
-            OnStart(StartState.None);
             UpdateScale();
         }
     }

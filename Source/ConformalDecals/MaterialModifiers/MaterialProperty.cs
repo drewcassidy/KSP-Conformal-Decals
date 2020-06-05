@@ -4,7 +4,7 @@ using Object = UnityEngine.Object;
 
 namespace ConformalDecals.MaterialModifiers {
     public abstract class MaterialProperty : ScriptableObject {
-        public string Name {
+        public string PropertyName {
             get => _propertyName;
             set {
                 _propertyName = value;
@@ -18,7 +18,7 @@ namespace ConformalDecals.MaterialModifiers {
         public virtual void ParseNode(ConfigNode node) {
             if (node == null) throw new ArgumentNullException("node cannot be null");
 
-            Name = node.GetValue("name");
+            PropertyName = node.GetValue("name");
         }
 
         public abstract void Modify(Material material);
@@ -57,10 +57,10 @@ namespace ConformalDecals.MaterialModifiers {
             }
             else {
                 if (valueString == null)
-                    throw new FormatException($"Missing {typeof(T)} value for {valueName} in property '{Name}'");
+                    throw new FormatException($"Missing {typeof(T)} value for {valueName} in property '{PropertyName}'");
 
                 if (valueString == string.Empty)
-                    throw new FormatException($"Empty {typeof(T)} value for {valueName} in property '{Name}'");
+                    throw new FormatException($"Empty {typeof(T)} value for {valueName} in property '{PropertyName}'");
             }
 
             if (tryParse(valueString, out var value)) {
@@ -72,7 +72,7 @@ namespace ConformalDecals.MaterialModifiers {
             }
 
             else {
-                throw new FormatException($"Improperly formatted {typeof(T)} value for {valueName} in property '{Name}' : '{valueString}");
+                throw new FormatException($"Improperly formatted {typeof(T)} value for {valueName} in property '{PropertyName}' : '{valueString}");
             }
         }
     }

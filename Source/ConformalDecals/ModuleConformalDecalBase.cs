@@ -115,27 +115,50 @@ namespace ConformalDecals {
                     if (decalProjectorTransform == null) throw new FormatException($"Could not find decalProjector transform: '{decalProjector}'.");
                 }
 
-
-                if (HighLogic.LoadedSceneIsEditor) {
-                    UpdateTweakables();
+                // get back material if necessary
+                if (updateBackScale) {
+                    this.Log("Getting material and base scale for back material");
+                    var backRenderer = decalBackTransform.GetComponent<MeshRenderer>();
+                    if (backRenderer == null) {
+                        this.LogError($"Specified decalBack transform {decalBack} has no renderer attached! Setting updateBackScale to false.");
+                        updateBackScale = false;
+                    }
+                    else {
+                        backMaterial = backRenderer.material;
+                        if (backMaterial == null) {
+                            this.LogError($"Specified decalBack transform {decalBack} has a renderer but no material! Setting updateBackScale to false.");
+                            updateBackScale = false;
+                        }
+                        else {
+                            if (backTextureBaseScale == default) backTextureBaseScale = backMaterial.GetTextureScale(PropertyIDs._MainTex);
+                        }
+                    }
                 }
-
-                // setup material properties
-                if (HighLogic.LoadedSceneIsGame) {
-                    // additional load, in flight or in the editor
-                    materialProperties = ScriptableObject.Instantiate(materialProperties);
-                }
-                else {
-                    // first load, so get everything set up
-                    materialProperties = ScriptableObject.CreateInstance<MaterialPropertyCollection>();
-                    materialProperties.Initialize();
-                }
-
+                
+                ConformalDecalIconFixer.QueuePart(part.name);
+                
                 // set shader
                 materialProperties.SetShader(shader);
             }
             catch (Exception e) {
                 this.LogException("Exception parsing partmodule", e);
+            }
+            
+            if (HighLogic.LoadedSceneIsGame) {
+                UpdateMaterials();
+                UpdateScale();
+                UpdateProjection();
+            }
+        }
+
+        public override void OnAwake() {
+            base.OnAwake();
+
+            if (materialProperties == null) {
+                materialProperties = ScriptableObject.CreateInstance<MaterialPropertyCollection>();
+            }
+            else {
+                materialProperties = ScriptableObject.Instantiate(materialProperties);
             }
         }
 
@@ -149,31 +172,33 @@ namespace ConformalDecals {
 
                 UpdateTweakables();
             }
+            
+            materialProperties.SetRenderQueue(DecalQueue);
 
-            // clone materialProperties and setup queue
+            UpdateMaterials();
+            UpdateScale();
+            
             if (HighLogic.LoadedSceneIsGame) {
-                materialProperties = ScriptableObject.Instantiate(materialProperties);
-                materialProperties.SetRenderQueue(DecalQueue);
-
                 // set initial attachment state
                 if (part.parent == null) {
-                    _isAttached = false;
+                    OnDetach();
                 }
                 else {
                     OnAttach();
                 }
             }
-
-            UpdateMaterials();
-            UpdateScale();
         }
 
-        public void OnDestroy() {
+        public virtual void OnDestroy() {
+            // remove GameEvents
             GameEvents.onEditorPartEvent.Remove(OnEditorEvent);
             GameEvents.onVariantApplied.Remove(OnVariantApplied);
 
             // remove from preCull delegate
             Camera.onPreCull -= Render;
+
+            // destroy material properties object
+            Destroy(materialProperties);
         }
 
         protected void OnSizeTweakEvent(BaseField field, object obj) {
@@ -229,7 +254,7 @@ namespace ConformalDecals {
             // add to preCull delegate
             Camera.onPreCull += Render;
 
-            //UpdateScale();
+            UpdateScale();
             UpdateTargets();
             UpdateProjection();
         }
@@ -244,13 +269,13 @@ namespace ConformalDecals {
             // remove from preCull delegate
             Camera.onPreCull -= Render;
 
-            //UpdateScale();
+            UpdateScale();
         }
 
         protected void UpdateScale() {
             var aspectRatio = materialProperties.AspectRatio;
             this.Log($"Aspect ratio is {aspectRatio}");
-            var size = new Vector2(scale, scale * materialProperties.AspectRatio);
+            var size = new Vector2(scale, scale * aspectRatio);
 
             // update orthogonal matrix scale
             _orthoMatrix = Matrix4x4.identity;
@@ -278,33 +303,13 @@ namespace ConformalDecals {
             }
 
             // update material scale
-            materialProperties.SetScale(size);
+            materialProperties.UpdateScale(size);
         }
 
         protected void UpdateMaterials() {
             materialProperties.UpdateMaterials();
             _decalMaterial = materialProperties.DecalMaterial;
             _previewMaterial = materialProperties.PreviewMaterial;
-
-            // get back material if necessary
-            if (updateBackScale) {
-                this.Log("Getting material and base scale for back material");
-                var backRenderer = decalBackTransform.GetComponent<MeshRenderer>();
-                if (backRenderer == null) {
-                    this.LogError($"Specified decalBack transform {decalBack} has no renderer attached! Setting updateBackScale to false.");
-                    updateBackScale = false;
-                }
-                else {
-                    backMaterial = backRenderer.material;
-                    if (backMaterial == null) {
-                        this.LogError($"Specified decalBack transform {decalBack} has a renderer but no material! Setting updateBackScale to false.");
-                        updateBackScale = false;
-                    }
-                    else {
-                        if (backTextureBaseScale == default) backTextureBaseScale = backMaterial.GetTextureScale(PropertyIDs._MainTex);
-                    }
-                }
-            }
 
             if (decalFrontTransform == null) {
                 this.LogError("No reference to decal front transform");
@@ -340,21 +345,15 @@ namespace ConformalDecals {
                 if (renderer.gameObject.activeInHierarchy == false) continue;
 
                 // skip blacklisted shaders
-                if (ConformalDecalConfig.IsBlacklisted(renderer.material.shader)) {
-                    this.Log($"Skipping blacklisted shader '{renderer.material.shader.name}' in '{renderer.gameObject.name}'");
-                    continue;
-                }
+                if (ConformalDecalConfig.IsBlacklisted(renderer.material.shader)) continue;
 
                 var meshFilter = renderer.GetComponent<MeshFilter>();
                 if (meshFilter == null) continue; // object has a meshRenderer with no filter, invalid
                 var mesh = meshFilter.mesh;
                 if (mesh == null) continue; // object has a null mesh, invalid
 
-                this.Log($"Adding target for object {meshFilter.gameObject.name} with the mesh {mesh.name}");
                 // create new ProjectionTarget to represent the renderer
                 var target = new ProjectionTarget(renderer, mesh, useBaseNormal);
-
-                this.Log("done.");
 
                 // add the target to the list
                 _targets.Add(target);

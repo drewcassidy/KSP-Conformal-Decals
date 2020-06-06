@@ -56,16 +56,7 @@ namespace ConformalDecals.MaterialModifiers {
             }
         }
 
-        public float AspectRatio {
-            get {
-                if (MainTexture == null) {
-                    Debug.Log("No main texture specified! returning 1 for aspect ratio");
-                    return 1;
-                }
-
-                return MainTexture.AspectRatio;
-            }
-        }
+        public float AspectRatio => MainTexture == null ? 1 : MainTexture.AspectRatio;
 
         public void OnBeforeSerialize() {
             Debug.Log($"Serializing MaterialPropertyCollection {this.GetInstanceID()}");

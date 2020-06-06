@@ -3,7 +3,7 @@ using UnityEngine;
 
 namespace ConformalDecals {
     [KSPAddon(KSPAddon.Startup.EditorAny, true)]
-    public class ConformalDecalIconFixer : MonoBehaviour {
+    public class DecalIconFixer : MonoBehaviour {
         private static readonly List<string> PartNames = new List<string>();
 
         public static void QueuePart(string name) {
@@ -11,12 +11,12 @@ namespace ConformalDecals {
         }
 
         public void Start() {
-            foreach (var name in PartNames) {
-                Debug.Log($"Unf*&king decal preview on {name}");
-                var partInfo = PartLoader.getPartInfoByName(name);
+            foreach (var partName in PartNames) {
+                Debug.Log($"Unf*&king decal preview on {partName}");
+                var partInfo = PartLoader.getPartInfoByName(partName);
 
                 if (partInfo == null) {
-                    Debug.Log($"Part {name} not found!");
+                    Debug.Log($"Part {partName} not found!");
                     continue;
                 }
 
@@ -24,21 +24,16 @@ namespace ConformalDecals {
 
                 var decalModule = partInfo.partPrefab.FindModuleImplementing<ModuleConformalDecalBase>();
 
-                if (partInfo == null) {
-                    Debug.Log($"Part {name} has no decal module!");
-                    continue;
-                }
-
                 var frontTransform = Part.FindHeirarchyTransform(icon.transform, decalModule.decalFront);
                 var backTransform = Part.FindHeirarchyTransform(icon.transform, decalModule.decalBack);
 
                 if (frontTransform == null) {
-                    Debug.Log($"Part {name} has no frontTransform");
+                    Debug.Log($"Part {partName} has no frontTransform");
                     continue;
                 }
 
                 if (backTransform == null) {
-                    Debug.Log($"Part {name} has no backTransform");
+                    Debug.Log($"Part {partName} has no backTransform");
                     continue;
                 }
 
@@ -52,7 +47,8 @@ namespace ConformalDecals {
                 }
 
                 backTransform.GetComponent<MeshRenderer>().material = decalModule.backMaterial;
-
+                frontTransform.GetComponent<MeshRenderer>().material = decalModule.materialProperties.PreviewMaterial;
+                    
                 if (decalModule.updateBackScale) {
                     backTransform.GetComponent<MeshRenderer>().material.SetTextureScale(PropertyIDs._MainTex, backScale);
                 }

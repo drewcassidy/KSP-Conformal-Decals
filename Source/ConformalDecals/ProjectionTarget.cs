@@ -4,28 +4,28 @@ using UnityEngine.Rendering;
 
 namespace ConformalDecals {
     public class ProjectionTarget {
-        private static readonly int _projectionMatrixID = Shader.PropertyToID("_ProjectionMatrix");
-        private static readonly int _decalNormalID      = Shader.PropertyToID("_DecalNormal");
-        private static readonly int _decalTangentID     = Shader.PropertyToID("_DecalTangent");
-
         // Target object data
         public readonly Transform target;
 
         private readonly Renderer _targetRenderer;
         private readonly Mesh     _targetMesh;
         private          bool     _projectionEnabled;
+        private readonly int      _cullMode;
 
         // property block
         private readonly MaterialPropertyBlock _decalMPB;
-
-        private static readonly int normalID        = Shader.PropertyToID("_BumpMap");
-        private static readonly int normalIDST      = Shader.PropertyToID("_BumpMap_ST");
 
         public ProjectionTarget(MeshRenderer targetRenderer, Mesh targetMesh, bool useBaseNormal) {
             target = targetRenderer.transform;
             _targetRenderer = targetRenderer;
             _targetMesh = targetMesh;
             _decalMPB = new MaterialPropertyBlock();
+
+            var targetScale = target.lossyScale;
+            Debug.Log($"{target.name} scale = {targetScale}");
+            var targetDeterminant = (targetScale.x * targetScale.y * targetScale.z);
+            _cullMode = targetDeterminant < 0 ? (int) CullMode.Front : (int) CullMode.Back;
+            _decalMPB.SetInt(DecalPropertyIDs._Cull, 0);
         }
 
         public void Project(Matrix4x4 orthoMatrix, OrientedBounds projectorBounds, Transform projector, bool useBaseNormal) {
@@ -40,21 +40,21 @@ namespace ConformalDecals {
                 var decalNormal = projectorToTargetMatrix.MultiplyVector(Vector3.back).normalized;
                 var decalTangent = projectorToTargetMatrix.MultiplyVector(Vector3.right).normalized;
 
-                _decalMPB.SetMatrix(_projectionMatrixID, projectionMatrix);
-                _decalMPB.SetVector(_decalNormalID, decalNormal);
-                _decalMPB.SetVector(_decalTangentID, decalTangent);
+                _decalMPB.SetMatrix(DecalPropertyIDs._ProjectionMatrix, projectionMatrix);
+                _decalMPB.SetVector(DecalPropertyIDs._DecalNormal, decalNormal);
+                _decalMPB.SetVector(DecalPropertyIDs._DecalTangent, decalTangent);
                 Debug.Log($"Projection enabled for {target.gameObject}");
-                
-                if (useBaseNormal && targetMaterial.HasProperty(normalID)) {
-                    var normal = targetMaterial.GetTexture(normalID);
+
+                if (useBaseNormal && targetMaterial.HasProperty(DecalPropertyIDs._BumpMap)) {
+                    var normal = targetMaterial.GetTexture(DecalPropertyIDs._BumpMap);
                     if (normal != null) {
 
-                        _decalMPB.SetTexture(normalID, targetMaterial.GetTexture(normalID));
+                        _decalMPB.SetTexture(DecalPropertyIDs._BumpMap, targetMaterial.GetTexture(DecalPropertyIDs._BumpMap));
 
-                        var normalScale = targetMaterial.GetTextureScale(normalID);
-                        var normalOffset = targetMaterial.GetTextureOffset(normalID);
+                        var normalScale = targetMaterial.GetTextureScale(DecalPropertyIDs._BumpMap);
+                        var normalOffset = targetMaterial.GetTextureOffset(DecalPropertyIDs._BumpMap);
 
-                        _decalMPB.SetVector(normalIDST, new Vector4(normalScale.x, normalScale.y, normalOffset.x, normalOffset.y));
+                        _decalMPB.SetVector(DecalPropertyIDs._BumpMap_ST, new Vector4(normalScale.x, normalScale.y, normalOffset.x, normalOffset.y));
                     }
                 }
             }

@@ -99,7 +99,7 @@ namespace ConformalDecals {
 
                 // find model transform
                 if (string.IsNullOrEmpty(decalModel)) {
-                    decalModelTransform = part.transform.Find("model");
+                    decalModelTransform = decalFrontTransform;
                 }
                 else {
                     decalModelTransform = part.FindModelTransform(decalModel);
@@ -135,7 +135,7 @@ namespace ConformalDecals {
                     }
                 }
                 
-                ConformalDecalIconFixer.QueuePart(part.name);
+                DecalIconFixer.QueuePart(part.name);
                 
                 // set shader
                 materialProperties.SetShader(shader);
@@ -148,6 +148,9 @@ namespace ConformalDecals {
                 UpdateMaterials();
                 UpdateScale();
                 UpdateProjection();
+            }
+            else {
+                UpdateScale();
             }
         }
 
@@ -176,7 +179,6 @@ namespace ConformalDecals {
             materialProperties.SetRenderQueue(DecalQueue);
 
             UpdateMaterials();
-            UpdateScale();
             
             if (HighLogic.LoadedSceneIsGame) {
                 // set initial attachment state
@@ -308,6 +310,9 @@ namespace ConformalDecals {
 
         protected void UpdateMaterials() {
             materialProperties.UpdateMaterials();
+            materialProperties.SetOpacity(opacity);
+            materialProperties.SetCutoff(cutoff);
+            
             _decalMaterial = materialProperties.DecalMaterial;
             _previewMaterial = materialProperties.PreviewMaterial;
 
@@ -345,7 +350,7 @@ namespace ConformalDecals {
                 if (renderer.gameObject.activeInHierarchy == false) continue;
 
                 // skip blacklisted shaders
-                if (ConformalDecalConfig.IsBlacklisted(renderer.material.shader)) continue;
+                if (DecalConfig.IsBlacklisted(renderer.material.shader)) continue;
 
                 var meshFilter = renderer.GetComponent<MeshFilter>();
                 if (meshFilter == null) continue; // object has a meshRenderer with no filter, invalid

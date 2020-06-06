@@ -2,7 +2,7 @@ using System.Collections.Generic;
 using UnityEngine;
 
 namespace ConformalDecals {
-    public static class ConformalDecalConfig {
+    public static class DecalConfig {
         private static List<string> _shaderBlacklist;
 
         public static bool IsBlacklisted(Shader shader) {

@@ -1,22 +1,13 @@
-using ConformalDecals.MaterialModifiers;
 using ConformalDecals.Util;
-using UnityEngine;
 
 namespace ConformalDecals {
     public class ModuleConformalDecalFlag : ModuleConformalDecalBase {
-        [KSPField] public MaterialTextureProperty flagTextureProperty;
-
-        private const string defaultFlag = "Squad/Flags/default";
+        private const string DefaultFlag = "Squad/Flags/default";
 
         public override void OnLoad(ConfigNode node) {
             base.OnLoad(node);
 
-            if (HighLogic.LoadedSceneIsGame) {
-                UpdateFlag(EditorLogic.FlagURL != string.Empty ? EditorLogic.FlagURL : HighLogic.CurrentGame.flagURL);
-            }
-            else {
-                UpdateFlag(defaultFlag);
-            }
+            UpdateFlag(GetDefaultFlag());
         }
 
         public override void OnStart(StartState state) {
@@ -25,6 +16,8 @@ namespace ConformalDecals {
             if (HighLogic.LoadedSceneIsGame) {
                 GameEvents.onMissionFlagSelect.Add(UpdateFlag);
             }
+
+            UpdateFlag(GetDefaultFlag());
         }
 
         public override void OnIconCreate() {
@@ -37,6 +30,15 @@ namespace ConformalDecals {
             base.OnDestroy();
         }
 
+        private string GetDefaultFlag() {
+            if (HighLogic.LoadedSceneIsGame) {
+                return EditorLogic.FlagURL != string.Empty ? EditorLogic.FlagURL : HighLogic.CurrentGame.flagURL;
+            }
+            else {
+                return DefaultFlag;
+            }
+        }
+
         private void UpdateFlag(string flagUrl) {
             this.Log($"Loading flag texture '{flagUrl}'.");
             var flagTexture = GameDatabase.Instance.GetTexture(flagUrl, false);
@@ -45,18 +47,7 @@ namespace ConformalDecals {
                 return;
             }
 
-            if (flagTextureProperty == null) {
-                this.Log("Initializing flag property");
-                flagTextureProperty = ScriptableObject.CreateInstance<MaterialTextureProperty>();
-                flagTextureProperty.PropertyName = "_Decal";
-                flagTextureProperty.isMain = true;
-                materialProperties.AddProperty(flagTextureProperty);
-                materialProperties.MainTexture = flagTextureProperty;
-            }
-            else { }
-
-            flagTextureProperty.texture = flagTexture;
-
+            materialProperties.AddOrGetTextureProperty("_Decal", true).texture = flagTexture;
 
             UpdateMaterials();
         }

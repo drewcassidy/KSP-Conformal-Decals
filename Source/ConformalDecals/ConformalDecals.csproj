@@ -49,8 +49,9 @@
         </Reference>
     </ItemGroup>
     <ItemGroup>
-        <Compile Include="ConformalDecalConfig.cs" />
-        <Compile Include="ConformalDecalIconFixer.cs" />
+        <Compile Include="DecalConfig.cs" />
+        <Compile Include="DecalIconFixer.cs" />
+        <Compile Include="DecalPropertyIDs.cs" />
         <Compile Include="MaterialModifiers\MaterialColorProperty.cs" />
         <Compile Include="MaterialModifiers\MaterialFloatProperty.cs" />
         <Compile Include="MaterialModifiers\MaterialProperty.cs" />

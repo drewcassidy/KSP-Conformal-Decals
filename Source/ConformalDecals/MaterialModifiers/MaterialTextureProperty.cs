@@ -8,9 +8,12 @@ namespace ConformalDecals.MaterialModifiers {
         [SerializeField] public bool isNormal;
         [SerializeField] public bool isMain;
         [SerializeField] public bool autoScale;
+        [SerializeField] public bool autoTile;
 
         [SerializeField] private bool    _hasTile;
         [SerializeField] private Rect    _tileRect;
+        [SerializeField] private Vector2 _baseTextureScale  = Vector2.one;
+        
         [SerializeField] private Vector2 _textureOffset = Vector2.zero;
         [SerializeField] private Vector2 _textureScale  = Vector2.one;
 
@@ -27,6 +30,7 @@ namespace ConformalDecals.MaterialModifiers {
         public Rect TileRect {
             get => _tileRect;
             set {
+                if (autoTile) return;
                 _hasTile = !(Mathf.Abs(value.width) < 0.1) || !(Mathf.Abs(value.height) < 0.1);
 
                 _tileRect = value;
@@ -40,10 +44,11 @@ namespace ConformalDecals.MaterialModifiers {
             isNormal = ParsePropertyBool(node, "isNormalMap", true, (PropertyName == "_BumpMap") || (PropertyName == "_DecalBumpMap") || isNormal);
             isMain = ParsePropertyBool(node, "isMain", true, isMain);
             autoScale = ParsePropertyBool(node, "autoScale", true, autoScale);
+            autoTile = ParsePropertyBool(node, "autoTile", true, autoTile);
 
             SetTexture(node.GetValue("textureUrl"));
 
-            if (node.HasValue("tileRect")) {
+            if (node.HasValue("tileRect") && !autoTile) {
                 TileRect = ParsePropertyRect(node, "tileRect", true, _tileRect);
             }
         }
@@ -82,23 +87,26 @@ namespace ConformalDecals.MaterialModifiers {
             material.SetTextureScale(_propertyID, _textureScale);
         }
 
-        public void UpdateScale(Material material, Vector2 scale) {
+        public void UpdateScale(Vector2 scale) {
             if (autoScale) {
-                material.SetTextureScale(_propertyID, new Vector2(_textureScale.x * scale.x, _textureScale.y * scale.y));
+                _textureScale = _baseTextureScale * scale;
+            }
+        }
+
+        public void UpdateTiling(Vector2 textureScale, Vector2 textureOffset) {
+            if (autoTile) {
+                _textureScale = textureScale;
+                _textureOffset = textureOffset;
             }
         }
 
         private void UpdateTiling() {
             if (_hasTile) {
-                _textureScale.x = Mathf.Approximately(0, _tileRect.width) ? 1 : _tileRect.width / texture.width;
-                _textureScale.y = Mathf.Approximately(0, _tileRect.height) ? 1 : _tileRect.height / texture.height;
-
-                _textureOffset.x = _tileRect.x / texture.width;
-                _textureOffset.y = _tileRect.y / texture.height;
+                _baseTextureScale.x = Mathf.Approximately(0, _tileRect.width) ? 1 : _tileRect.width / texture.width;
+                _baseTextureScale.y = Mathf.Approximately(0, _tileRect.height) ? 1 : _tileRect.height / texture.height;
             }
             else {
-                _textureScale = Vector2.one;
-                _textureOffset = Vector2.zero;
+                _baseTextureScale = Vector2.one;
             }
         }
     }

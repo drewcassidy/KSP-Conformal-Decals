@@ -210,10 +210,31 @@ namespace ConformalDecals.MaterialModifiers {
         public void UpdateScale(Vector2 scale) {
             foreach (var entry in _materialProperties) {
                 if (entry.Value is MaterialTextureProperty textureProperty) {
-                    textureProperty.UpdateScale(DecalMaterial, scale);
-                    textureProperty.UpdateScale(PreviewMaterial, scale);
+                    textureProperty.UpdateScale(scale);
+                    textureProperty.Modify(_decalMaterial);
+                    textureProperty.Modify(_previewMaterial);
                 }
             }
+        }
+
+        public void UpdateTile(Rect tile) {
+            if (_mainTexture == null) throw new InvalidOperationException("UpdateTile called but no main texture is specified!");
+            Vector2 scale;
+            Vector2 offset;
+            
+            scale.x = tile.width / _mainTexture.texture.width;
+            scale.y = tile.height / _mainTexture.texture.height;
+
+            offset.x = tile.x / _mainTexture.texture.width;
+            offset.y = tile.y / _mainTexture.texture.height;
+            
+            foreach (var entry in _materialProperties) {
+                if (entry.Value is MaterialTextureProperty textureProperty) {
+                    textureProperty.UpdateTiling(scale, offset);
+                    textureProperty.Modify(_decalMaterial);
+                    textureProperty.Modify(_previewMaterial);
+                }
+            } 
         }
 
         public void SetOpacity(float opacity) {

@@ -1,7 +1,7 @@
 using ConformalDecals.Util;
 
 namespace ConformalDecals {
-    public class ModuleConformalDecalFlag : ModuleConformalDecalBase {
+    public class ModuleConformalFlag : ModuleConformalDecal {
         private const string DefaultFlag = "Squad/Flags/default";
 
         public override void OnLoad(ConfigNode node) {
@@ -18,11 +18,6 @@ namespace ConformalDecals {
             }
 
             UpdateFlag(GetDefaultFlag());
-        }
-
-        public override void OnIconCreate() {
-            this.Log("called OnIconCreate");
-            UpdateScale();
         }
 
         public override void OnDestroy() {

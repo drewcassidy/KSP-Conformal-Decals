@@ -22,7 +22,7 @@ namespace ConformalDecals {
 
                 var icon = partInfo.iconPrefab;
 
-                var decalModule = partInfo.partPrefab.FindModuleImplementing<ModuleConformalDecalBase>();
+                var decalModule = partInfo.partPrefab.FindModuleImplementing<ModuleConformalDecal>();
 
                 var frontTransform = Part.FindHeirarchyTransform(icon.transform, decalModule.decalFront);
                 var backTransform = Part.FindHeirarchyTransform(icon.transform, decalModule.decalBack);

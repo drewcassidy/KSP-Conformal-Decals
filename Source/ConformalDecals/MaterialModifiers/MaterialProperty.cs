@@ -1,6 +1,5 @@
 using System;
 using UnityEngine;
-using Object = UnityEngine.Object;
 
 namespace ConformalDecals.MaterialModifiers {
     public abstract class MaterialProperty : ScriptableObject {
@@ -16,7 +15,7 @@ namespace ConformalDecals.MaterialModifiers {
         [SerializeField] protected string _propertyName;
 
         public virtual void ParseNode(ConfigNode node) {
-            if (node == null) throw new ArgumentNullException("node cannot be null");
+            if (node == null) throw new ArgumentNullException(nameof(node));
 
             PropertyName = node.GetValue("name");
         }

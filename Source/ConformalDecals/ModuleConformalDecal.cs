@@ -5,7 +5,7 @@ using ConformalDecals.Util;
 using UnityEngine;
 
 namespace ConformalDecals {
-    public abstract class ModuleConformalDecalBase : PartModule {
+    public class ModuleConformalDecal : PartModule {
         [KSPField(guiName = "#LOC_ConformalDecals_gui-scale", guiActive = false, guiActiveEditor = true, isPersistant = true, guiFormat = "F2", guiUnits = "m"),
          UI_FloatRange(stepIncrement = 0.05f)]
         public float scale = 1.0f;
@@ -76,10 +76,23 @@ namespace ConformalDecals {
                 return _decalQueueCounter;
             }
         }
+        
+        public override void OnAwake() {
+            base.OnAwake();
 
+            if (materialProperties == null) {
+                materialProperties = ScriptableObject.CreateInstance<MaterialPropertyCollection>();
+            }
+            else {
+                materialProperties = ScriptableObject.Instantiate(materialProperties);
+            }
+        }
+        
         public override void OnLoad(ConfigNode node) {
             this.Log("Loading module");
             try {
+                // SETUP TRANSFORMS
+                
                 // find front transform
                 decalFrontTransform = part.FindModelTransform(decalFront);
                 if (decalFrontTransform == null) throw new FormatException($"Could not find decalFront transform: '{decalFront}'.");
@@ -135,34 +148,52 @@ namespace ConformalDecals {
                     }
                 }
                 
-                DecalIconFixer.QueuePart(part.name);
-                
+                // PARSE MATERIAL PROPERTIES
+
                 // set shader
                 materialProperties.SetShader(shader);
+                
+                // add texture nodes
+                foreach (var textureNode in node.GetNodes("TEXTURE")) {
+                    materialProperties.ParseProperty<MaterialTextureProperty>(textureNode);
+                }
+
+                // add float nodes
+                foreach (var floatNode in node.GetNodes("FLOAT")) {
+                    materialProperties.ParseProperty<MaterialTextureProperty>(floatNode);
+                }
+
+                // add color nodes
+                foreach (var colorNode in node.GetNodes("COLOR")) {
+                    materialProperties.ParseProperty<MaterialColorProperty>(colorNode);
+                }
+                
+                var tileString = node.GetValue("tile");
+                if (!string.IsNullOrEmpty(tileString)) {
+                    var tileValid = ParseExtensions.TryParseRect(tileString, out var tile);
+
+                    if (!tileValid) throw new FormatException($"Improperly formatted value for tile '{tileString}");
+                    else {
+                        materialProperties.UpdateTile(tile);
+                    }
+                }
+
+                // QUEUE PART FOR ICON FIXING IN VAB
+                DecalIconFixer.QueuePart(part.name);
             }
             catch (Exception e) {
                 this.LogException("Exception parsing partmodule", e);
             }
-            
+
             if (HighLogic.LoadedSceneIsGame) {
                 UpdateMaterials();
                 UpdateScale();
                 UpdateProjection();
             }
-            else {
-                UpdateScale();
-            }
         }
-
-        public override void OnAwake() {
-            base.OnAwake();
-
-            if (materialProperties == null) {
-                materialProperties = ScriptableObject.CreateInstance<MaterialPropertyCollection>();
-            }
-            else {
-                materialProperties = ScriptableObject.Instantiate(materialProperties);
-            }
+        
+        public override void OnIconCreate() {
+            UpdateScale();
         }
 
         public override void OnStart(StartState state) {
@@ -175,11 +206,11 @@ namespace ConformalDecals {
 
                 UpdateTweakables();
             }
-            
+
             materialProperties.SetRenderQueue(DecalQueue);
 
             UpdateMaterials();
-            
+
             if (HighLogic.LoadedSceneIsGame) {
                 // set initial attachment state
                 if (part.parent == null) {
@@ -312,7 +343,7 @@ namespace ConformalDecals {
             materialProperties.UpdateMaterials();
             materialProperties.SetOpacity(opacity);
             materialProperties.SetCutoff(cutoff);
-            
+
             _decalMaterial = materialProperties.DecalMaterial;
             _previewMaterial = materialProperties.PreviewMaterial;
 

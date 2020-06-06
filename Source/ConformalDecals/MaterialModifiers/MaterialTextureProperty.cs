@@ -16,15 +16,9 @@ namespace ConformalDecals.MaterialModifiers {
 
         public float AspectRatio {
             get {
-                if (texture == null) {
-                    Debug.Log("Returning 1");
-                    return 1;
-                }
+                if (texture == null) return 1;
 
-                if (!_hasTile) {
-                    Debug.Log("Returning texture aspect ratio");
-                    return ((float) texture.height) / ((float) texture.width);
-                }
+                if (!_hasTile) return ((float) texture.height) / texture.width;
 
                 return _tileRect.height / _tileRect.width;
             }

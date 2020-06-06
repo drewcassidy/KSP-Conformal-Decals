@@ -358,7 +358,7 @@ namespace ConformalDecals {
                 if (mesh == null) continue; // object has a null mesh, invalid
 
                 // create new ProjectionTarget to represent the renderer
-                var target = new ProjectionTarget(renderer, mesh, useBaseNormal);
+                var target = new ProjectionTarget(renderer, mesh);
 
                 // add the target to the list
                 _targets.Add(target);

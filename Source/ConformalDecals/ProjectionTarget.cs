@@ -10,22 +10,15 @@ namespace ConformalDecals {
         private readonly Renderer _targetRenderer;
         private readonly Mesh     _targetMesh;
         private          bool     _projectionEnabled;
-        private readonly int      _cullMode;
 
         // property block
         private readonly MaterialPropertyBlock _decalMPB;
 
-        public ProjectionTarget(MeshRenderer targetRenderer, Mesh targetMesh, bool useBaseNormal) {
+        public ProjectionTarget(MeshRenderer targetRenderer, Mesh targetMesh) {
             target = targetRenderer.transform;
             _targetRenderer = targetRenderer;
             _targetMesh = targetMesh;
             _decalMPB = new MaterialPropertyBlock();
-
-            var targetScale = target.lossyScale;
-            Debug.Log($"{target.name} scale = {targetScale}");
-            var targetDeterminant = (targetScale.x * targetScale.y * targetScale.z);
-            _cullMode = targetDeterminant < 0 ? (int) CullMode.Front : (int) CullMode.Back;
-            _decalMPB.SetInt(DecalPropertyIDs._Cull, 0);
         }
 
         public void Project(Matrix4x4 orthoMatrix, OrientedBounds projectorBounds, Transform projector, bool useBaseNormal) {

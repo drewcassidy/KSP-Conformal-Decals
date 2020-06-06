@@ -43,7 +43,7 @@ namespace ConformalDecals.MaterialModifiers {
         public override void ParseNode(ConfigNode node) {
             base.ParseNode(node);
 
-            isNormal = ParsePropertyBool(node, "isNormalMap", true, (PropertyName == "_BumpMap") || isNormal);
+            isNormal = ParsePropertyBool(node, "isNormalMap", true, (PropertyName == "_BumpMap") || (PropertyName == "_DecalBumpMap") || isNormal);
             isMain = ParsePropertyBool(node, "isMain", true, isMain);
             autoScale = ParsePropertyBool(node, "autoScale", true, autoScale);
 

@@ -24,7 +24,7 @@ namespace ConformalDecals.MaterialModifiers {
                 if (_decalMaterial == null) {
                     _decalMaterial = new Material(_shader);
                     UpdateMaterial(_decalMaterial);
-                    
+
                     _decalMaterial.SetInt(DecalPropertyIDs._Cull, (int) CullMode.Off);
                 }
 
@@ -97,6 +97,15 @@ namespace ConformalDecals.MaterialModifiers {
         public void Awake() {
             Debug.Log($"MaterialPropertyCollection {this.GetInstanceID()} onAwake");
             _materialProperties ??= new Dictionary<string, MaterialProperty>();
+        }
+
+        public void OnDestroy() {
+            if (_decalMaterial != null) Destroy(_decalMaterial);
+            if (_previewMaterial != null) Destroy(_previewMaterial);
+
+            foreach (var entry in _materialProperties) {
+                Destroy(entry.Value);
+            }
         }
 
         public void AddProperty(MaterialProperty property) {
@@ -244,7 +253,7 @@ namespace ConformalDecals.MaterialModifiers {
 
         public void UpdateMaterial(Material material) {
             if (material == null) throw new ArgumentNullException(nameof(material));
-            
+
 
             foreach (var entry in _materialProperties) {
                 Debug.Log($"Applying material property {entry.Key} {entry.Value.PropertyName} {entry.Value.GetInstanceID()}");

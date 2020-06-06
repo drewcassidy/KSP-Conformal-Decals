@@ -25,7 +25,7 @@ namespace ConformalDecals.MaterialModifiers {
                     _decalMaterial = new Material(_shader);
                     UpdateMaterial(_decalMaterial);
                     
-                    _previewMaterial.SetInt(DecalPropertyIDs._Cull, (int) CullMode.Off);
+                    _decalMaterial.SetInt(DecalPropertyIDs._Cull, (int) CullMode.Off);
                 }
 
                 return _decalMaterial;

@@ -71,9 +71,7 @@ float3 _DecalTangent;
 
 float _Cutoff;
 float _DecalOpacity;
-
 float _Opacity;
-float4 _Background;
 
 inline void decalClipAlpha(float alpha) {
     #ifndef DECAL_PREVIEW 
@@ -223,9 +221,9 @@ fixed4 frag_forward(v2f IN) : SV_Target
     surf(i, o);
    
     #ifdef DECAL_PREVIEW
-        o.Albedo = lerp(_Background.rgb,o.Albedo, o.Alpha);
+        o.Albedo = lerp(_Color.rgb,o.Albedo, o.Alpha);
         o.Normal = lerp(float3(0,0,1), o.Normal, o.Alpha);
-        o.Gloss = lerp(_Background.a, o.Gloss, o.Alpha);
+        o.Gloss = lerp(_Color.a, o.Gloss, o.Alpha);
         o.Emission = lerp(0, o.Emission, o.Alpha);
         o.Alpha = _Opacity;
     #endif //DECAL_PREVIEW 

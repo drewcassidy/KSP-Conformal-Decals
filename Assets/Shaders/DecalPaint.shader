@@ -11,10 +11,10 @@ Shader "ConformalDecals/Paint/Diffuse"
 	
 	    _Cutoff ("Alpha cutoff", Range(0,1)) = 0.5
 		_DecalOpacity("Opacity", Range(0,1) ) = 1
-		_Background("Background Color", Color) = (0.9,0.9,0.9,0.7)
+		_Color("Background Color", Color) = (0.9,0.9,0.9,0.7)
 		
-        [Enum(UnityEngine.Rendering.CullMode)] _Cull ("Cull", Float) = 0
-        [Toggle(DECAL_PREVIEW)] _Preview ("Preview", Float) = 0
+        [Enum(UnityEngine.Rendering.CullMode)] _Cull ("Cull", int) = 2
+        [Toggle(DECAL_PREVIEW)] _Preview ("Preview", int) = 0
 
 		[Header(Effects)]
 		    [PerRendererData]_Opacity("_Opacity", Range(0,1) ) = 1

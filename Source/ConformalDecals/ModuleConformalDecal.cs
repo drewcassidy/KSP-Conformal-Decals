@@ -9,34 +9,6 @@ namespace ConformalDecals {
         // CONFIGURABLE VALUES
 
         /// <summary>
-        /// Decal scale factor, in meters.
-        /// </summary>
-        [KSPField(guiName = "#LOC_ConformalDecals_gui-scale", guiActive = false, guiActiveEditor = true, isPersistant = true, guiFormat = "F2", guiUnits = "m"),
-         UI_FloatRange(stepIncrement = 0.05f)]
-        public float scale = 1.0f;
-
-        /// <summary>
-        /// Projection depth value for the decal projector, in meters.
-        /// </summary>
-        [KSPField(guiName = "#LOC_ConformalDecals_gui-depth", guiActive = false, guiActiveEditor = true, isPersistant = true, guiFormat = "F2", guiUnits = "m"),
-         UI_FloatRange(stepIncrement = 0.02f)]
-        public float depth = 0.2f;
-
-        /// <summary>
-        /// Opacity value for the decal shader.
-        /// </summary>
-        [KSPField(guiName = "#LOC_ConformalDecals_gui-opacity", guiActive = false, guiActiveEditor = true, isPersistant = true, guiFormat = "P0"),
-         UI_FloatRange(stepIncrement = 0.05f)]
-        public float opacity = 1.0f;
-
-        /// <summary>
-        /// Alpha cutoff value for the decal shader.
-        /// </summary>
-        [KSPField(guiName = "#LOC_ConformalDecals_gui-cutoff", guiActive = false, guiActiveEditor = true, isPersistant = true, guiFormat = "P0"),
-         UI_FloatRange(stepIncrement = 0.05f)]
-        public float cutoff = 0.5f;
-
-        /// <summary>
         /// Shader name. Should be one that supports decal projection.
         /// </summary>
         [KSPField] public string shader = "ConformalDecals/Paint/Diffuse";
@@ -67,71 +39,27 @@ namespace ConformalDecals {
         /// </remarks>
         [KSPField] public string decalProjector = string.Empty;
 
-        /// <summary>
-        /// Should the scale be adjustable in the editor? Default true.
-        /// </summary>
-        [KSPField] public bool scaleAdjustable = true;
+        // Parameters
 
-        /// <summary>
-        /// Should the depth be adjustable in the editor? Default true.
-        /// </summary>
-        [KSPField] public bool depthAdjustable = true;
+        [KSPField] public bool    scaleAdjustable = true;
+        [KSPField] public float   defaultScale    = 1;
+        [KSPField] public Vector2 scaleRange      = new Vector2(0, 4);
 
-        /// <summary>
-        /// Should the opacity be adjustable in the editor? Default true.
-        /// </summary>
-        [KSPField] public bool opacityAdjustable = true;
+        [KSPField] public bool    depthAdjustable = true;
+        [KSPField] public float   defaultDepth    = 0.1f;
+        [KSPField] public Vector2 depthRange      = new Vector2(0, 2);
 
-        /// <summary>
-        /// Should the alpha cutoff be adjustable in the editor? Default true.
-        /// </summary>
-        [KSPField] public bool cutoffAdjustable = true;
+        [KSPField] public bool    opacityAdjustable = true;
+        [KSPField] public float   defaultOpacity    = 1;
+        [KSPField] public Vector2 opacityRange      = new Vector2(0, 1);
 
-        /// <summary>
-        /// Available scale range in the editor, in meters. Comma seperated <c>min, max</c>
-        /// </summary>
-        [KSPField] public Vector2 scaleRange = new Vector2(0, 4);
+        [KSPField] public bool    cutoffAdjustable = true;
+        [KSPField] public float   defaultCutoff    = 0;
+        [KSPField] public Vector2 cutoffRange      = new Vector2(0, 1);
 
-        /// <summary>
-        /// Available depth range in the editor, in meters. Comma seperated <c>min, max</c>
-        /// </summary>
-        [KSPField] public Vector2 depthRange = new Vector2(0, 2);
-
-        /// <summary>
-        /// Available opacity range in the editor. Comma seperated <c>min, max</c>
-        /// </summary>
-        [KSPField] public Vector2 opacityRange = new Vector2(0, 1);
-
-        /// <summary>
-        /// Available alpha cutoff range in the editor. Comma seperated <c>min, max</c>
-        /// </summary>
-        [KSPField] public Vector2 cutoffRange = new Vector2(0, 1);
-
-        /// <summary>
-        /// Rectangle mask to use for any autotile textures, in pixels.
-        /// </summary>
-        /// <remarks>
-        /// Overrides <see cref="tileSize"/> and <see cref="tileIndex"/> if specified. Comma seperated <c>x, y, width, height</c>
-        /// </remarks>
-        [KSPField] public Rect tileRect = new Rect(-1, -1, 0, 0);
-
-        /// <summary>
-        /// Tile size for texture atlases, in pixels.
-        /// </summary>
-        /// <remarks>
-        /// Overrided by <see cref="tileRect"/>, Comma seperated <c>width, height</c>
-        /// </remarks>
-        /// <seealso cref="tileIndex"/>
+        [KSPField] public Rect    tileRect = new Rect(-1, -1, 0, 0);
         [KSPField] public Vector2 tileSize;
-
-        /// <summary>
-        /// Tile index for texture atlases, 0-indexed.
-        /// </summary>
-        /// <remarks>
-        /// Overrided by <see cref="tileRect"/>, must be a positive integer. Starts with 0 in the upper left corner.
-        /// </remarks>
-        /// <seealso cref="tileSize"/>
-        [KSPField] public int tileIndex = -1;
+        [KSPField] public int     tileIndex = -1;
 
         /// <summary>
         /// Should the back material scale be updated automatically?
@@ -144,6 +72,34 @@ namespace ConformalDecals {
         [KSPField] public bool useBaseNormal = true;
 
         // INTERNAL VALUES
+
+        /// <summary>
+        /// Decal scale factor, in meters.
+        /// </summary>
+        [KSPField(guiName = "#LOC_ConformalDecals_gui-scale", guiActive = false, guiActiveEditor = true, isPersistant = true, guiFormat = "F2", guiUnits = "m"),
+         UI_FloatRange(stepIncrement = 0.05f)]
+        public float scale = 1.0f;
+
+        /// <summary>
+        /// Projection depth value for the decal projector, in meters.
+        /// </summary>
+        [KSPField(guiName = "#LOC_ConformalDecals_gui-depth", guiActive = false, guiActiveEditor = true, isPersistant = true, guiFormat = "F2", guiUnits = "m"),
+         UI_FloatRange(stepIncrement = 0.02f)]
+        public float depth = 0.2f;
+
+        /// <summary>
+        /// Opacity value for the decal shader.
+        /// </summary>
+        [KSPField(guiName = "#LOC_ConformalDecals_gui-opacity", guiActive = false, guiActiveEditor = true, isPersistant = true, guiFormat = "P0"),
+         UI_FloatRange(stepIncrement = 0.05f)]
+        public float opacity = 1.0f;
+
+        /// <summary>
+        /// Alpha cutoff value for the decal shader.
+        /// </summary>
+        [KSPField(guiName = "#LOC_ConformalDecals_gui-cutoff", guiActive = false, guiActiveEditor = true, isPersistant = true, guiFormat = "P0"),
+         UI_FloatRange(stepIncrement = 0.05f)]
+        public float cutoff = 0.5f;
 
         [KSPField] public MaterialPropertyCollection materialProperties;
 
@@ -163,7 +119,6 @@ namespace ConformalDecals {
 
         private bool      _isAttached;
         private Matrix4x4 _orthoMatrix;
-        private Bounds    _decalBounds;
 
         private Material _decalMaterial;
         private Material _previewMaterial;
@@ -296,6 +251,12 @@ namespace ConformalDecals {
 
             if (HighLogic.LoadedSceneIsGame) {
                 UpdateScale();
+            }
+            else {
+                scale = defaultScale;
+                depth = defaultDepth;
+                opacity = defaultOpacity;
+                cutoff = defaultCutoff;
             }
         }
 
@@ -500,21 +461,28 @@ namespace ConformalDecals {
             opacityField.guiActiveEditor = opacityAdjustable;
             cutoffField.guiActiveEditor = cutoffAdjustable;
 
+            var steps = 20;
+
             if (scaleAdjustable) {
                 var minValue = Mathf.Max(Mathf.Epsilon, scaleRange.x);
                 var maxValue = Mathf.Max(minValue, scaleRange.y);
 
-                ((UI_FloatRange) scaleField.uiControlEditor).minValue = minValue;
-                ((UI_FloatRange) scaleField.uiControlEditor).maxValue = maxValue;
-                scaleField.uiControlEditor.onFieldChanged = OnSizeTweakEvent;
+                var scaleEditor = (UI_FloatRange) scaleField.uiControlEditor;
+                scaleEditor.minValue = minValue;
+                scaleEditor.maxValue = maxValue;
+                scaleEditor.stepIncrement = (maxValue - minValue) / steps;
+                scaleEditor.onFieldChanged = OnSizeTweakEvent;
             }
 
             if (depthAdjustable) {
                 var minValue = Mathf.Max(Mathf.Epsilon, depthRange.x);
                 var maxValue = Mathf.Max(minValue, depthRange.y);
-                ((UI_FloatRange) depthField.uiControlEditor).minValue = minValue;
-                ((UI_FloatRange) depthField.uiControlEditor).maxValue = maxValue;
-                depthField.uiControlEditor.onFieldChanged = OnSizeTweakEvent;
+
+                var depthEditor = (UI_FloatRange) depthField.uiControlEditor;
+                depthEditor.minValue = minValue;
+                depthEditor.maxValue = maxValue;
+                depthEditor.stepIncrement = (maxValue - minValue) / steps;
+                depthEditor.onFieldChanged = OnSizeTweakEvent;
             }
 
             if (opacityAdjustable) {
@@ -522,9 +490,11 @@ namespace ConformalDecals {
                 var maxValue = Mathf.Max(minValue, opacityRange.y);
                 maxValue = Mathf.Min(1, maxValue);
 
-                ((UI_FloatRange) opacityField.uiControlEditor).minValue = minValue;
-                ((UI_FloatRange) opacityField.uiControlEditor).maxValue = maxValue;
-                opacityField.uiControlEditor.onFieldChanged = OnMaterialTweakEvent;
+                var opacityEditor = (UI_FloatRange) opacityField.uiControlEditor;
+                opacityEditor.minValue = minValue;
+                opacityEditor.maxValue = maxValue;
+                opacityEditor.stepIncrement = (maxValue - minValue) / steps;
+                opacityEditor.onFieldChanged = OnMaterialTweakEvent;
             }
 
             if (cutoffAdjustable) {
@@ -532,9 +502,11 @@ namespace ConformalDecals {
                 var maxValue = Mathf.Max(minValue, cutoffRange.y);
                 maxValue = Mathf.Min(1, maxValue);
 
-                ((UI_FloatRange) cutoffField.uiControlEditor).minValue = minValue;
-                ((UI_FloatRange) cutoffField.uiControlEditor).maxValue = maxValue;
-                cutoffField.uiControlEditor.onFieldChanged = OnMaterialTweakEvent;
+                var cutoffEditor = (UI_FloatRange) cutoffField.uiControlEditor;
+                cutoffEditor.minValue = minValue;
+                cutoffEditor.maxValue = maxValue;
+                cutoffEditor.stepIncrement = (maxValue - minValue) / steps;
+                cutoffEditor.onFieldChanged = OnMaterialTweakEvent;
             }
         }
 

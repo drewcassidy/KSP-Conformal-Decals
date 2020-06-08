@@ -79,6 +79,22 @@ inline void decalClipAlpha(float alpha) {
     #endif
 }
 
+// modifed version of the KSP BlinnPhong because it does some weird things
+inline fixed4 LightingBlinnPhongDecal(SurfaceOutput s, fixed3 lightDir, half3 viewDir, fixed atten)
+{
+	s.Normal = normalize(s.Normal);
+	half3 h = normalize(lightDir + viewDir);
+
+	fixed diff = max(0, dot(s.Normal, lightDir));
+
+	float nh = max(0, dot(s.Normal, h));
+	float spec = pow(nh, s.Specular*128.0) * s.Gloss;
+
+	fixed4 c = 0;
+	c.rgb = (s.Albedo * _LightColor0.rgb * diff + _LightColor0.rgb * _SpecColor.rgb * spec) * (atten);
+	return c;
+}
+
 // declare surf function, 
 // this must be defined in any shader using this cginc
 void surf (DecalSurfaceInput IN, inout SurfaceOutput o);
@@ -221,7 +237,9 @@ fixed4 frag_forward(v2f IN) : SV_Target
     surf(i, o);
    
     #ifdef DECAL_PREVIEW
-        o.Albedo = lerp(_Color.rgb,o.Albedo, o.Alpha);
+        if (any(IN.uv_decal > 1) || any(IN.uv_decal < 0)) o.Alpha = 0;
+
+        o.Albedo = lerp(_Color.rgb, o.Albedo, o.Alpha);
         o.Normal = lerp(float3(0,0,1), o.Normal, o.Alpha);
         o.Gloss = lerp(_Color.a, o.Gloss, o.Alpha);
         o.Emission = lerp(0, o.Emission, o.Alpha);
@@ -239,21 +257,20 @@ fixed4 frag_forward(v2f IN) : SV_Target
     WorldNormal = normalize(WorldNormal);
     o.Normal = WorldNormal;
     
-    //KSP lighting function
-    c += LightingBlinnPhongSmooth(o, lightDir, worldViewDir, atten);
+    //call modified KSP lighting function
+    c += LightingBlinnPhongDecal(o, lightDir, worldViewDir, atten);
     
     // Forward base emission and ambient/vertex lighting
     #ifdef UNITY_PASS_FORWARDBASE
         c.rgb += o.Emission;
         c.rgb += o.Albedo * IN.vlight;
-        c.a = saturate(c.a);
+        c.a = o.Alpha;
     #endif //UNITY_PASS_FORWARDBASE
     
     // Forward add multiply by alpha
     #ifdef UNITY_PASS_FORWARDADD
-        c.rgb *= c.a;
-        c.a = 0.0;
-    #endif
+        c.rgb *= o.Alpha;
+    #endif 
     
     return c;
 }

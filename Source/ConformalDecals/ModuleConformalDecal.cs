@@ -6,52 +6,148 @@ using UnityEngine;
 
 namespace ConformalDecals {
     public class ModuleConformalDecal : PartModule {
+        // CONFIGURABLE VALUES
+
+        /// <summary>
+        /// Decal scale factor, in meters.
+        /// </summary>
         [KSPField(guiName = "#LOC_ConformalDecals_gui-scale", guiActive = false, guiActiveEditor = true, isPersistant = true, guiFormat = "F2", guiUnits = "m"),
          UI_FloatRange(stepIncrement = 0.05f)]
         public float scale = 1.0f;
 
+        /// <summary>
+        /// Projection depth value for the decal projector, in meters.
+        /// </summary>
         [KSPField(guiName = "#LOC_ConformalDecals_gui-depth", guiActive = false, guiActiveEditor = true, isPersistant = true, guiFormat = "F2", guiUnits = "m"),
          UI_FloatRange(stepIncrement = 0.02f)]
         public float depth = 0.2f;
 
+        /// <summary>
+        /// Opacity value for the decal shader.
+        /// </summary>
         [KSPField(guiName = "#LOC_ConformalDecals_gui-opacity", guiActive = false, guiActiveEditor = true, isPersistant = true, guiFormat = "P0"),
          UI_FloatRange(stepIncrement = 0.05f)]
         public float opacity = 1.0f;
 
+        /// <summary>
+        /// Alpha cutoff value for the decal shader.
+        /// </summary>
         [KSPField(guiName = "#LOC_ConformalDecals_gui-cutoff", guiActive = false, guiActiveEditor = true, isPersistant = true, guiFormat = "P0"),
          UI_FloatRange(stepIncrement = 0.05f)]
         public float cutoff = 0.5f;
 
         [KSPField] public string shader = "ConformalDecals/Paint/Diffuse";
 
-        [KSPField] public string decalFront     = string.Empty;
-        [KSPField] public string decalBack      = string.Empty;
-        [KSPField] public string decalModel     = string.Empty;
+        /// <summary>
+        /// Decal front transform name. Required
+        /// </summary>
+        [KSPField] public string decalFront = string.Empty;
+
+        /// <summary>
+        /// Decal back transform name. Required if <see cref="updateBackScale"/> is true.
+        /// </summary>
+        [KSPField] public string decalBack = string.Empty;
+
+        /// <summary>
+        /// Decal model transform name. Is rescaled to preview the decal scale when unattached.
+        /// </summary>
+        /// <remarks>
+        /// If unspecified, the decal front transform is used instead.
+        /// </remarks>
+        [KSPField] public string decalModel = string.Empty;
+
+        /// <summary>
+        /// Decal projector transform name. The decal will project along the +Z axis of this transform.
+        /// </summary>
+        /// <remarks>
+        /// if unspecified, the part "model" transform will be used instead.
+        /// </remarks>
         [KSPField] public string decalProjector = string.Empty;
+
+        /// <summary>
+        /// Should the scale be adjustable in the editor? Default true.
+        /// </summary>
+        [KSPField] public bool scaleAdjustable = true;
+
+        /// <summary>
+        /// Should the depth be adjustable in the editor? Default true.
+        /// </summary>
+        [KSPField] public bool depthAdjustable = true;
+
+        /// <summary>
+        /// Should the opacity be adjustable in the editor? Default true.
+        /// </summary>
+        [KSPField] public bool opacityAdjustable = true;
+
+        /// <summary>
+        /// Should the alpha cutoff be adjustable in the editor? Default true.
+        /// </summary>
+        [KSPField] public bool cutoffAdjustable = true;
+
+        /// <summary>
+        /// Available scale range in the editor, in meters. Comma seperated <c>min, max</c>
+        /// </summary>
+        [KSPField] public Vector2 scaleRange = new Vector2(0, 4);
+
+        /// <summary>
+        /// Available depth range in the editor, in meters. Comma seperated <c>min, max</c>
+        /// </summary>
+        [KSPField] public Vector2 depthRange = new Vector2(0, 2);
+
+        /// <summary>
+        /// Available opacity range in the editor. Comma seperated <c>min, max</c>
+        /// </summary>
+        [KSPField] public Vector2 opacityRange = new Vector2(0, 1);
+
+        /// <summary>
+        /// Available alpha cutoff range in the editor. Comma seperated <c>min, max</c>
+        /// </summary>
+        [KSPField] public Vector2 cutoffRange = new Vector2(0, 1);
+
+        /// <summary>
+        /// Rectangle mask to use for any autotile textures, in pixels.
+        /// </summary>
+        /// <remarks>
+        /// Overrides <see cref="tileSize"/> and <see cref="tileIndex"/> if specified. Comma seperated <c>x, y, width, height</c>
+        /// </remarks>
+        [KSPField] public Rect tileRect = new Rect(-1, -1, 0, 0);
+
+        /// <summary>
+        /// Tile size for texture atlases, in pixels.
+        /// </summary>
+        /// <remarks>
+        /// Overrided by <see cref="tileRect"/>, Comma seperated <c>width, height</c>
+        /// </remarks>
+        /// <seealso cref="tileIndex"/>
+        [KSPField] public Vector2 tileSize;
+
+        /// <summary>
+        /// Tile index for texture atlases, 0-indexed.
+        /// </summary>
+        /// <remarks>
+        /// Overrided by <see cref="tileRect"/>, must be a positive integer. Starts with 0 in the upper left corner.
+        /// </remarks>
+        /// <seealso cref="tileSize"/>
+        [KSPField] public int tileIndex = -1;
+
+        /// <summary>
+        /// Should the back material scale be updated automatically?
+        /// </summary>
+        [KSPField] public bool updateBackScale = true;
+
+        /// <summary>
+        /// Should the shader use the normal map of the part its projecting onto? Use only with "paint" shaders.
+        /// </summary>
+        [KSPField] public bool useBaseNormal = true;
+
+        // INTERNAL VALUES
+
+        [KSPField] public MaterialPropertyCollection materialProperties;
 
         [KSPField] public Transform decalFrontTransform;
         [KSPField] public Transform decalBackTransform;
         [KSPField] public Transform decalModelTransform;
         [KSPField] public Transform decalProjectorTransform;
-
-        [KSPField] public bool scaleAdjustable   = true;
-        [KSPField] public bool depthAdjustable   = true;
-        [KSPField] public bool opacityAdjustable = true;
-        [KSPField] public bool cutoffAdjustable  = true;
-
-        [KSPField] public Vector2 scaleRange   = new Vector2(0, 4);
-        [KSPField] public Vector2 depthRange   = new Vector2(0, 2);
-        [KSPField] public Vector2 opacityRange = new Vector2(0, 1);
-        [KSPField] public Vector2 cutoffRange  = new Vector2(0, 1);
-
-        [KSPField] public Rect    tileRect = new Rect(-1, -1, 0, 0);
-        [KSPField] public Vector2 tileSize;
-        [KSPField] public int     tileIndex = -1;
-
-        [KSPField] public bool updateBackScale = true;
-        [KSPField] public bool useBaseNormal   = true;
-
-        [KSPField] public MaterialPropertyCollection materialProperties;
 
         [KSPField] public Material backMaterial;
         [KSPField] public Vector2  backTextureBaseScale;
@@ -190,12 +286,11 @@ namespace ConformalDecals {
             catch (Exception e) {
                 this.LogException("Exception parsing partmodule", e);
             }
-            
+
             UpdateMaterials();
 
             if (HighLogic.LoadedSceneIsGame) {
                 UpdateScale();
-                UpdateProjection();
             }
         }
 
@@ -203,6 +298,7 @@ namespace ConformalDecals {
             UpdateScale();
         }
 
+        /// <inheritdoc />
         public override void OnStart(StartState state) {
             this.Log("Starting module");
 
@@ -246,7 +342,7 @@ namespace ConformalDecals {
             // and update projection matrices if attached
             UpdateScale();
             UpdateMaterials();
-            if (_isAttached) UpdateProjection();
+            if (_isAttached) { }
         }
 
         protected void OnMaterialTweakEvent(BaseField field, object obj) {
@@ -271,7 +367,6 @@ namespace ConformalDecals {
                     break;
                 case ConstructionEventType.PartOffsetting:
                 case ConstructionEventType.PartRotating:
-                    UpdateProjection();
                     break;
             }
         }
@@ -297,7 +392,6 @@ namespace ConformalDecals {
             UpdateMaterials();
             UpdateScale();
             UpdateTargets();
-            UpdateProjection();
         }
 
         protected void OnDetach() {
@@ -318,33 +412,39 @@ namespace ConformalDecals {
             var aspectRatio = materialProperties.AspectRatio;
             var size = new Vector2(scale, scale * aspectRatio);
 
-            // update orthogonal matrix scale
-            _orthoMatrix = Matrix4x4.identity;
-            _orthoMatrix[0, 3] = 0.5f;
-            _orthoMatrix[1, 3] = 0.5f;
-
-            _orthoMatrix[0, 0] = 1 / size.x;
-            _orthoMatrix[1, 1] = 1 / size.y;
-            _orthoMatrix[2, 2] = 1 / depth;
-
-            // generate bounding box for decal for culling purposes
-            _decalBounds.center = Vector3.forward * (depth / 2);
-            _decalBounds.extents = new Vector3(size.x / 2, size.y / 2, depth / 2);
-
-            if (decalModelTransform == null) {
-                this.LogError("decalModelTransform is null!");
-            }
-
-            // rescale preview model
-            decalModelTransform.localScale = new Vector3(size.x, size.y, (size.x + size.y) / 2);
-
-            // update back material scale
-            if (updateBackScale) {
-                backMaterial.SetTextureScale(PropertyIDs._MainTex, new Vector2(size.x * backTextureBaseScale.x, size.y * backTextureBaseScale.y));
-            }
-
             // update material scale
             materialProperties.UpdateScale(size);
+
+            if (_isAttached) {
+                // update orthogonal matrix
+                _orthoMatrix = Matrix4x4.identity;
+                _orthoMatrix[0, 3] = 0.5f;
+                _orthoMatrix[1, 3] = 0.5f;
+
+                _orthoMatrix[0, 0] = 1 / size.x;
+                _orthoMatrix[1, 1] = 1 / size.y;
+                _orthoMatrix[2, 2] = 1 / depth;
+
+                // generate bounding box for decal for culling purposes
+                _decalBounds.center = Vector3.forward * (depth / 2);
+                _decalBounds.extents = new Vector3(size.x / 2, size.y / 2, depth / 2);
+
+                var bounds = new OrientedBounds(decalProjectorTransform.localToWorldMatrix, _decalBounds);
+
+                // update projection
+                foreach (var target in _targets) {
+                    target.Project(_orthoMatrix, bounds, decalProjectorTransform, useBaseNormal);
+                }
+            }
+            else {
+                // rescale preview model
+                decalModelTransform.localScale = new Vector3(size.x, size.y, (size.x + size.y) / 2);
+
+                // update back material scale
+                if (updateBackScale) {
+                    backMaterial.SetTextureScale(PropertyIDs._MainTex, new Vector2(size.x * backTextureBaseScale.x, size.y * backTextureBaseScale.y));
+                }
+            }
         }
 
         protected void UpdateMaterials() {
@@ -355,23 +455,7 @@ namespace ConformalDecals {
             _decalMaterial = materialProperties.DecalMaterial;
             _previewMaterial = materialProperties.PreviewMaterial;
 
-            if (decalFrontTransform == null) {
-                this.LogError("No reference to decal front transform");
-                return;
-            }
-
             decalFrontTransform.GetComponent<MeshRenderer>().material = _previewMaterial;
-        }
-
-        protected void UpdateProjection() {
-            if (!_isAttached) return;
-
-            var bounds = new OrientedBounds(decalProjectorTransform.localToWorldMatrix, _decalBounds);
-
-            // project to each target object
-            foreach (var target in _targets) {
-                target.Project(_orthoMatrix, bounds, decalProjectorTransform, useBaseNormal);
-            }
         }
 
         protected void UpdateTargets() {

@@ -212,10 +212,9 @@ namespace ConformalDecals.MaterialModifiers {
 
         public void UpdateTile(int index, Vector2 tileSize) {
             int tileCountX = (int) (_mainTexture.Width / tileSize.x);
-            int tileCountY = (int) (_mainTexture.Height / tileSize.y);
 
             int x = index % tileCountX;
-            int y = index / tileCountY;
+            int y = index / tileCountX;
 
             var tile = new Rect(x * tileSize.x, y * tileSize.y, tileSize.x, tileSize.y);
 

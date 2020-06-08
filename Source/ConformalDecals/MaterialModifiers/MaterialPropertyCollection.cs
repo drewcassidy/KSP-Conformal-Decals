@@ -74,7 +74,6 @@ namespace ConformalDecals.MaterialModifiers {
 
             for (var i = 0; i < _serializedNames.Length; i++) {
                 var property = MaterialProperty.Instantiate(_serializedProperties[i]);
-                Debug.Log($"insantiating {property.GetType().Name} {property.GetInstanceID()}");
                 _materialProperties.Add(_serializedNames[i], property);
 
                 if (property is MaterialTextureProperty textureProperty && textureProperty.isMain) {
@@ -112,7 +111,7 @@ namespace ConformalDecals.MaterialModifiers {
             var newProperty = MaterialProperty.CreateInstance<T>();
             newProperty.PropertyName = propertyName;
             _materialProperties.Add(propertyName, newProperty);
-            
+
             return newProperty;
         }
 
@@ -137,7 +136,7 @@ namespace ConformalDecals.MaterialModifiers {
         public MaterialTextureProperty AddTextureProperty(string propertyName, bool isMain = false) {
             var newProperty = AddProperty<MaterialTextureProperty>(propertyName);
             if (isMain) _mainTexture = newProperty;
-            
+
             return newProperty;
         }
 
@@ -155,13 +154,11 @@ namespace ConformalDecals.MaterialModifiers {
         public T ParseProperty<T>(ConfigNode node) where T : MaterialProperty {
             var propertyName = node.GetValue("name");
             if (string.IsNullOrEmpty(propertyName)) throw new ArgumentException("node has no name");
-            Debug.Log($"Parsing material property {propertyName}");
 
             var newProperty = AddOrGetProperty<T>(propertyName);
             newProperty.ParseNode(node);
 
             if (newProperty is MaterialTextureProperty textureProperty && textureProperty.isMain) {
-                Debug.Log("new texture has isMain enabled");
                 _mainTexture = textureProperty;
             }
 
@@ -203,7 +200,7 @@ namespace ConformalDecals.MaterialModifiers {
         public void UpdateTile(Rect tile) {
             if (_mainTexture == null) throw new InvalidOperationException("UpdateTile called but no main texture is specified!");
             var mainTexSize = _mainTexture.Dimensions;
-            
+
             Debug.Log($"Main texture is {_mainTexture.PropertyName} and its size is {mainTexSize}");
 
             foreach (var entry in _materialProperties) {
@@ -219,9 +216,9 @@ namespace ConformalDecals.MaterialModifiers {
 
             int x = index % tileCountX;
             int y = index / tileCountY;
-            
+
             var tile = new Rect(x * tileSize.x, y * tileSize.y, tileSize.x, tileSize.y);
-            
+
             UpdateTile(tile);
         }
 

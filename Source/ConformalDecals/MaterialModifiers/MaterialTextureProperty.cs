@@ -2,15 +2,14 @@ using System;
 using UnityEngine;
 
 namespace ConformalDecals.MaterialModifiers {
-    public class MaterialTextureProperty : MaterialProperty, ISerializationCallbackReceiver {
+    public class MaterialTextureProperty : MaterialProperty {
         [SerializeField] public bool isNormal;
         [SerializeField] public bool isMain;
         [SerializeField] public bool autoScale;
         [SerializeField] public bool autoTile;
 
-        [SerializeField] private string _textureUrl;
-
-        private Texture2D _texture;
+        [SerializeField] private string    _textureUrl;
+        [SerializeField] private Texture2D _texture;
 
         [SerializeField] private bool _hasTile;
         [SerializeField] private Rect _tileRect;
@@ -40,13 +39,6 @@ namespace ConformalDecals.MaterialModifiers {
 
         public float AspectRatio => MaskedHeight / (float) MaskedWidth;
 
-        public void OnBeforeSerialize() { }
-
-        public void OnAfterDeserialize() {
-            // Unity appears to be screwing up textures when deserializing them, so this is the fix?
-            _texture = LoadTexture(_textureUrl, isNormal);
-        }
-
         public override void ParseNode(ConfigNode node) {
             base.ParseNode(node);
 
@@ -65,13 +57,10 @@ namespace ConformalDecals.MaterialModifiers {
             else {
                 TextureUrl = node.GetValue("textureUrl");
             }
-            
-            Debug.Log($"parsed texture node with texture {_textureUrl}, {isMain}");
 
             if (node.HasValue("tileRect") && !autoTile) {
                 SetTile(ParsePropertyRect(node, "tileRect", true, _tileRect));
             }
-
         }
 
         public override void Modify(Material material) {
@@ -91,7 +80,7 @@ namespace ConformalDecals.MaterialModifiers {
         }
 
         public void SetTile(Rect tile) {
-            SetTile(tile, new Vector2(_texture.width, _texture.height));
+            SetTile(tile, Dimensions);
         }
 
         public void SetTile(Rect tile, Vector2 mainTexDimensions) {

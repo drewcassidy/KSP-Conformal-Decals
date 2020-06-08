@@ -93,7 +93,6 @@ namespace ConformalDecals {
 
         public override void OnLoad(ConfigNode node) {
             this.Log("Loading module");
-            this.Log($"{node.ToString()}");
             try {
                 // SETUP TRANSFORMS
 
@@ -191,9 +190,10 @@ namespace ConformalDecals {
             catch (Exception e) {
                 this.LogException("Exception parsing partmodule", e);
             }
+            
+            UpdateMaterials();
 
             if (HighLogic.LoadedSceneIsGame) {
-                UpdateMaterials();
                 UpdateScale();
                 UpdateProjection();
             }

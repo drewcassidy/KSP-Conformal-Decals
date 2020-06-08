@@ -18,6 +18,7 @@ namespace ConformalDecals.MaterialModifiers {
             if (node == null) throw new ArgumentNullException(nameof(node));
 
             PropertyName = node.GetValue("name");
+            Debug.Log($"Parsing material property {_propertyName}");
         }
 
         public abstract void Modify(Material material);

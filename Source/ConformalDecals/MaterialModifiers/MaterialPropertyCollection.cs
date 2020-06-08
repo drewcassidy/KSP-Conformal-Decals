@@ -23,7 +23,6 @@ namespace ConformalDecals.MaterialModifiers {
             get {
                 if (_decalMaterial == null) {
                     _decalMaterial = new Material(_shader);
-                    UpdateMaterial(_decalMaterial);
 
                     _decalMaterial.SetInt(DecalPropertyIDs._Cull, (int) CullMode.Off);
                 }
@@ -36,7 +35,6 @@ namespace ConformalDecals.MaterialModifiers {
             get {
                 if (_previewMaterial == null) {
                     _previewMaterial = new Material(_shader);
-                    UpdateMaterial(_previewMaterial);
 
                     _previewMaterial.EnableKeyword("DECAL_PREVIEW");
                     _previewMaterial.SetInt(DecalPropertyIDs._Cull, (int) CullMode.Back);
@@ -79,7 +77,7 @@ namespace ConformalDecals.MaterialModifiers {
                 Debug.Log($"insantiating {property.GetType().Name} {property.GetInstanceID()}");
                 _materialProperties.Add(_serializedNames[i], property);
 
-                if (property is MaterialTextureProperty textureProperty) {
+                if (property is MaterialTextureProperty textureProperty && textureProperty.isMain) {
                     _mainTexture = textureProperty;
                 }
             }
@@ -105,7 +103,7 @@ namespace ConformalDecals.MaterialModifiers {
             _materialProperties.Add(property.name, property);
 
             if (property is MaterialTextureProperty textureProperty) {
-                if (textureProperty.isMain) _mainTexture ??= textureProperty;
+                if (textureProperty.isMain) _mainTexture = textureProperty;
             }
         }
 
@@ -114,6 +112,7 @@ namespace ConformalDecals.MaterialModifiers {
             var newProperty = MaterialProperty.CreateInstance<T>();
             newProperty.PropertyName = propertyName;
             _materialProperties.Add(propertyName, newProperty);
+            
             return newProperty;
         }
 
@@ -137,7 +136,8 @@ namespace ConformalDecals.MaterialModifiers {
 
         public MaterialTextureProperty AddTextureProperty(string propertyName, bool isMain = false) {
             var newProperty = AddProperty<MaterialTextureProperty>(propertyName);
-            if (isMain) MainTexture = newProperty;
+            if (isMain) _mainTexture = newProperty;
+            
             return newProperty;
         }
 
@@ -146,41 +146,26 @@ namespace ConformalDecals.MaterialModifiers {
         }
 
         public MaterialTextureProperty AddOrGetTextureProperty(string propertyName, bool isMain = false) {
-            if (_materialProperties.ContainsKey(propertyName) && _materialProperties[propertyName] is MaterialTextureProperty property) {
-                return property;
-            }
-            else {
-                return AddTextureProperty(propertyName, isMain);
-            }
+            var newProperty = AddOrGetProperty<MaterialTextureProperty>(propertyName);
+            if (isMain) _mainTexture = newProperty;
+
+            return newProperty;
         }
 
-        public void ParseProperty<T>(ConfigNode node) where T : MaterialProperty {
+        public T ParseProperty<T>(ConfigNode node) where T : MaterialProperty {
             var propertyName = node.GetValue("name");
             if (string.IsNullOrEmpty(propertyName)) throw new ArgumentException("node has no name");
-
             Debug.Log($"Parsing material property {propertyName}");
 
-            T newProperty;
-
-            if (_materialProperties.ContainsKey(propertyName)) {
-                if (_materialProperties[propertyName] is T property) {
-                    newProperty = property;
-                    property.ParseNode(node);
-                }
-                else {
-                    throw new ArgumentException("Material property already exists for {name} but it has a different type");
-                }
-            }
-            else {
-                newProperty = MaterialProperty.CreateInstance<T>();
-                Debug.Log($"Adding new material property of type {newProperty.GetType().Name} {newProperty.GetInstanceID()}");
-                newProperty.ParseNode(node);
-                _materialProperties.Add(propertyName, newProperty);
-            }
+            var newProperty = AddOrGetProperty<T>(propertyName);
+            newProperty.ParseNode(node);
 
             if (newProperty is MaterialTextureProperty textureProperty && textureProperty.isMain) {
+                Debug.Log("new texture has isMain enabled");
                 _mainTexture = textureProperty;
             }
+
+            return newProperty;
         }
 
         public void SetShader(string shaderName) {
@@ -209,32 +194,35 @@ namespace ConformalDecals.MaterialModifiers {
 
         public void UpdateScale(Vector2 scale) {
             foreach (var entry in _materialProperties) {
-                if (entry.Value is MaterialTextureProperty textureProperty) {
-                    textureProperty.UpdateScale(scale);
-                    textureProperty.Modify(_decalMaterial);
-                    textureProperty.Modify(_previewMaterial);
+                if (entry.Value is MaterialTextureProperty textureProperty && textureProperty.autoScale) {
+                    textureProperty.SetScale(scale);
                 }
             }
         }
 
         public void UpdateTile(Rect tile) {
             if (_mainTexture == null) throw new InvalidOperationException("UpdateTile called but no main texture is specified!");
-            Vector2 scale;
-            Vector2 offset;
+            var mainTexSize = _mainTexture.Dimensions;
             
-            scale.x = tile.width / _mainTexture.texture.width;
-            scale.y = tile.height / _mainTexture.texture.height;
+            Debug.Log($"Main texture is {_mainTexture.PropertyName} and its size is {mainTexSize}");
 
-            offset.x = tile.x / _mainTexture.texture.width;
-            offset.y = tile.y / _mainTexture.texture.height;
-            
             foreach (var entry in _materialProperties) {
-                if (entry.Value is MaterialTextureProperty textureProperty) {
-                    textureProperty.UpdateTiling(scale, offset);
-                    textureProperty.Modify(_decalMaterial);
-                    textureProperty.Modify(_previewMaterial);
+                if (entry.Value is MaterialTextureProperty textureProperty && textureProperty.autoTile) {
+                    textureProperty.SetTile(tile, mainTexSize);
                 }
-            } 
+            }
+        }
+
+        public void UpdateTile(int index, Vector2 tileSize) {
+            int tileCountX = (int) (_mainTexture.Width / tileSize.x);
+            int tileCountY = (int) (_mainTexture.Height / tileSize.y);
+
+            int x = index % tileCountX;
+            int y = index / tileCountY;
+            
+            var tile = new Rect(x * tileSize.x, y * tileSize.y, tileSize.x, tileSize.y);
+            
+            UpdateTile(tile);
         }
 
         public void SetOpacity(float opacity) {
@@ -248,28 +236,14 @@ namespace ConformalDecals.MaterialModifiers {
         }
 
         public void UpdateMaterials() {
-            if (_decalMaterial == null) {
-                _decalMaterial = DecalMaterial;
-            }
-            else {
-                UpdateMaterial(_decalMaterial);
-            }
-
-            if (_previewMaterial == null) {
-                _previewMaterial = PreviewMaterial;
-            }
-            else {
-                UpdateMaterial(_previewMaterial);
-            }
+            UpdateMaterial(DecalMaterial);
+            UpdateMaterial(PreviewMaterial);
         }
 
         public void UpdateMaterial(Material material) {
             if (material == null) throw new ArgumentNullException(nameof(material));
 
-
             foreach (var entry in _materialProperties) {
-                Debug.Log($"Applying material property {entry.Key} {entry.Value.PropertyName} {entry.Value.GetInstanceID()}");
-
                 entry.Value.Modify(material);
             }
         }

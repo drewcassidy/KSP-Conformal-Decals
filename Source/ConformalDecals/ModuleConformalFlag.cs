@@ -36,13 +36,8 @@ namespace ConformalDecals {
 
         private void UpdateFlag(string flagUrl) {
             this.Log($"Loading flag texture '{flagUrl}'.");
-            var flagTexture = GameDatabase.Instance.GetTexture(flagUrl, false);
-            if (flagTexture == null) {
-                this.LogWarning($"Unable to find flag texture '{flagUrl}'.");
-                return;
-            }
 
-            materialProperties.AddOrGetTextureProperty("_Decal", true).texture = flagTexture;
+            materialProperties.AddOrGetTextureProperty("_Decal", true).TextureUrl = flagUrl;
 
             UpdateMaterials();
         }

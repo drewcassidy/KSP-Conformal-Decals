@@ -44,6 +44,10 @@ namespace ConformalDecals {
         [KSPField] public Vector2 opacityRange = new Vector2(0, 1);
         [KSPField] public Vector2 cutoffRange  = new Vector2(0, 1);
 
+        [KSPField] public Rect    tileRect = new Rect(-1, -1, 0, 0);
+        [KSPField] public Vector2 tileSize;
+        [KSPField] public int     tileIndex = -1;
+
         [KSPField] public bool updateBackScale = true;
         [KSPField] public bool useBaseNormal   = true;
 
@@ -65,7 +69,6 @@ namespace ConformalDecals {
         private Material _decalMaterial;
         private Material _previewMaterial;
 
-
         private int DecalQueue {
             get {
                 _decalQueueCounter++;
@@ -76,7 +79,7 @@ namespace ConformalDecals {
                 return _decalQueueCounter;
             }
         }
-        
+
         public override void OnAwake() {
             base.OnAwake();
 
@@ -87,12 +90,13 @@ namespace ConformalDecals {
                 materialProperties = ScriptableObject.Instantiate(materialProperties);
             }
         }
-        
+
         public override void OnLoad(ConfigNode node) {
             this.Log("Loading module");
+            this.Log($"{node.ToString()}");
             try {
                 // SETUP TRANSFORMS
-                
+
                 // find front transform
                 decalFrontTransform = part.FindModelTransform(decalFront);
                 if (decalFrontTransform == null) throw new FormatException($"Could not find decalFront transform: '{decalFront}'.");
@@ -147,12 +151,12 @@ namespace ConformalDecals {
                         }
                     }
                 }
-                
+
                 // PARSE MATERIAL PROPERTIES
 
                 // set shader
                 materialProperties.SetShader(shader);
-                
+
                 // add texture nodes
                 foreach (var textureNode in node.GetNodes("TEXTURE")) {
                     materialProperties.ParseProperty<MaterialTextureProperty>(textureNode);
@@ -167,15 +171,18 @@ namespace ConformalDecals {
                 foreach (var colorNode in node.GetNodes("COLOR")) {
                     materialProperties.ParseProperty<MaterialColorProperty>(colorNode);
                 }
-                
-                var tileString = node.GetValue("tile");
-                if (!string.IsNullOrEmpty(tileString)) {
-                    var tileValid = ParseExtensions.TryParseRect(tileString, out var tile);
 
-                    if (!tileValid) throw new FormatException($"Improperly formatted value for tile '{tileString}");
-                    else {
-                        materialProperties.UpdateTile(tile);
-                    }
+                // handle texture tiling parameters
+
+                this.Log($"TileRect {tileRect}");
+                this.Log($"TileSize {tileSize}");
+                this.Log($"TileIndex {tileIndex}");
+
+                if (tileRect.x >= 0) {
+                    materialProperties.UpdateTile(tileRect);
+                }
+                else if (tileIndex >= 0) {
+                    materialProperties.UpdateTile(tileIndex, tileSize);
                 }
 
                 // QUEUE PART FOR ICON FIXING IN VAB
@@ -191,7 +198,7 @@ namespace ConformalDecals {
                 UpdateProjection();
             }
         }
-        
+
         public override void OnIconCreate() {
             UpdateScale();
         }
@@ -238,6 +245,7 @@ namespace ConformalDecals {
             // scale or depth values have been changed, so update scale
             // and update projection matrices if attached
             UpdateScale();
+            UpdateMaterials();
             if (_isAttached) UpdateProjection();
         }
 
@@ -279,7 +287,6 @@ namespace ConformalDecals {
 
             this.Log($"Decal attached to {part.parent.partName}");
 
-
             // hide preview model
             decalFrontTransform.gameObject.SetActive(false);
             decalBackTransform.gameObject.SetActive(false);
@@ -287,6 +294,7 @@ namespace ConformalDecals {
             // add to preCull delegate
             Camera.onPreCull += Render;
 
+            UpdateMaterials();
             UpdateScale();
             UpdateTargets();
             UpdateProjection();
@@ -302,12 +310,12 @@ namespace ConformalDecals {
             // remove from preCull delegate
             Camera.onPreCull -= Render;
 
+            UpdateMaterials();
             UpdateScale();
         }
 
         protected void UpdateScale() {
             var aspectRatio = materialProperties.AspectRatio;
-            this.Log($"Aspect ratio is {aspectRatio}");
             var size = new Vector2(scale, scale * aspectRatio);
 
             // update orthogonal matrix scale

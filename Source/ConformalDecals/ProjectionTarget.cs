@@ -21,7 +21,7 @@ namespace ConformalDecals {
             _decalMPB = new MaterialPropertyBlock();
         }
 
-        public void Project(Matrix4x4 orthoMatrix, OrientedBounds projectorBounds, Transform projector, bool useBaseNormal) {
+        public void Project(Matrix4x4 orthoMatrix, Transform projector, bool useBaseNormal) {
             _projectionEnabled = true;
 
             var targetMaterial = _targetRenderer.sharedMaterial;

@@ -36,6 +36,9 @@ namespace ConformalDecals {
          UI_FloatRange(stepIncrement = 0.05f)]
         public float cutoff = 0.5f;
 
+        /// <summary>
+        /// Shader name. Should be one that supports decal projection.
+        /// </summary>
         [KSPField] public string shader = "ConformalDecals/Paint/Diffuse";
 
         /// <summary>
@@ -176,6 +179,7 @@ namespace ConformalDecals {
             }
         }
 
+        /// <inheritdoc />
         public override void OnAwake() {
             base.OnAwake();
 
@@ -187,6 +191,7 @@ namespace ConformalDecals {
             }
         }
 
+        /// <inheritdoc />
         public override void OnLoad(ConfigNode node) {
             this.Log("Loading module");
             try {
@@ -294,6 +299,7 @@ namespace ConformalDecals {
             }
         }
 
+        /// <inheritdoc />
         public override void OnIconCreate() {
             UpdateScale();
         }
@@ -390,8 +396,8 @@ namespace ConformalDecals {
             Camera.onPreCull += Render;
 
             UpdateMaterials();
-            UpdateScale();
             UpdateTargets();
+            UpdateScale();
         }
 
         protected void OnDetach() {
@@ -425,15 +431,9 @@ namespace ConformalDecals {
                 _orthoMatrix[1, 1] = 1 / size.y;
                 _orthoMatrix[2, 2] = 1 / depth;
 
-                // generate bounding box for decal for culling purposes
-                _decalBounds.center = Vector3.forward * (depth / 2);
-                _decalBounds.extents = new Vector3(size.x / 2, size.y / 2, depth / 2);
-
-                var bounds = new OrientedBounds(decalProjectorTransform.localToWorldMatrix, _decalBounds);
-
                 // update projection
                 foreach (var target in _targets) {
-                    target.Project(_orthoMatrix, bounds, decalProjectorTransform, useBaseNormal);
+                    target.Project(_orthoMatrix, decalProjectorTransform, useBaseNormal);
                 }
             }
             else {

@@ -2,40 +2,49 @@ using System;
 using UnityEngine;
 
 namespace ConformalDecals.MaterialModifiers {
-    public class MaterialTextureProperty : MaterialProperty {
-        [SerializeField] public Texture2D texture;
-
+    public class MaterialTextureProperty : MaterialProperty, ISerializationCallbackReceiver {
         [SerializeField] public bool isNormal;
         [SerializeField] public bool isMain;
         [SerializeField] public bool autoScale;
         [SerializeField] public bool autoTile;
 
-        [SerializeField] private bool    _hasTile;
-        [SerializeField] private Rect    _tileRect;
-        [SerializeField] private Vector2 _baseTextureScale  = Vector2.one;
-        
-        [SerializeField] private Vector2 _textureOffset = Vector2.zero;
-        [SerializeField] private Vector2 _textureScale  = Vector2.one;
+        [SerializeField] private string _textureUrl;
 
-        public float AspectRatio {
-            get {
-                if (texture == null) return 1;
+        private Texture2D _texture;
 
-                if (!_hasTile) return ((float) texture.height) / texture.width;
+        [SerializeField] private bool _hasTile;
+        [SerializeField] private Rect _tileRect;
 
-                return _tileRect.height / _tileRect.width;
+        [SerializeField] private Vector2 _scale = Vector2.one;
+        [SerializeField] private Vector2 _textureOffset;
+        [SerializeField] private Vector2 _textureScale = Vector2.one;
+
+        public Texture2D Texture => _texture;
+
+        public string TextureUrl {
+            get => _textureUrl;
+            set {
+                _texture = LoadTexture(value, isNormal);
+                _textureUrl = value;
             }
         }
 
-        public Rect TileRect {
-            get => _tileRect;
-            set {
-                if (autoTile) return;
-                _hasTile = !(Mathf.Abs(value.width) < 0.1) || !(Mathf.Abs(value.height) < 0.1);
+        public int Width => _texture.width;
+        public int Height => _texture.height;
 
-                _tileRect = value;
-                UpdateTiling();
-            }
+        public int MaskedWidth => _hasTile ? (int) _tileRect.width : _texture.width;
+        public int MaskedHeight => _hasTile ? (int) _tileRect.height : _texture.height;
+
+        public Vector2 Dimensions => new Vector2(_texture.width, _texture.height);
+        public Vector2 MaskedDimensions => _hasTile ? _tileRect.size : Dimensions;
+
+        public float AspectRatio => MaskedHeight / (float) MaskedWidth;
+
+        public void OnBeforeSerialize() { }
+
+        public void OnAfterDeserialize() {
+            // Unity appears to be screwing up textures when deserializing them, so this is the fix?
+            _texture = LoadTexture(_textureUrl, isNormal);
         }
 
         public override void ParseNode(ConfigNode node) {
@@ -46,68 +55,78 @@ namespace ConformalDecals.MaterialModifiers {
             autoScale = ParsePropertyBool(node, "autoScale", true, autoScale);
             autoTile = ParsePropertyBool(node, "autoTile", true, autoTile);
 
-            SetTexture(node.GetValue("textureUrl"));
+            var textureUrl = node.GetValue("textureUrl");
 
-            if (node.HasValue("tileRect") && !autoTile) {
-                TileRect = ParsePropertyRect(node, "tileRect", true, _tileRect);
-            }
-        }
-
-        public void SetTexture(string textureUrl) {
-            if ((textureUrl == null && isNormal) || textureUrl == "Bump") {
-                texture = Texture2D.normalTexture;
-            }
-            else if ((textureUrl == null && !isNormal) || textureUrl == "White") {
-                texture = Texture2D.whiteTexture;
-            }
-            else if (textureUrl == "Black") {
-                texture = Texture2D.blackTexture;
+            if (string.IsNullOrEmpty(textureUrl)) {
+                if (string.IsNullOrEmpty(_textureUrl)) {
+                    TextureUrl = "";
+                }
             }
             else {
-                var textureInfo = GameDatabase.Instance.GetTextureInfo(textureUrl);
+                TextureUrl = node.GetValue("textureUrl");
+            }
+            
+            Debug.Log($"parsed texture node with texture {_textureUrl}, {isMain}");
 
-                if (textureInfo == null) throw new Exception($"Cannot find texture: '{textureUrl}'");
-
-                texture = isNormal ? textureInfo.normalMap : textureInfo.texture;
+            if (node.HasValue("tileRect") && !autoTile) {
+                SetTile(ParsePropertyRect(node, "tileRect", true, _tileRect));
             }
 
-            if (texture == null) throw new Exception($"Cannot get texture from texture info '{textureUrl}', isNormalMap = {isNormal}");
-            UpdateTiling();
         }
 
         public override void Modify(Material material) {
             if (material == null) throw new ArgumentNullException(nameof(material));
-            if (texture == null) {
-                texture = Texture2D.whiteTexture;
+            if (_texture == null) {
+                _texture = Texture2D.whiteTexture;
                 throw new NullReferenceException("texture is null, but should not be");
             }
 
-            material.SetTexture(_propertyID, texture);
+            material.SetTexture(_propertyID, _texture);
             material.SetTextureOffset(_propertyID, _textureOffset);
-            material.SetTextureScale(_propertyID, _textureScale);
+            material.SetTextureScale(_propertyID, _textureScale * _scale);
         }
 
-        public void UpdateScale(Vector2 scale) {
-            if (autoScale) {
-                _textureScale = _baseTextureScale * scale;
-            }
+        public void SetScale(Vector2 scale) {
+            _scale = scale;
         }
 
-        public void UpdateTiling(Vector2 textureScale, Vector2 textureOffset) {
-            if (autoTile) {
-                _textureScale = textureScale;
-                _textureOffset = textureOffset;
-            }
+        public void SetTile(Rect tile) {
+            SetTile(tile, new Vector2(_texture.width, _texture.height));
         }
 
-        private void UpdateTiling() {
-            if (_hasTile) {
-                _baseTextureScale.x = Mathf.Approximately(0, _tileRect.width) ? 1 : _tileRect.width / texture.width;
-                _baseTextureScale.y = Mathf.Approximately(0, _tileRect.height) ? 1 : _tileRect.height / texture.height;
+        public void SetTile(Rect tile, Vector2 mainTexDimensions) {
+            var scale = tile.size;
+            var offset = tile.position;
+
+            // invert y axis to deal with DXT image orientation
+            offset.y = mainTexDimensions.y - offset.y - tile.height;
+
+            // fit to given dimensions
+            scale /= mainTexDimensions;
+            offset /= mainTexDimensions;
+            _tileRect = tile;
+            _hasTile = true;
+            _textureScale = scale;
+            _textureOffset = offset;
+        }
+
+        private static Texture2D LoadTexture(string textureUrl, bool isNormal) {
+            Debug.Log($"loading texture '{textureUrl}', isNormalMap = {isNormal}");
+            if ((string.IsNullOrEmpty(textureUrl) && isNormal) || textureUrl == "Bump") {
+                return Texture2D.normalTexture;
             }
-            else {
-                _baseTextureScale = Vector2.one;
+
+            if ((string.IsNullOrEmpty(textureUrl) && !isNormal) || textureUrl == "White") {
+                return Texture2D.whiteTexture;
             }
+
+            if (textureUrl == "Black") {
+                return Texture2D.blackTexture;
+            }
+
+            var texture = GameDatabase.Instance.GetTexture(textureUrl, isNormal);
+            if (texture == null) throw new Exception($"Cannot get texture '{textureUrl}', isNormalMap = {isNormal}");
+            return texture;
         }
     }
 }

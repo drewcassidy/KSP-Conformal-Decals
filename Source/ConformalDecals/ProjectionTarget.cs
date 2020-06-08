@@ -36,7 +36,6 @@ namespace ConformalDecals {
                 _decalMPB.SetMatrix(DecalPropertyIDs._ProjectionMatrix, projectionMatrix);
                 _decalMPB.SetVector(DecalPropertyIDs._DecalNormal, decalNormal);
                 _decalMPB.SetVector(DecalPropertyIDs._DecalTangent, decalTangent);
-                Debug.Log($"Projection enabled for {target.gameObject}");
 
                 if (useBaseNormal && targetMaterial.HasProperty(DecalPropertyIDs._BumpMap)) {
                     var normal = targetMaterial.GetTexture(DecalPropertyIDs._BumpMap);
@@ -53,7 +52,6 @@ namespace ConformalDecals {
             }
             else {
                 _projectionEnabled = false;
-                Debug.Log($"Projection disabled for {target.gameObject}");
             }
         }
 

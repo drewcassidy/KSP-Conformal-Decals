@@ -54,7 +54,7 @@ namespace ConformalDecals {
         [KSPField] public Vector2 opacityRange      = new Vector2(0, 1);
 
         [KSPField] public bool    cutoffAdjustable = true;
-        [KSPField] public float   defaultCutoff    = 0;
+        [KSPField] public float   defaultCutoff;
         [KSPField] public Vector2 cutoffRange      = new Vector2(0, 1);
 
         [KSPField] public Rect    tileRect = new Rect(-1, -1, 0, 0);
@@ -308,13 +308,22 @@ namespace ConformalDecals {
             // scale or depth values have been changed, so update scale
             // and update projection matrices if attached
             UpdateScale();
-            UpdateMaterials();
-            if (_isAttached) { }
+            
+            foreach (var counterpart in part.symmetryCounterparts) {
+                var decal = counterpart.GetComponent<ModuleConformalDecal>();
+                decal.UpdateScale();
+            }
         }
 
         protected void OnMaterialTweakEvent(BaseField field, object obj) {
             materialProperties.SetOpacity(opacity);
             materialProperties.SetCutoff(cutoff);
+            
+            foreach (var counterpart in part.symmetryCounterparts) {
+                var decal = counterpart.GetComponent<ModuleConformalDecal>();
+                decal.materialProperties.SetOpacity(opacity);
+                decal.materialProperties.SetCutoff(cutoff);
+            }
         }
 
         protected void OnVariantApplied(Part eventPart, PartVariant variant) {

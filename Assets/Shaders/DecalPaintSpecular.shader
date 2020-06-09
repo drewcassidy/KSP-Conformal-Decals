@@ -12,7 +12,7 @@ Shader "ConformalDecals/Paint/Specular"
 	
 	    _Cutoff ("Alpha cutoff", Range(0,1)) = 0.5
 		_DecalOpacity("Opacity", Range(0,1) ) = 1
-		_Color("Background Color", Color) = (0.9,0.9,0.9,0.7)
+		_Background("Background Color", Color) = (0.9,0.9,0.9,0.7)
 		
         [Header(Specularity)]
         _SpecColor ("_SpecColor", Color) = (0.25, 0.25, 0.25, 1)
@@ -22,7 +22,8 @@ Shader "ConformalDecals/Paint/Specular"
         [Toggle(DECAL_PREVIEW)] _Preview ("Preview", int) = 0
 		
 		[Header(Effects)]
-            [PerRendererData]_Opacity("_Opacity", Range(0,1) ) = 1
+		    [PerRendererData]_Opacity("_Opacity", Range(0,1) ) = 1
+		    [PerRendererData]_Color("_Color", Color) = (1,1,1,1)
 			[PerRendererData]_RimFalloff("_RimFalloff", Range(0.01,5) ) = 0.1
 			[PerRendererData]_RimColor("_RimColor", Color) = (0,0,0,0)
 			[PerRendererData]_UnderwaterFogFactor ("Underwater Fog Factor", Range(0,1)) = 0

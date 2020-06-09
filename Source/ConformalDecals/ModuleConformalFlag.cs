@@ -58,13 +58,13 @@ namespace ConformalDecals {
             base.OnDestroy();
         }
 
-        [KSPEvent(guiActive = false, guiActiveEditor = true, guiName = "Select Flag")]
+        [KSPEvent(guiActive = false, guiActiveEditor = true, guiName = "#LOC_ConformalDecals_gui-select-flag")]
         public void SelectFlag() {
             var flagBrowser = (Instantiate((Object) (new FlagBrowserGUIButton(null, null, null, null)).FlagBrowserPrefab) as GameObject).GetComponent<FlagBrowser>();
             flagBrowser.OnFlagSelected = OnCustomFlagSelected;
         }
 
-        [KSPEvent(guiActive = false, guiActiveEditor = true, guiName = "Reset Flag")]
+        [KSPEvent(guiActive = false, guiActiveEditor = true, guiName = "#LOC_ConformalDecals_gui-reset-flag")]
         public void ResetFlag() {
             SetFlag(MissionFlagUrl);
             SetFlagSymmetryCounterparts(MissionFlagUrl);

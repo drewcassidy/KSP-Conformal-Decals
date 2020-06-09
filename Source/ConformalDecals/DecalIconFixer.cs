@@ -43,7 +43,6 @@ namespace ConformalDecals {
                     var size = new Vector2(decalModule.scale, decalModule.scale * aspectRatio);
                     backScale.x = size.x * decalModule.backTextureBaseScale.x;
                     backScale.y = size.y * decalModule.backTextureBaseScale.y;
-                    Debug.Log($"backscale is {backScale}");
                 }
 
                 backTransform.GetComponent<MeshRenderer>().material = decalModule.backMaterial;

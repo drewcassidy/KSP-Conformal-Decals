@@ -228,11 +228,6 @@ namespace ConformalDecals {
                 }
 
                 // handle texture tiling parameters
-
-                this.Log($"TileRect {tileRect}");
-                this.Log($"TileSize {tileSize}");
-                this.Log($"TileIndex {tileIndex}");
-
                 if (tileRect.x >= 0) {
                     materialProperties.UpdateTile(tileRect);
                 }

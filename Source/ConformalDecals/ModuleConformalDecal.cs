@@ -324,7 +324,7 @@ namespace ConformalDecals {
         }
 
         protected void OnEditorEvent(ConstructionEventType eventType, Part eventPart) {
-            if (eventPart != this.part) return;
+            if (this.part != eventPart && !part.symmetryCounterparts.Contains(eventPart)) return;
             switch (eventType) {
                 case ConstructionEventType.PartAttached:
                     OnAttach();

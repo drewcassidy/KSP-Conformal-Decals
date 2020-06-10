@@ -59,7 +59,7 @@ Shader "ConformalDecals/Feature/Bumped"
             void surf (DecalSurfaceInput IN, inout SurfaceOutput o)
             {
                 float4 color = tex2D(_Decal, IN.uv_decal);
-                float3 normal = UnpackNormal(tex2D(_DecalBumpMap, IN.uv_bump));
+                float3 normal = UnpackNormalDXT5nm(tex2D(_DecalBumpMap, IN.uv_bump));
  
                 #ifdef DECAL_PROJECT
                     // clip alpha

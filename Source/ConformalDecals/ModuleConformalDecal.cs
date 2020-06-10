@@ -228,6 +228,12 @@ namespace ConformalDecals {
                 }
 
                 // handle texture tiling parameters
+                var tileString = node.GetValue("tile");
+                this.Log(tileString);
+                if (!string.IsNullOrEmpty(tileString)) {
+                    var tileValid = ParseExtensions.TryParseRect(tileString, out tileRect);
+                    if (!tileValid) throw new FormatException($"Invalid rect value for tile '{tileString}'");
+                }
                 if (tileRect.x >= 0) {
                     materialProperties.UpdateTile(tileRect);
                 }
@@ -338,6 +344,7 @@ namespace ConformalDecals {
                     break;
                 case ConstructionEventType.PartOffsetting:
                 case ConstructionEventType.PartRotating:
+                    UpdateScale();
                     break;
             }
         }

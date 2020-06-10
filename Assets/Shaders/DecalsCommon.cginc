@@ -218,7 +218,7 @@ fixed4 frag_forward(v2f IN) : SV_Target
         #ifdef DECAL_PREVIEW
            i.normal = fixed3(0,0,1);
         #else
-           i.normal = UnpackNormal(tex2D(_BumpMap, IN.uv_base));
+           i.normal = UnpackNormalDXT5nm(tex2D(_BumpMap, IN.uv_base));
         #endif //DECAL_PREVIEW
     #endif //DECAL_BASE_NORMAL 
     

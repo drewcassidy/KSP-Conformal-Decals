@@ -10,6 +10,7 @@ namespace ConformalDecals {
         public static readonly int _DecalNormal      = Shader.PropertyToID("_DecalNormal");
         public static readonly int _DecalOpacity     = Shader.PropertyToID("_DecalOpacity");
         public static readonly int _DecalTangent     = Shader.PropertyToID("_DecalTangent");
+        public static readonly int _EdgeWearStrength = Shader.PropertyToID("_EdgeWearStrength");
         public static readonly int _ProjectionMatrix = Shader.PropertyToID("_ProjectionMatrix");
     }
 }

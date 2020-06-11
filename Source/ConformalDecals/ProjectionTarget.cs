@@ -34,19 +34,16 @@ namespace ConformalDecals {
             _decalMPB.SetVector(DecalPropertyIDs._DecalNormal, decalNormal);
             _decalMPB.SetVector(DecalPropertyIDs._DecalTangent, decalTangent);
 
-            if (useBaseNormal) {
-                if (targetMaterial.HasProperty(DecalPropertyIDs._BumpMap)) {
-                    _decalMPB.SetTexture(DecalPropertyIDs._BumpMap, targetMaterial.GetTexture(DecalPropertyIDs._BumpMap));
+            if (useBaseNormal && targetMaterial.HasProperty(DecalPropertyIDs._BumpMap)) {
+                _decalMPB.SetTexture(DecalPropertyIDs._BumpMap, targetMaterial.GetTexture(DecalPropertyIDs._BumpMap));
 
-                    var normalScale = targetMaterial.GetTextureScale(DecalPropertyIDs._BumpMap);
-                    var normalOffset = targetMaterial.GetTextureOffset(DecalPropertyIDs._BumpMap);
+                var normalScale = targetMaterial.GetTextureScale(DecalPropertyIDs._BumpMap);
+                var normalOffset = targetMaterial.GetTextureOffset(DecalPropertyIDs._BumpMap);
 
-                    _decalMPB.SetVector(DecalPropertyIDs._BumpMap_ST, new Vector4(normalScale.x, normalScale.y, normalOffset.x, normalOffset.y));
-                }
-                else {
-                    Debug.Log("Using blank normal");
-                    _decalMPB.SetTexture(DecalPropertyIDs._BumpMap, DecalConfig.BlankNormal);
-                }
+                _decalMPB.SetVector(DecalPropertyIDs._BumpMap_ST, new Vector4(normalScale.x, normalScale.y, normalOffset.x, normalOffset.y));
+            }
+            else {
+                _decalMPB.SetTexture(DecalPropertyIDs._BumpMap, DecalConfig.BlankNormal);
             }
         }
 

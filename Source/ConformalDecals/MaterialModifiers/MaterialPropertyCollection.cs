@@ -7,15 +7,25 @@ using UnityEngine.Rendering;
 
 namespace ConformalDecals.MaterialModifiers {
     public class MaterialPropertyCollection : ScriptableObject, ISerializationCallbackReceiver {
+        public int RenderQueue {
+            get => _renderQueue;
+            set {
+                _renderQueue = value;
+                if (_decalMaterial != null) _decalMaterial.renderQueue = value;
+            }
+        }
+
         [SerializeField] private Shader                  _shader;
         [SerializeField] private MaterialTextureProperty _mainTexture;
         [SerializeField] private string[]                _serializedNames;
         [SerializeField] private MaterialProperty[]      _serializedProperties;
 
+
         private Dictionary<string, MaterialProperty> _materialProperties;
 
         private Material _decalMaterial;
         private Material _previewMaterial;
+        private int      _renderQueue = 2100;
 
         public Shader DecalShader => _shader;
 
@@ -25,6 +35,7 @@ namespace ConformalDecals.MaterialModifiers {
                     _decalMaterial = new Material(_shader);
 
                     _decalMaterial.SetInt(DecalPropertyIDs._Cull, (int) CullMode.Off);
+                    _decalMaterial.renderQueue = RenderQueue;
                 }
 
                 return _decalMaterial;
@@ -183,10 +194,6 @@ namespace ConformalDecals.MaterialModifiers {
             _shader = shader;
             _decalMaterial = null;
             _previewMaterial = null;
-        }
-
-        public void SetRenderQueue(int queue) {
-            DecalMaterial.renderQueue = queue;
         }
 
         public void UpdateScale(Vector2 scale) {

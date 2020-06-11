@@ -76,8 +76,16 @@ float4 _Background;
 
 inline void decalClipAlpha(float alpha) {
     #ifndef DECAL_PREVIEW 
-        clip(alpha - _Cutoff + 0.01);
+        clip(alpha - 0.001);
     #endif
+}
+
+inline float CalcMipLevel(float2 texture_coord) {
+    float2 dx = ddx(texture_coord);
+    float2 dy = ddy(texture_coord);
+    float delta_max_sqr = max(dot(dx, dx), dot(dy, dy));
+    
+    return 0.5 * log2(delta_max_sqr);
 }
 
 // modifed version of the KSP BlinnPhong because it does some weird things

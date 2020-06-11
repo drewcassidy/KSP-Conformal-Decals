@@ -238,6 +238,10 @@ namespace ConformalDecals.MaterialModifiers {
             PreviewMaterial.SetFloat(DecalPropertyIDs._Cutoff, cutoff);
         }
 
+        public void SetWear(float wear) {
+            DecalMaterial.SetFloat(DecalPropertyIDs._EdgeWearStrength, wear);
+        }
+
         public void UpdateMaterials() {
             UpdateMaterial(DecalMaterial);
             UpdateMaterial(PreviewMaterial);

@@ -54,8 +54,12 @@ namespace ConformalDecals {
         [KSPField] public Vector2 opacityRange      = new Vector2(0, 1);
 
         [KSPField] public bool    cutoffAdjustable = true;
-        [KSPField] public float   defaultCutoff;
+        [KSPField] public float   defaultCutoff    = 0.5f;
         [KSPField] public Vector2 cutoffRange      = new Vector2(0, 1);
+
+        [KSPField] public bool    useBaseNormal = true;
+        [KSPField] public float   defaultWear   = 100;
+        [KSPField] public Vector2 wearRange     = new Vector2(0, 100);
 
         [KSPField] public Rect    tileRect = new Rect(-1, -1, 0, 0);
         [KSPField] public Vector2 tileSize;
@@ -66,10 +70,6 @@ namespace ConformalDecals {
         /// </summary>
         [KSPField] public bool updateBackScale = true;
 
-        /// <summary>
-        /// Should the shader use the normal map of the part its projecting onto? Use only with "paint" shaders.
-        /// </summary>
-        [KSPField] public bool useBaseNormal = true;
 
         // INTERNAL VALUES
 
@@ -100,6 +100,13 @@ namespace ConformalDecals {
         [KSPField(guiName = "#LOC_ConformalDecals_gui-cutoff", guiActive = false, guiActiveEditor = true, isPersistant = true, guiFormat = "P0"),
          UI_FloatRange(stepIncrement = 0.05f)]
         public float cutoff = 0.5f;
+
+        /// <summary>
+        /// Edge wear value for the decal shader. Only relevent when useBaseNormal is true and the shader is a paint shader
+        /// </summary>
+        [KSPField(guiName = "#LOC_ConformalDecals_gui-wear", guiActive = false, guiActiveEditor = true, isPersistant = true, guiFormat = "F0"),
+         UI_FloatRange()]
+        public float wear = 100;
 
         [KSPField] public MaterialPropertyCollection materialProperties;
 
@@ -313,7 +320,7 @@ namespace ConformalDecals {
             // scale or depth values have been changed, so update scale
             // and update projection matrices if attached
             UpdateScale();
-            
+
             foreach (var counterpart in part.symmetryCounterparts) {
                 var decal = counterpart.GetComponent<ModuleConformalDecal>();
                 decal.UpdateScale();
@@ -323,11 +330,17 @@ namespace ConformalDecals {
         protected void OnMaterialTweakEvent(BaseField field, object obj) {
             materialProperties.SetOpacity(opacity);
             materialProperties.SetCutoff(cutoff);
-            
+            if (useBaseNormal) {
+                materialProperties.SetWear(wear);
+            }
+
             foreach (var counterpart in part.symmetryCounterparts) {
                 var decal = counterpart.GetComponent<ModuleConformalDecal>();
                 decal.materialProperties.SetOpacity(opacity);
                 decal.materialProperties.SetCutoff(cutoff);
+                if (useBaseNormal) {
+                    decal.materialProperties.SetWear(wear);
+                }
             }
         }
 
@@ -427,6 +440,9 @@ namespace ConformalDecals {
             materialProperties.UpdateMaterials();
             materialProperties.SetOpacity(opacity);
             materialProperties.SetCutoff(cutoff);
+            if (useBaseNormal) {
+                materialProperties.SetWear(wear);
+            }
 
             _decalMaterial = materialProperties.DecalMaterial;
             _previewMaterial = materialProperties.PreviewMaterial;
@@ -470,11 +486,13 @@ namespace ConformalDecals {
             var depthField = Fields[nameof(depth)];
             var opacityField = Fields[nameof(opacity)];
             var cutoffField = Fields[nameof(cutoff)];
+            var wearField = Fields[nameof(wear)];
 
             scaleField.guiActiveEditor = scaleAdjustable;
             depthField.guiActiveEditor = depthAdjustable;
             opacityField.guiActiveEditor = opacityAdjustable;
             cutoffField.guiActiveEditor = cutoffAdjustable;
+            wearField.guiActiveEditor = useBaseNormal;
 
             var steps = 20;
 
@@ -522,6 +540,17 @@ namespace ConformalDecals {
                 cutoffEditor.maxValue = maxValue;
                 cutoffEditor.stepIncrement = (maxValue - minValue) / steps;
                 cutoffEditor.onFieldChanged = OnMaterialTweakEvent;
+            }
+
+            if (useBaseNormal) {
+                var minValue = Mathf.Max(0, wearRange.x);
+                var maxValue = Mathf.Max(minValue, wearRange.y);
+
+                var wearEditor = (UI_FloatRange) wearField.uiControlEditor;
+                wearEditor.minValue = minValue;
+                wearEditor.maxValue = maxValue;
+                wearEditor.stepIncrement = (maxValue - minValue) / steps;
+                wearEditor.onFieldChanged = OnMaterialTweakEvent;
             }
         }
 

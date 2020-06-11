@@ -250,6 +250,10 @@ namespace ConformalDecals {
 
             UpdateMaterials();
 
+            if (HighLogic.LoadedSceneIsEditor) {
+                UpdateTweakables();
+            }
+
             if (HighLogic.LoadedSceneIsGame) {
                 UpdateScale();
             }
@@ -278,7 +282,7 @@ namespace ConformalDecals {
                 UpdateTweakables();
             }
 
-            materialProperties.SetRenderQueue(DecalQueue);
+            materialProperties.RenderQueue = DecalQueue;
 
             UpdateMaterials();
 

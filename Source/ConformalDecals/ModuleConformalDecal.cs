@@ -48,6 +48,8 @@ namespace ConformalDecals {
         /// </remarks>
         [KSPField] public string decalProjector = "Decal-Projector";
 
+        [KSPField] public string decalBounds = "Decal-Bounds";
+
         // Parameters
 
         [KSPField] public bool           scaleAdjustable = true;
@@ -124,7 +126,8 @@ namespace ConformalDecals {
         [KSPField] public Transform decalBackTransform;
         [KSPField] public Transform decalModelTransform;
         [KSPField] public Transform decalProjectorTransform;
-
+        [KSPField] public Transform decalBoundsTransform;
+        
         [KSPField] public Material backMaterial;
         [KSPField] public Vector2  backTextureBaseScale;
 
@@ -139,6 +142,8 @@ namespace ConformalDecals {
 
         private Material _decalMaterial;
         private Material _previewMaterial;
+        
+        internal bool _shouldRender;
 
         private int DecalQueue {
             get {
@@ -202,6 +207,15 @@ namespace ConformalDecals {
                 else {
                     decalProjectorTransform = part.FindModelTransform(decalProjector);
                     if (decalProjectorTransform == null) throw new FormatException($"Could not find decalProjector transform: '{decalProjector}'.");
+                }
+                
+                // find bounds transform
+                if (string.IsNullOrEmpty(decalBounds)) {
+                    decalBoundsTransform = part.transform;
+                }
+                else {
+                    decalBoundsTransform = part.FindModelTransform(decalBounds);
+                    if (decalBoundsTransform == null) throw new FormatException($"Could not find decalBounds transform: '{decalBounds}'.");
                 }
 
                 // get back material if necessary
@@ -302,6 +316,9 @@ namespace ConformalDecals {
             }
 
             materialProperties.RenderQueue = DecalQueue;
+
+            var boundsBehaviour = decalBoundsTransform.gameObject.AddComponent<DecalBoundsBehaviour>();
+            boundsBehaviour.decalRenderer = this;
 
             UpdateMaterials();
 
@@ -417,6 +434,10 @@ namespace ConformalDecals {
 
             UpdateMaterials();
             UpdateScale();
+        }
+
+        protected void Update() {
+            _shouldRender = false;
         }
 
         protected void UpdateScale() {
@@ -592,9 +613,9 @@ namespace ConformalDecals {
             }
         }
 
-        protected void Render(Camera camera) {
+        public void Render(Camera camera) {
             if (!_isAttached) return;
-
+            
             // render on each target object
             foreach (var target in _targets) {
                 target.Render(_decalMaterial, part.mpb, camera);

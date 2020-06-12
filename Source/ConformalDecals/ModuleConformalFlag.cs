@@ -82,7 +82,7 @@ namespace ConformalDecals {
         }
 
         private void OnEditorFlagSelected(string newFlagUrl) {
-            if (useCustomFlag) {
+            if (!useCustomFlag) {
                 SetFlag(newFlagUrl);
                 SetFlagSymmetryCounterparts(newFlagUrl);
             }

@@ -144,8 +144,6 @@ namespace ConformalDecals {
         private Material _previewMaterial;
         private BoxCollider _boundsCollider;
         
-        internal bool _shouldRender;
-
         private int DecalQueue {
             get {
                 _decalQueueCounter++;
@@ -318,9 +316,6 @@ namespace ConformalDecals {
 
             materialProperties.RenderQueue = DecalQueue;
 
-            var boundsBehaviour = decalBoundsTransform.gameObject.AddComponent<DecalBoundsBehaviour>();
-            boundsBehaviour.decalRenderer = this;
-
             _boundsCollider = decalBoundsTransform.GetComponent<BoxCollider>();
 
             UpdateMaterials();
@@ -439,10 +434,6 @@ namespace ConformalDecals {
             UpdateScale();
         }
 
-        protected void Update() {
-            _shouldRender = false;
-        }
-
         protected void UpdateScale() {
             var aspectRatio = materialProperties.AspectRatio;
             Vector2 size;
@@ -509,7 +500,7 @@ namespace ConformalDecals {
             _decalMaterial = materialProperties.DecalMaterial;
             _previewMaterial = materialProperties.PreviewMaterial;
 
-            decalFrontTransform.GetComponent<MeshRenderer>().material = _previewMaterial;
+            if (!_isAttached) decalFrontTransform.GetComponent<MeshRenderer>().material = _previewMaterial;
         }
 
         protected void UpdateTargets() {
@@ -618,7 +609,7 @@ namespace ConformalDecals {
 
         public void Render(Camera camera) {
             if (!_isAttached) return;
-            
+             
             // render on each target object
             foreach (var target in _targets) {
                 target.Render(_decalMaterial, part.mpb, camera);

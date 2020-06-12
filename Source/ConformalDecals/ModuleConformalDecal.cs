@@ -142,6 +142,7 @@ namespace ConformalDecals {
 
         private Material _decalMaterial;
         private Material _previewMaterial;
+        private BoxCollider _boundsCollider;
         
         internal bool _shouldRender;
 
@@ -320,6 +321,8 @@ namespace ConformalDecals {
             var boundsBehaviour = decalBoundsTransform.gameObject.AddComponent<DecalBoundsBehaviour>();
             boundsBehaviour.decalRenderer = this;
 
+            _boundsCollider = decalBoundsTransform.GetComponent<BoxCollider>();
+
             UpdateMaterials();
 
             if (HighLogic.LoadedSceneIsGame) {
@@ -481,7 +484,7 @@ namespace ConformalDecals {
 
                 // update projection
                 foreach (var target in _targets) {
-                    target.Project(_orthoMatrix, decalProjectorTransform, useBaseNormal);
+                    target.Project(_orthoMatrix, decalProjectorTransform, _boundsCollider.bounds, useBaseNormal);
                 }
             }
             else {

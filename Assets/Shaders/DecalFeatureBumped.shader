@@ -61,10 +61,7 @@ Shader "ConformalDecals/Feature/Bumped"
                 float4 color = tex2D(_Decal, IN.uv_decal);
                 float3 normal = UnpackNormalDXT5nm(tex2D(_DecalBumpMap, IN.uv_bump));
  
-                #ifdef DECAL_PROJECT
-                    // clip alpha
-                    clip(color.a - _Cutoff + 0.01);
-                #endif //DECAL_PROJECT
+                decalClipAlpha(color.a - _Cutoff);
                 
                 half rim = 1.0 - saturate(dot (normalize(IN.viewDir), normal));
                 float3 emission = (_RimColor.rgb * pow(rim, _RimFalloff)) * _RimColor.a;
@@ -113,10 +110,7 @@ Shader "ConformalDecals/Feature/Bumped"
                 float4 color = tex2D(_Decal, IN.uv_decal);
                 float3 normal = UnpackNormal(tex2D(_DecalBumpMap, IN.uv_bump));
  
-                #ifdef DECAL_PROJECT
-                    // clip alpha
-                    clip(color.a - _Cutoff + 0.01);
-                #endif //DECAL_PROJECT
+                decalClipAlpha(color.a - _Cutoff);
                 
                 half rim = 1.0 - saturate(dot (normalize(IN.viewDir), normal));
                 float3 emission = (_RimColor.rgb * pow(rim, _RimFalloff)) * _RimColor.a;

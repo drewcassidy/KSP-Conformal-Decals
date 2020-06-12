@@ -58,8 +58,8 @@ namespace ConformalDecals.MaterialModifiers {
                 TextureUrl = node.GetValue("textureUrl");
             }
 
-            if (node.HasValue("tileRect") && !autoTile) {
-                SetTile(ParsePropertyRect(node, "tileRect", true, _tileRect));
+            if (node.HasValue("tile") && !autoTile) {
+                SetTile(ParsePropertyRect(node, "tile", true, _tileRect));
             }
         }
 

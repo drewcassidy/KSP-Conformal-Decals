@@ -25,12 +25,12 @@ namespace ConformalDecals {
         /// <summary>
         /// Decal front transform name. Required
         /// </summary>
-        [KSPField] public string decalFront = string.Empty;
+        [KSPField] public string decalFront = "Decal-Front";
 
         /// <summary>
         /// Decal back transform name. Required if <see cref="updateBackScale"/> is true.
         /// </summary>
-        [KSPField] public string decalBack = string.Empty;
+        [KSPField] public string decalBack = "Decal-Back";
 
         /// <summary>
         /// Decal model transform name. Is rescaled to preview the decal scale when unattached.
@@ -38,7 +38,7 @@ namespace ConformalDecals {
         /// <remarks>
         /// If unspecified, the decal front transform is used instead.
         /// </remarks>
-        [KSPField] public string decalModel = string.Empty;
+        [KSPField] public string decalModel = "Decal-Model";
 
         /// <summary>
         /// Decal projector transform name. The decal will project along the +Z axis of this transform.
@@ -46,7 +46,7 @@ namespace ConformalDecals {
         /// <remarks>
         /// if unspecified, the part "model" transform will be used instead.
         /// </remarks>
-        [KSPField] public string decalProjector = string.Empty;
+        [KSPField] public string decalProjector = "Decal-Projector";
 
         // Parameters
 
@@ -389,9 +389,11 @@ namespace ConformalDecals {
 
             this.Log($"Decal attached to {part.parent.partName}");
 
-            // hide preview model
-            decalFrontTransform.gameObject.SetActive(false);
-            decalBackTransform.gameObject.SetActive(false);
+            // hide model
+            decalModelTransform.gameObject.SetActive(false);
+
+            // unhide projector
+            decalProjectorTransform.gameObject.SetActive(true);
 
             // add to preCull delegate
             Camera.onPreCull += Render;
@@ -404,9 +406,11 @@ namespace ConformalDecals {
         protected void OnDetach() {
             _isAttached = false;
 
-            // unhide preview model
-            decalFrontTransform.gameObject.SetActive(true);
-            decalBackTransform.gameObject.SetActive(true);
+            // unhide model
+            decalModelTransform.gameObject.SetActive(true);
+
+            // hide projector
+            decalProjectorTransform.gameObject.SetActive(false);
 
             // remove from preCull delegate
             Camera.onPreCull -= Render;
@@ -418,7 +422,7 @@ namespace ConformalDecals {
         protected void UpdateScale() {
             var aspectRatio = materialProperties.AspectRatio;
             Vector2 size;
-            
+
             switch (scaleMode) {
                 default:
                 case DecalScaleMode.HEIGHT:
@@ -452,9 +456,7 @@ namespace ConformalDecals {
                 _orthoMatrix[0, 3] = 0.5f;
                 _orthoMatrix[1, 3] = 0.5f;
 
-                _orthoMatrix[0, 0] = 1 / size.x;
-                _orthoMatrix[1, 1] = 1 / size.y;
-                _orthoMatrix[2, 2] = 1 / depth;
+                decalProjectorTransform.localScale = new Vector3(size.x, size.y, depth);
 
                 // update projection
                 foreach (var target in _targets) {

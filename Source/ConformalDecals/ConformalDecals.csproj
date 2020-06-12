@@ -51,6 +51,7 @@
         </Reference>
     </ItemGroup>
     <ItemGroup>
+        <Compile Include="DecalBoundsBehaviour.cs" />
         <Compile Include="DecalConfig.cs" />
         <Compile Include="DecalIconFixer.cs" />
         <Compile Include="DecalPropertyIDs.cs" />

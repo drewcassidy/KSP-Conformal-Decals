@@ -8,6 +8,7 @@ Shader "ConformalDecals/SelectionGlow"
             _RimEdgeOpacity("Rim Edge Opacity", Range(0,1)) = 0.2
 			_RimFalloff("Rim Falloff", Range(0.01,5) ) = 0.1
 			_RimColor("Rim Color", Color) = (0,0,0,0)
+            _RimOpacity("Rim Opacity", Range(0,1)) = 0.5
     }
     SubShader
     {
@@ -27,6 +28,7 @@ Shader "ConformalDecals/SelectionGlow"
             half _RimEdgeOpacity;
             float _RimFalloff;
             float4 _RimColor;
+            half _RimOpacity;
             
             #include "UnityCG.cginc"
             #include "Lighting.cginc"
@@ -53,7 +55,7 @@ Shader "ConformalDecals/SelectionGlow"
 
                 float3 worldViewDir = normalize(UnityWorldSpaceViewDir(i.worldPosition));
                 half rim = 1.0 - saturate(dot (normalize(worldViewDir), i.worldNormal));
-                c.rgb = (_RimColor.rgb * pow(rim, _RimFalloff)) * _RimColor.a;
+                c.rgb = (_RimColor.rgb * pow(rim, _RimFalloff)) * _RimColor.a * _RimOpacity;
                 half edgeGlow = 0;
                 edgeGlow = max(edgeGlow, pow(1-saturate(i.uv.x / _RimEdgeGlow), _RimEdgePow));
                 edgeGlow = max(edgeGlow, pow(1-saturate(i.uv.y / _RimEdgeGlow), _RimEdgePow));

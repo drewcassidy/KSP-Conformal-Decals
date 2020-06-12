@@ -64,7 +64,7 @@ Shader "ConformalDecals/Paint/Diffuse"
             {
                 float4 color = tex2D(_Decal, IN.uv_decal);
                 
-                decalClipAlpha(color.a);
+                decalClipAlpha(color.a - _Cutoff);
 
                 float3 normal = IN.normal;
                 half rim = 1.0 - saturate(dot (normalize(IN.viewDir), normal));
@@ -118,7 +118,7 @@ Shader "ConformalDecals/Paint/Diffuse"
             {
                 float4 color = tex2D(_Decal, IN.uv_decal);
                 
-                decalClipAlpha(color.a);
+                decalClipAlpha(color.a - _Cutoff);
 
                 float3 normal = IN.normal;
                 half rim = 1.0 - saturate(dot (normalize(IN.viewDir), normal));

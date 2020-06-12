@@ -6,6 +6,15 @@ using UnityEngine;
 
 namespace ConformalDecals {
     public class ModuleConformalDecal : PartModule {
+        public enum DecalScaleMode {
+            HEIGHT,
+            WIDTH,
+            AVERAGE,
+            AREA,
+            MINIMUM,
+            MAXIMUM
+        }
+
         // CONFIGURABLE VALUES
 
         /// <summary>
@@ -41,9 +50,10 @@ namespace ConformalDecals {
 
         // Parameters
 
-        [KSPField] public bool    scaleAdjustable = true;
-        [KSPField] public float   defaultScale    = 1;
-        [KSPField] public Vector2 scaleRange      = new Vector2(0, 4);
+        [KSPField] public bool           scaleAdjustable = true;
+        [KSPField] public float          defaultScale    = 1;
+        [KSPField] public Vector2        scaleRange      = new Vector2(0, 4);
+        [KSPField] public DecalScaleMode scaleMode       = DecalScaleMode.HEIGHT;
 
         [KSPField] public bool    depthAdjustable = true;
         [KSPField] public float   defaultDepth    = 0.1f;
@@ -241,6 +251,7 @@ namespace ConformalDecals {
                     var tileValid = ParseExtensions.TryParseRect(tileString, out tileRect);
                     if (!tileValid) throw new FormatException($"Invalid rect value for tile '{tileString}'");
                 }
+
                 if (tileRect.x >= 0) {
                     materialProperties.UpdateTile(tileRect);
                 }
@@ -269,6 +280,7 @@ namespace ConformalDecals {
                 depth = defaultDepth;
                 opacity = defaultOpacity;
                 cutoff = defaultCutoff;
+                wear = defaultWear;
             }
         }
 
@@ -405,7 +417,31 @@ namespace ConformalDecals {
 
         protected void UpdateScale() {
             var aspectRatio = materialProperties.AspectRatio;
-            var size = new Vector2(scale, scale * aspectRatio);
+            Vector2 size;
+            
+            switch (scaleMode) {
+                default:
+                case DecalScaleMode.HEIGHT:
+                    size = new Vector2(scale, scale * aspectRatio);
+                    break;
+                case DecalScaleMode.WIDTH:
+                    size = new Vector2(scale / aspectRatio, scale);
+                    break;
+                case DecalScaleMode.AVERAGE:
+                    var width1 = 2 * scale / (1 + aspectRatio);
+                    size = new Vector2(width1, width1 * aspectRatio);
+                    break;
+                case DecalScaleMode.AREA:
+                    var width2 = Mathf.Sqrt(scale / aspectRatio);
+                    size = new Vector2(width2, width2 * aspectRatio);
+                    break;
+                case DecalScaleMode.MINIMUM:
+                    if (aspectRatio > 1) goto case DecalScaleMode.WIDTH;
+                    else goto case DecalScaleMode.HEIGHT;
+                case DecalScaleMode.MAXIMUM:
+                    if (aspectRatio > 1) goto case DecalScaleMode.HEIGHT;
+                    else goto case DecalScaleMode.WIDTH;
+            }
 
             // update material scale
             materialProperties.UpdateScale(size);

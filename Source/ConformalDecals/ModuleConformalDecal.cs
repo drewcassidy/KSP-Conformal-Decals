@@ -48,8 +48,6 @@ namespace ConformalDecals {
         /// </remarks>
         [KSPField] public string decalProjector = "Decal-Projector";
 
-        [KSPField] public string decalBounds = "Decal-Bounds";
-
         // Parameters
 
         [KSPField] public bool           scaleAdjustable = true;
@@ -126,7 +124,6 @@ namespace ConformalDecals {
         [KSPField] public Transform decalBackTransform;
         [KSPField] public Transform decalModelTransform;
         [KSPField] public Transform decalProjectorTransform;
-        [KSPField] public Transform decalBoundsTransform;
         
         [KSPField] public Material backMaterial;
         [KSPField] public Vector2  backTextureBaseScale;
@@ -206,15 +203,6 @@ namespace ConformalDecals {
                 else {
                     decalProjectorTransform = part.FindModelTransform(decalProjector);
                     if (decalProjectorTransform == null) throw new FormatException($"Could not find decalProjector transform: '{decalProjector}'.");
-                }
-                
-                // find bounds transform
-                if (string.IsNullOrEmpty(decalBounds)) {
-                    decalBoundsTransform = part.transform;
-                }
-                else {
-                    decalBoundsTransform = part.FindModelTransform(decalBounds);
-                    if (decalBoundsTransform == null) throw new FormatException($"Could not find decalBounds transform: '{decalBounds}'.");
                 }
 
                 // get back material if necessary
@@ -316,7 +304,7 @@ namespace ConformalDecals {
 
             materialProperties.RenderQueue = DecalQueue;
 
-            _boundsCollider = decalBoundsTransform.GetComponent<BoxCollider>();
+            _boundsCollider = decalProjectorTransform.GetComponent<BoxCollider>();
 
             UpdateMaterials();
 

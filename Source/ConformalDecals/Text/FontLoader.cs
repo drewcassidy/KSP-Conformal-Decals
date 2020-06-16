@@ -19,9 +19,6 @@ namespace ConformalDecals.Text {
                 Debug.Log($"[ConformalDecals] could not load font asset {urlFile.fullPath}");
             }
             else {
-                var loadedFoo = bundle.LoadAllAssets<DecalFont>();
-                Debug.Log(loadedFoo[0].foo1);
-                Debug.Log(loadedFoo[0].foo2);
                 var loadedFonts = bundle.LoadAllAssets<TMP_FontAsset>();
                 foreach (var font in loadedFonts) {
                     Debug.Log($"[ConformalDecals] adding font {font.name}" );

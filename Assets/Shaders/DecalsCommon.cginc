@@ -91,17 +91,17 @@ inline float CalcMipLevel(float2 texture_coord) {
 // modifed version of the KSP BlinnPhong because it does some weird things
 inline fixed4 LightingBlinnPhongDecal(SurfaceOutput s, fixed3 lightDir, half3 viewDir, fixed atten)
 {
-	s.Normal = normalize(s.Normal);
-	half3 h = normalize(lightDir + viewDir);
+    s.Normal = normalize(s.Normal);
+    half3 h = normalize(lightDir + viewDir);
 
-	fixed diff = max(0, dot(s.Normal, lightDir));
+    fixed diff = max(0, dot(s.Normal, lightDir));
 
-	float nh = max(0, dot(s.Normal, h));
-	float spec = pow(nh, s.Specular*128.0) * s.Gloss;
+    float nh = max(0, dot(s.Normal, h));
+    float spec = pow(nh, s.Specular*128.0) * s.Gloss;
 
-	fixed4 c = 0;
-	c.rgb = (s.Albedo * _LightColor0.rgb * diff + _LightColor0.rgb * _SpecColor.rgb * spec) * (atten);
-	return c;
+    fixed4 c = 0;
+    c.rgb = (s.Albedo * _LightColor0.rgb * diff + _LightColor0.rgb * _SpecColor.rgb * spec) * (atten);
+    return c;
 }
 
 // declare surf function, 

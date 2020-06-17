@@ -4,7 +4,7 @@ python:
 before_install:
   - echo -e "machine github.com\n  login $GITHUB_OAUTH_TOKEN" > ~/.netrc
   - git lfs pull
-  - fit lfs fetch --all
+  - git lfs fetch --all
 install:
   - pip install awscli boto3 requests
 branches:

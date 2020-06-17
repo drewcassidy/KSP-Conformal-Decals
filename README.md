@@ -1,5 +1,5 @@
 # Conformal Decals v0.1.0
-[![Build Status](https://travis-ci.org/drewcassidy/KSP-Conformal-Decals.svg?branch=Release)](https://travis-ci.org/drewcassidy/KSP-Conformal-Decals) [![Art: CC BY-SA 4.0](https://img.shields.io/badge/Art%20License-CC%20BY--SA%204.0-lightgrey.svg)](https://creativecommons.org/licenses/by-sa/4.0/) [![Code: GPL v3](https://img.shields.io/badge/Code%20License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0) 
+[![Build Status](https://travis-ci.org/drewcassidy/KSP-Conformal-Decals.svg?branch=release)](https://travis-ci.org/drewcassidy/KSP-Conformal-Decals) [![Art: CC BY-SA 4.0](https://img.shields.io/badge/Art%20License-CC%20BY--SA%204.0-orange.svg)](https://creativecommons.org/licenses/by-sa/4.0/) [![Code: GPL v3](https://img.shields.io/badge/Code%20License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0) 
 
 Conformal Decals adds a set of decal stickers to KSP, as well as providing a framework for creating your own decals which conform to the surface of the parts they are attached to. 
 

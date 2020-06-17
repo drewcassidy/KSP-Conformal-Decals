@@ -1,5 +1,5 @@
 # Example annotated build data file
-mod-name: ModNameHere
+mod-name: ConformalDecals
 package:
   include-dependencies: true  # Include dependencies in the package
   included-gamedata: # Include these gamedata-level folders in packages:

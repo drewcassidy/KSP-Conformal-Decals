@@ -23,8 +23,8 @@ dependencies:  # Configure dependencies
     url: http://taniwha.org/~bill/Shabby_v0.1.2.zip
     zip: true
 deploy:
-  - SpaceDock:
-      enabled: true # activate/deactivate this deployment script
-      mod-id: 2451  # The Spacedock mod ID for deployment
-  - GitHub:
-      enabled: true  # activate/deactivate this deployment script
+  SpaceDock:
+    enabled: true # activate/deactivate this deployment script
+    mod-id: 2451  # The Spacedock mod ID for deployment
+  GitHub:
+    enabled: true  # activate/deactivate this deployment script

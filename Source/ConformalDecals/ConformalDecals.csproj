@@ -68,6 +68,6 @@
     </ItemGroup>
     <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
     <PropertyGroup>
-        <PostBuildEvent>sh -e -c "cp -v '$(TargetPath)' '$(SolutionDir)/../Distribution/GameData/ConformalDecals/Plugins'"</PostBuildEvent>
+        <PostBuildEvent>sh -e -c "cp -v '$(TargetPath)' '$(SolutionDir)/../GameData/ConformalDecals/Plugins'"</PostBuildEvent>
     </PropertyGroup>
 </Project>

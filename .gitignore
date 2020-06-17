@@ -1,7 +1,5 @@
 # Unity Project Directories
 Assets/*
-!Assets/Plugins/
-Assets/Plugins/Editor/
 !Assets/Shaders/
 !Assets/Textures/
 KSP/
@@ -10,9 +8,9 @@ Logs/
 Packages/
 ProjectSettings/
 Temp/
-Distribution/GameData/ConformalDecals/Resources/Resources
-Distribution/GameData/ConformalDecals/Resources/Resources.manifest
-Distribution/GameData/ConformalDecals/Resources/conformaldecals.shab.manifest
+GameData/ConformalDecals/Resources/Resources
+GameData/ConformalDecals/Resources/Resources.manifest
+GameData/ConformalDecals/Resources/conformaldecals.shab.manifest
 
 # Unity Project Files
 PartTools.cfg

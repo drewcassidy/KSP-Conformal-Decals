@@ -2,7 +2,7 @@
 mod-name: ModNameHere
 package:
   include-dependencies: true  # Include dependencies in the package
-  included-gamedata  # Include these gamedata-level folders in packages:
+  included-gamedata: # Include these gamedata-level folders in packages:
     - ConformalDecals
   included-support:  # Include these root-level files in packages
     - README.md

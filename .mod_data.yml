@@ -1,0 +1,25 @@
+# Example annotated build data file
+mod-name: ModNameHere
+package:
+  include-dependencies: true  # Include dependencies in the package
+  included-gamedata  # Include these gamedata-level folders in packages:
+    - ConformalDecals
+  included-support:  # Include these root-level files in packages
+    - README.md
+    - LICENSE-ART.md
+    - LICENSE-SOURCE.md
+    - CHANGELOG.md
+dependencies:  # Configure dependencies
+  ModuleManager:
+    version: 4.1.3
+    location: s3
+  B9PartSwitch:
+    version: 2.13.0
+    location: s3
+  Shabby:
+    location: url
+    url: http://taniwha.org/~bill/Shabby_v0.1.2.zip
+    zip: true
+deploy:
+  GitHub:
+    enabled: true  # activate/deactivate this deployment script

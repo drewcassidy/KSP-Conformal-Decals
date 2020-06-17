@@ -1,3 +1,10 @@
+v0.1.1
+------
+Fixes:
+- Fixed flag decal not adjusting to new texture sizes immediately.
+- Fixed decal bounds being visible on launch.
+- Fixed decal bounds being visible in the part icon.
+
 v0.1.0
 ------
 

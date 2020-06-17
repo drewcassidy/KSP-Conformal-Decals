@@ -8,7 +8,7 @@ package:
     - README.md
     - LICENSE-ART.md
     - LICENSE-SOURCE.md
-    - CHANGELOG.md
+    - changelog.txt
 dependencies:  # Configure dependencies
   ModuleManager:
     location: url

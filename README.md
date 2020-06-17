@@ -1,6 +1,8 @@
 # Conformal Decals v0.1.0
 [![Build Status](https://travis-ci.org/drewcassidy/KSP-Conformal-Decals.svg?branch=release)](https://travis-ci.org/drewcassidy/KSP-Conformal-Decals) [![Art: CC BY-SA 4.0](https://img.shields.io/badge/Art%20License-CC%20BY--SA%204.0-orange.svg)](https://creativecommons.org/licenses/by-sa/4.0/) [![Code: GPL v3](https://img.shields.io/badge/Code%20License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0) 
 
+![Screenshot](http://pileof.rocks/KSP/images/ConformalDecalsHeader.png)
+
 Conformal Decals adds a set of decal stickers to KSP, as well as providing a framework for creating your own decals which conform to the surface of the parts they are attached to. 
 
 ## Dependencies
@@ -27,6 +29,6 @@ Art assets and configuration files are licensed CC-BY-SA 4.0, as described in th
 Plugin code is distributed under the GPL v3, as described in the LICENSE-SOURCE.md file
 
 Any bundled mods are distributed under their own license:
-- ModuleManager by blowfish and sarbian is distributed under a Creative Commons Sharealike license. More details, including source code, can be found here: https://forum.kerbalspaceprogram.com/index.php?/topic/50533-*
+- ModuleManager by blowfish and sarbian is distributed under a Creative Commons Sharealike license. More details, including source code, can be found [here](https://forum.kerbalspaceprogram.com/index.php?/topic/50533-*).
 - B9PartSwitch by blowfish is distributed under the LGPL v3 license.
 - Shabby by taniwha is distributed under the GPL v3 license.

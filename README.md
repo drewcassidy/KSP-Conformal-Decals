@@ -12,6 +12,7 @@ Required:
 - B9 Part Switch (2.16.0). Bundled with release.
 - ModuleManager (4.1.3). Bundled with release.
 - Shabby (0.1.2). Bundled with release.
+
 Optional:
 - Wild Blue Tools. For custom decals category in the VAB and SPH.
 

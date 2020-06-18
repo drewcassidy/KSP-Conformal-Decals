@@ -1,5 +1,12 @@
+v0.1.2
+------
+
+Fixes:
+- Disabled writing to the zbuffer in the decal bounds shader. Should fix any issues with Scatterer or EVE.
+
 v0.1.1
 ------
+
 Fixes:
 - Fixed flag decal not adjusting to new texture sizes immediately.
 - Fixed decal bounds being visible on launch.

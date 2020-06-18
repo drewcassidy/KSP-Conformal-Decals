@@ -8,9 +8,10 @@ Logs/
 Packages/
 ProjectSettings/
 Temp/
+
+# Unity Assetbundle Manifest Files
 GameData/ConformalDecals/Resources/Resources
-GameData/ConformalDecals/Resources/Resources.manifest
-GameData/ConformalDecals/Resources/conformaldecals.shab.manifest
+GameData/ConformalDecals/Resources/*.manifest
 
 # Unity Project Files
 PartTools.cfg

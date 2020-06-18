@@ -2,22 +2,23 @@ Shader "ConformalDecals/SelectionGlow"
 {
     Properties
     {
-		[Header(Effects)]
-            _RimEdgeGlow("Rim Edge Glow", Range(0, 1)) = 0.45
-            _RimEdgePow("Rim Edge Falloff", Range(0,5)) = 5
-            _RimEdgeOpacity("Rim Edge Opacity", Range(0,1)) = 0.2
-			_RimFalloff("Rim Falloff", Range(0.01,5) ) = 0.1
-			_RimColor("Rim Color", Color) = (0,0,0,0)
-            _RimOpacity("Rim Opacity", Range(0,1)) = 0.5
+        [Header(Effects)]
+        _RimEdgeGlow("Rim Edge Glow", Range(0, 1)) = 0.45
+        _RimEdgePow("Rim Edge Falloff", Range(0,5)) = 5
+        _RimEdgeOpacity("Rim Edge Opacity", Range(0,1)) = 0.2
+        _RimFalloff("Rim Falloff", Range(0.01,5) ) = 0.1
+        _RimColor("Rim Color", Color) = (0,0,0,0)
+        _RimOpacity("Rim Opacity", Range(0,1)) = 0.5
     }
     SubShader
     {
         Tags { "Queue" = "Transparent" }
         Cull Back
+        ZWrite Off 
         
         Pass
         {
-     		Blend One One
+            Blend One One
 
             CGPROGRAM
             #pragma vertex vert
@@ -70,4 +71,4 @@ Shader "ConformalDecals/SelectionGlow"
             ENDCG
         } 
     }
-}	
+}    

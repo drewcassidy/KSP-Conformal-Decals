@@ -14,10 +14,10 @@ Shader "ConformalDecals/Decal Back"
         _Shininess ("Shininess", Range (0.03, 10)) = 0.4
         
         [Header(Effects)]
-            [PerRendererData]_Opacity("_Opacity", Range(0,1) ) = 1
-            [PerRendererData]_RimFalloff("_RimFalloff", Range(0.01,5) ) = 0.1
-            [PerRendererData]_RimColor("_RimColor", Color) = (0,0,0,0)
-            [PerRendererData]_UnderwaterFogFactor ("Underwater Fog Factor", Range(0,1)) = 0
+        [PerRendererData]_Opacity("_Opacity", Range(0,1) ) = 1
+        [PerRendererData]_RimFalloff("_RimFalloff", Range(0.01,5) ) = 0.1
+        [PerRendererData]_RimColor("_RimColor", Color) = (0,0,0,0)
+        [PerRendererData]_UnderwaterFogFactor ("Underwater Fog Factor", Range(0,1)) = 0
     }
     
     SubShader 

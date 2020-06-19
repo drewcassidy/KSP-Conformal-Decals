@@ -2,17 +2,21 @@ using System.IO;
 using System.Collections;
 using System.Collections.Generic;
 using TMPro;
+using UniLinq;
 using UnityEngine;
 
 namespace ConformalDecals.Text {
-    
     [DatabaseLoaderAttrib(new[] {"kspfont"})]
     public class FontLoader : DatabaseLoader<GameDatabase.TextureInfo> {
-        public static List<TMP_FontAsset> fonts;
-        
+        private const  string        FallbackName = "NotoSans-Regular SDF";
+        private static TMP_FontAsset _fallbackFont;
+
         public override IEnumerator Load(UrlDir.UrlFile urlFile, FileInfo fileInfo) {
-            fonts ??= new List<TMP_FontAsset>();
-            
+            if (_fallbackFont == null) {
+                _fallbackFont = Resources.FindObjectsOfTypeAll<TMP_FontAsset>().First(o => o.name == FallbackName);
+                if (_fallbackFont == null) Debug.LogError($"Could not find fallback font '{FallbackName}'");
+            }
+
             Debug.Log($"[ConformalDecals] '{urlFile.fullPath}'");
             var bundle = AssetBundle.LoadFromFile(urlFile.fullPath);
             if (!bundle) {
@@ -21,12 +25,11 @@ namespace ConformalDecals.Text {
             else {
                 var loadedFonts = bundle.LoadAllAssets<TMP_FontAsset>();
                 foreach (var font in loadedFonts) {
-                    Debug.Log($"[ConformalDecals] adding font {font.name}" );
-                    fonts.Add(font);
-                    Debug.Log($"ConformalDecals] isReadable: {font.atlas.isReadable}");
+                    Debug.Log($"[ConformalDecals] adding font {font.name}");
+                    font.fallbackFontAssets.Add(_fallbackFont);
                 }
             }
-            
+
             yield break;
         }
     }

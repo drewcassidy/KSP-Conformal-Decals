@@ -1,6 +1,6 @@
 using System;
 using System.Collections.Generic;
-using ConformalDecals.MaterialModifiers;
+using ConformalDecals.MaterialProperties;
 using ConformalDecals.Util;
 using UnityEngine;
 
@@ -47,6 +47,8 @@ namespace ConformalDecals {
         /// if unspecified, the part "model" transform will be used instead.
         /// </remarks>
         [KSPField] public string decalProjector = "Decal-Projector";
+
+        [KSPField] public string decalCollider = "Decal-Collider";
 
         // Parameters
 

@@ -54,11 +54,11 @@
         <Compile Include="DecalConfig.cs" />
         <Compile Include="DecalIconFixer.cs" />
         <Compile Include="DecalPropertyIDs.cs" />
-        <Compile Include="MaterialModifiers\MaterialColorProperty.cs" />
-        <Compile Include="MaterialModifiers\MaterialFloatProperty.cs" />
-        <Compile Include="MaterialModifiers\MaterialProperty.cs" />
-        <Compile Include="MaterialModifiers\MaterialPropertyCollection.cs" />
-        <Compile Include="MaterialModifiers\MaterialTextureProperty.cs" />
+        <Compile Include="MaterialProperties\MaterialColorProperty.cs" />
+        <Compile Include="MaterialProperties\MaterialFloatProperty.cs" />
+        <Compile Include="MaterialProperties\MaterialProperty.cs" />
+        <Compile Include="MaterialProperties\MaterialPropertyCollection.cs" />
+        <Compile Include="MaterialProperties\MaterialTextureProperty.cs" />
         <Compile Include="ModuleConformalFlag.cs" />
         <Compile Include="ProjectionTarget.cs" />
         <Compile Include="ModuleConformalDecal.cs" />

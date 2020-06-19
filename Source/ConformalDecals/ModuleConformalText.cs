@@ -22,8 +22,6 @@ namespace ConformalDecals {
         }
 
         private void SetText(string newText) {
-            if (!HighLogic.LoadedSceneIsEditor) return;
-            
             this.Log("Rendering text for part");
             var fonts = Resources.FindObjectsOfTypeAll<TMP_FontAsset>();
 

@@ -1,146 +1,112 @@
 using System;
-using ConformalDecals.Util;
+using System.Collections;
 using TMPro;
 using UnityEngine;
+using UnityEngine.Rendering;
 
-namespace ConformalDecals {
-    public class TextRenderer {
-        private struct GlyphInfo {
-            public TMP_Glyph  glyph;
-            public Vector2Int size;
-            public Vector2Int position;
-            public int        fontIndex;
-            public bool       needsResample;
+namespace ConformalDecals.Text {
+    [KSPAddon(KSPAddon.Startup.FlightAndEditor, true)]
+    public class TextRenderer : MonoBehaviour {
+        public static TextRenderer Instance {
+            get {
+                if (!_instance._isSetup) {
+                    _instance.Setup();
+                }
+
+                return _instance;
+            }
         }
 
-        private struct FontInfo {
-            public TMP_FontAsset font;
-            public Texture2D     fontAtlas;
-            public Color32[]     fontAtlasColors;
+        public const TextureFormat       TextTextureFormat       = TextureFormat.Alpha8;
+        public const RenderTextureFormat TextRenderTextureFormat = RenderTextureFormat.R8;
+
+        private const string BlitShader     = "ConformalDecals/TMP_Blit";
+        private const int    MaxTextureSize = 4096;
+
+        private static TextRenderer _instance;
+
+        private bool        _isSetup;
+        private TextMeshPro _tmp;
+        private GameObject  _cameraObject;
+        private Camera      _camera;
+        private Material    _blitMaterial;
+
+        private void Start() {
+            if (_instance._isSetup) {
+                Debug.Log("[ConformalDecals] Duplicate TextRenderer created???");
+            }
+
+            Debug.Log("[ConformalDecals] Creating TextRenderer Object");
+            _instance = this;
+            DontDestroyOnLoad(gameObject);
         }
 
-        public static Texture2D RenderToTexture(TMP_FontAsset font, string text) {
-            Debug.Log($"Rendering text: {text}");
-            var charArray = text.ToCharArray();
-            var glyphInfoArray = new GlyphInfo[charArray.Length];
-            var fontInfoArray = new FontInfo[charArray.Length];
+        public void Setup() {
+            if (_isSetup) return;
 
-            var baseScale = font.fontInfo.Scale;
 
-            var padding = (int) font.fontInfo.Padding;
-            var ascender = (int) font.fontInfo.Ascender;
-            var descender = (int) font.fontInfo.Descender;
-            var baseline = (int) baseScale * (descender + padding);
-            Debug.Log($"baseline: {baseline}");
-            Debug.Log($"ascender: {ascender}");
-            Debug.Log($"descender: {descender}");
-            Debug.Log($"baseScale: {baseScale}");
+            Debug.Log("[ConformalDecals] Setting Up TextRenderer Object");
 
-            fontInfoArray[0].font = font;
+            _tmp = gameObject.AddComponent<TextMeshPro>();
+            _tmp.renderer.enabled = false; // dont automatically render
 
-            int xAdvance = 0;
-            for (var i = 0; i < charArray.Length; i++) {
+            _cameraObject = new GameObject("ConformalDecals text camera");
+            _cameraObject.transform.parent = transform;
+            _cameraObject.transform.SetPositionAndRotation(Vector3.back, Quaternion.identity);
 
-                var glyphFont = TMP_FontUtilities.SearchForGlyph(font, charArray[i], out var glyph);
+            _camera = _cameraObject.AddComponent<Camera>();
+            _camera.enabled = false; // dont automatically render
+            _camera.orthographic = true;
+            _camera.depthTextureMode = DepthTextureMode.None;
+            _camera.nearClipPlane = 0.1f;
+            _camera.farClipPlane = 2f;
+            _isSetup = true;
 
-                if (glyphFont == font) {
-                    glyphInfoArray[i].fontIndex = 0;
-                }
-                else {
-                    for (int f = 1; i < charArray.Length; i++) {
-                        if (fontInfoArray[f].font == null) {
-                            fontInfoArray[f].font = glyphFont;
-                            glyphInfoArray[i].fontIndex = f;
-                            break;
-                        }
+            _blitMaterial = new Material(Shabby.Shabby.FindShader(BlitShader));
+        }
 
-                        if (fontInfoArray[f].font == glyphFont) {
-                            glyphInfoArray[i].fontIndex = f;
-                            break;
-                        }
-                    }
-                }
+        public Texture2D RenderToTexture(Texture2D texture2D, TMP_FontAsset font, string text, float fontSize, float pixelDensity) {
+            // generate text mesh
+            _tmp.SetText(text);
+            _tmp.font = font;
+            _tmp.fontSize = fontSize;
+            _tmp.ForceMeshUpdate();
 
-                Debug.Log($"getting font info for character: '{charArray[i]}'");
-                Debug.Log($"character font: {glyphFont.name}");
+            // calculate camera and texture size
+            var mesh = _tmp.mesh;
+            var bounds = mesh.bounds;
 
-                glyphInfoArray[i].glyph = glyph;
-                glyphInfoArray[i].needsResample = false;
+            var width = Mathf.NextPowerOfTwo((int) (bounds.size.x * pixelDensity));
+            var height = Mathf.NextPowerOfTwo((int) (bounds.size.y * pixelDensity));
 
-                float elementScale = glyph.scale;
+            _camera.orthographicSize = height / pixelDensity / 2;
+            _camera.aspect = (float) width / height;
 
-                if (glyphFont == font) {
-                    if (!Mathf.Approximately(elementScale, 1)) {
-                        glyphInfoArray[i].needsResample = true;
-                    }
+            _cameraObject.transform.localPosition = new Vector3(bounds.center.x, bounds.center.y, -1);
 
-                    elementScale *= baseScale;
-                }
-                else {
-                    var fontScale = glyphFont.fontInfo.Scale / glyphFont.fontInfo.PointSize;
-                    if (!Mathf.Approximately(fontScale, baseScale)) {
-                        glyphInfoArray[i].needsResample = true;
-                    }
+            width = Mathf.Min(width, MaxTextureSize);
+            height = Mathf.Max(height, MaxTextureSize);
 
-                    elementScale *= fontScale;
-                }
+            // setup render texture
+            var renderTex = RenderTexture.GetTemporary(width, height, 0, TextRenderTextureFormat, RenderTextureReadWrite.Linear, 1);
+            _camera.targetTexture = renderTex;
 
-                Debug.Log($"character scale: {glyphFont.fontInfo.Scale / glyphFont.fontInfo.PointSize}");
-                Debug.Log($"character needs resampling: {glyphInfoArray[i].needsResample}");
+            // setup material
+            _blitMaterial.SetTexture(PropertyIDs._MainTex, font.atlas);
+            _blitMaterial.SetPass(0);
 
-                glyphInfoArray[i].size.x = (int) ((glyph.width + (padding * 2)) * elementScale);
-                glyphInfoArray[i].size.y = (int) ((glyph.height + (padding * 2)) * elementScale);
-                glyphInfoArray[i].position.x = (int) ((xAdvance + glyph.xOffset - padding) * elementScale);
-                glyphInfoArray[i].position.y = (int) ((baseline + glyph.yOffset - padding) * elementScale);
-                
-                Debug.Log($"character size: {glyphInfoArray[i].size}");
-                Debug.Log($"character position: {glyphInfoArray[i].position}");
+            // draw the mesh
+            Graphics.DrawMeshNow(mesh, _tmp.renderer.localToWorldMatrix);
+
+            var request = AsyncGPUReadback.Request(renderTex, 0, TextTextureFormat);
+
+            request.WaitForCompletion();
+
+            if (request.hasError) {
+                throw new Exception("[ConformalDecals] Error encountered trying to request render texture data from the GPU!");
             }
-
-            // calculate texture bounds
-            int xOffset = glyphInfoArray[0].position.x;
-            var textureWidth = (glyphInfoArray[charArray.Length - 1].position.x + glyphInfoArray[charArray.Length - 1].size.x) - xOffset;
-            var textureHeight = (int) baseScale * (ascender + descender + padding * 2);
-
-            // ensure texture sizes are powers of 2
-            textureWidth = Mathf.NextPowerOfTwo(textureWidth);
-            textureHeight = Mathf.NextPowerOfTwo(textureHeight);
-            Debug.Log($"texture is {textureWidth} x {textureHeight}");
-
-            var texture = new Texture2D(textureWidth, textureHeight, TextureFormat.Alpha8, true);
-
-            var colors = new Color32[textureWidth * textureHeight];
-
-            for (var i = 0; i < fontInfoArray.Length; i++) {
-                if (fontInfoArray[i].font == null) break;
-                fontInfoArray[i].fontAtlas = fontInfoArray[i].font.atlas;
-                fontInfoArray[i].fontAtlasColors = fontInfoArray[i].fontAtlas.GetPixels32();
-            }
-
-            for (int i = 0; i < charArray.Length; i++) {
-                var glyphInfo = glyphInfoArray[i];
-                var glyph = glyphInfo.glyph;
-                var fontInfo = fontInfoArray[glyphInfo.fontIndex];
-
-                var srcPos = new Vector2Int((int) glyph.x, (int) glyph.y);
-                var dstPos = glyphInfo.position;
-                dstPos.x += xOffset;
-                var dstSize = glyphInfo.size;
-                
-                Debug.Log($"rendering character number {i}");
-
-                if (glyphInfo.needsResample) {
-                    var srcSize = new Vector2(glyph.width, glyph.height);
-                    TextureUtils.BlitRectBilinearAlpha(fontInfo.fontAtlas, srcPos, srcSize, texture, colors, dstPos, dstSize, TextureUtils.BlitMode.Add);
-                }
-                else {
-                    TextureUtils.BlitRectAlpha(fontInfo.fontAtlas, fontInfo.fontAtlasColors, srcPos, texture, colors, dstPos, dstSize, TextureUtils.BlitMode.Add);
-                }
-            }
-
-            texture.Apply(true);
-
-            return texture;
+            
+            
         }
     }
 }

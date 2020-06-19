@@ -2,6 +2,7 @@
 Assets/*
 !Assets/Shaders/
 !Assets/Textures/
+!Assets/Scripts/
 KSP/
 Library/
 Logs/

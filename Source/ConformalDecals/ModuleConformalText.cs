@@ -1,3 +1,4 @@
+using ConformalDecals.Text;
 using ConformalDecals.Util;
 using TMPro;
 using UnityEngine;

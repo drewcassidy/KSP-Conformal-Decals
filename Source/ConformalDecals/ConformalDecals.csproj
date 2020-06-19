@@ -52,6 +52,9 @@
         <Reference Include="UnityEngine.PhysicsModule, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null">
           <HintPath>dlls\UnityEngine.PhysicsModule.dll</HintPath>
         </Reference>
+        <Reference Include="UnityEngine.UI, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null">
+          <HintPath>dlls\UnityEngine.UI.dll</HintPath>
+        </Reference>
     </ItemGroup>
     <ItemGroup>
         <Compile Include="DecalConfig.cs" />
@@ -70,6 +73,7 @@
         <Compile Include="Text\DecalFont.cs" />
         <Compile Include="Text\FontLoader.cs" />
         <Compile Include="Text\TextRenderer.cs" />
+        <Compile Include="Text\TextSettings.cs" />
         <Compile Include="Util\Logging.cs" />
         <Compile Include="Util\OrientedBounds.cs" />
         <Compile Include="Util\TextureUtils.cs" />

@@ -1,20 +1,20 @@
 using System;
 using UnityEngine;
 
-namespace ConformalDecals.MaterialModifiers {
-    public class MaterialFloatProperty : MaterialProperty {
-        [SerializeField] public float value;
+namespace ConformalDecals.MaterialProperties {
+    public class MaterialColorProperty : MaterialProperty {
+        [SerializeField] public Color color;
 
         public override void ParseNode(ConfigNode node) {
             base.ParseNode(node);
 
-            value = ParsePropertyFloat(node, "value", true, value);
+            color = ParsePropertyColor(node, "color", true, color);
         }
 
         public override void Modify(Material material) {
             if (material == null) throw new ArgumentNullException("material cannot be null");
 
-            material.SetFloat(_propertyID, value);
+            material.SetColor(_propertyID, color);
         }
     }
 }

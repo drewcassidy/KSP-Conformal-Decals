@@ -1,7 +1,7 @@
 using System;
 using UnityEngine;
 
-namespace ConformalDecals.MaterialModifiers {
+namespace ConformalDecals.MaterialProperties {
     public abstract class MaterialProperty : ScriptableObject {
         public string PropertyName {
             get => _propertyName;

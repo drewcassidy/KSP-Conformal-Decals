@@ -5,7 +5,7 @@ using UniLinq;
 using UnityEngine;
 using UnityEngine.Rendering;
 
-namespace ConformalDecals.MaterialModifiers {
+namespace ConformalDecals.MaterialProperties {
     public class MaterialPropertyCollection : ScriptableObject, ISerializationCallbackReceiver {
         public int RenderQueue {
             get => _renderQueue;

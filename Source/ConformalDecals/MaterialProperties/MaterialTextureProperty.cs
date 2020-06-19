@@ -1,7 +1,7 @@
 using System;
 using UnityEngine;
 
-namespace ConformalDecals.MaterialModifiers {
+namespace ConformalDecals.MaterialProperties {
     public class MaterialTextureProperty : MaterialProperty {
         [SerializeField] public bool isNormal;
         [SerializeField] public bool isMain;

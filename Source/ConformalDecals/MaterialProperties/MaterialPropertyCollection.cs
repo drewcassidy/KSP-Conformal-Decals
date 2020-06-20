@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Runtime.Serialization;
+using ConformalDecals.Util;
 using UniLinq;
 using UnityEngine;
 using UnityEngine.Rendering;
@@ -163,8 +164,8 @@ namespace ConformalDecals.MaterialProperties {
         }
 
         public T ParseProperty<T>(ConfigNode node) where T : MaterialProperty {
-            var propertyName = node.GetValue("name");
-            if (string.IsNullOrEmpty(propertyName)) throw new ArgumentException("node has no name");
+            string propertyName = "";
+            if (!ParseUtil.ParseStringIndirect(ref propertyName, node, "name")) throw new ArgumentException("node has no name");
 
             var newProperty = AddOrGetProperty<T>(propertyName);
             newProperty.ParseNode(node);

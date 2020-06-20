@@ -66,6 +66,7 @@
         <Compile Include="Test\TestLayers.cs" />
         <Compile Include="Util\Logging.cs" />
         <Compile Include="Util\OrientedBounds.cs" />
+        <Compile Include="Util\ParseUtil.cs" />
     </ItemGroup>
     <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
     <PropertyGroup>

@@ -6,7 +6,7 @@ namespace ConformalDecals {
     public static class DecalConfig {
         private static Texture2D    _blankNormal;
         private static List<string> _shaderBlacklist;
-        private static int          _decalLayer = 3;
+        private static int          _decalLayer = 31;
 
         public static Texture2D BlankNormal => _blankNormal;
         public static int DecalLayer => _decalLayer;

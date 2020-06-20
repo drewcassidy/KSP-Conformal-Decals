@@ -57,8 +57,6 @@ namespace ConformalDecals {
 
 
         // INTERNAL VALUES
-
-
         [KSPField(guiName = "#LOC_ConformalDecals_gui-scale", guiActive = false, guiActiveEditor = true, isPersistant = true, guiFormat = "F2", guiUnits = "m"),
          UI_FloatRange(stepIncrement = 0.05f)]
         public float scale = 1.0f;
@@ -78,6 +76,9 @@ namespace ConformalDecals {
         [KSPField(guiName = "#LOC_ConformalDecals_gui-wear", guiActive = false, guiActiveEditor = true, isPersistant = true, guiFormat = "F0"),
          UI_FloatRange()]
         public float wear = 100;
+        
+        [KSPField(isPersistant = true)]
+        public bool projectMultiple; // reserved for future features. do not modify
 
         [KSPField] public MaterialPropertyCollection materialProperties;
 
@@ -245,7 +246,7 @@ namespace ConformalDecals {
 
             materialProperties.RenderQueue = DecalQueue;
 
-            _boundsCollider = decalProjectorTransform.GetComponent<BoxCollider>();
+            _boundsCollider = decalColliderTransform.GetComponent<BoxCollider>();
 
             UpdateMaterials();
 
@@ -260,6 +261,7 @@ namespace ConformalDecals {
             }
 
             if (HighLogic.LoadedSceneIsFlight) {
+                Part.layerMask |= 1 << DecalConfig.DecalLayer;
                 decalColliderTransform.gameObject.layer = DecalConfig.DecalLayer;
             }
         }

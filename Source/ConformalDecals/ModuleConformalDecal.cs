@@ -1,11 +1,13 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using ConformalDecals.MaterialProperties;
 using ConformalDecals.Util;
 using UnityEngine;
 
 namespace ConformalDecals {
     public class ModuleConformalDecal : PartModule {
+        [SuppressMessage("ReSharper", "InconsistentNaming")]
         public enum DecalScaleMode {
             HEIGHT,
             WIDTH,
@@ -54,7 +56,7 @@ namespace ConformalDecals {
         [KSPField] public int     tileIndex = -1;
 
         [KSPField] public bool updateBackScale = true;
-
+        [KSPField] public bool selectableInFlight;
 
         // INTERNAL VALUES
         [KSPField(guiName = "#LOC_ConformalDecals_gui-scale", guiActive = false, guiActiveEditor = true, isPersistant = true, guiFormat = "F2", guiUnits = "m"),
@@ -76,9 +78,8 @@ namespace ConformalDecals {
         [KSPField(guiName = "#LOC_ConformalDecals_gui-wear", guiActive = false, guiActiveEditor = true, isPersistant = true, guiFormat = "F0"),
          UI_FloatRange()]
         public float wear = 100;
-        
-        [KSPField(isPersistant = true)]
-        public bool projectMultiple; // reserved for future features. do not modify
+
+        [KSPField(isPersistant = true)] public bool projectMultiple; // reserved for future features. do not modify
 
         [KSPField] public MaterialPropertyCollection materialProperties;
 
@@ -100,9 +101,9 @@ namespace ConformalDecals {
         private bool      _isAttached;
         private Matrix4x4 _orthoMatrix;
 
-        private Material    _decalMaterial;
-        private Material    _previewMaterial;
-        private BoxCollider _boundsCollider;
+        private Material     _decalMaterial;
+        private Material     _previewMaterial;
+        private MeshRenderer _boundsRenderer;
 
         private int DecalQueue {
             get {
@@ -246,7 +247,7 @@ namespace ConformalDecals {
 
             materialProperties.RenderQueue = DecalQueue;
 
-            _boundsCollider = decalColliderTransform.GetComponent<BoxCollider>();
+            _boundsRenderer = decalProjectorTransform.GetComponent<MeshRenderer>();
 
             UpdateMaterials();
 
@@ -263,6 +264,9 @@ namespace ConformalDecals {
             if (HighLogic.LoadedSceneIsFlight) {
                 Part.layerMask |= 1 << DecalConfig.DecalLayer;
                 decalColliderTransform.gameObject.layer = DecalConfig.DecalLayer;
+                if (!selectableInFlight) {
+                    decalColliderTransform.GetComponent<Collider>().enabled = false;
+                }
             }
         }
 
@@ -412,7 +416,7 @@ namespace ConformalDecals {
 
                 // update projection
                 foreach (var target in _targets) {
-                    target.Project(_orthoMatrix, decalProjectorTransform, _boundsCollider.bounds, useBaseNormal);
+                    target.Project(_orthoMatrix, decalProjectorTransform, _boundsRenderer.bounds, useBaseNormal);
                 }
             }
             else {

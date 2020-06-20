@@ -237,13 +237,7 @@ namespace ConformalDecals {
         public override void OnStart(StartState state) {
             this.Log("Starting module");
 
-            // handle tweakables
-            if (HighLogic.LoadedSceneIsEditor) {
-                GameEvents.onEditorPartEvent.Add(OnEditorEvent);
-                GameEvents.onVariantApplied.Add(OnVariantApplied);
 
-                UpdateTweakables();
-            }
 
             materialProperties.RenderQueue = DecalQueue;
 
@@ -261,19 +255,39 @@ namespace ConformalDecals {
                 }
             }
 
+            // handle tweakables
+            if (HighLogic.LoadedSceneIsEditor) {
+                GameEvents.onEditorPartEvent.Add(OnEditorEvent);
+                GameEvents.onVariantApplied.Add(OnVariantApplied);
+
+                UpdateTweakables();
+            }
+            
+            // handle flight events
             if (HighLogic.LoadedSceneIsFlight) {
+                GameEvents.onPartWillDie.Add(OnPartWillDie);
+                
                 Part.layerMask |= 1 << DecalConfig.DecalLayer;
                 decalColliderTransform.gameObject.layer = DecalConfig.DecalLayer;
-                if (!selectableInFlight) {
+
+                if (!selectableInFlight || !DecalConfig.SelectableInFlight) {
                     decalColliderTransform.GetComponent<Collider>().enabled = false;
                 }
+
+                if (part.parent == null) part.explode();
             }
         }
 
         public virtual void OnDestroy() {
             // remove GameEvents
-            GameEvents.onEditorPartEvent.Remove(OnEditorEvent);
-            GameEvents.onVariantApplied.Remove(OnVariantApplied);
+            if (HighLogic.LoadedSceneIsEditor) {
+                GameEvents.onEditorPartEvent.Remove(OnEditorEvent);
+                GameEvents.onVariantApplied.Remove(OnVariantApplied);
+            }
+
+            if (HighLogic.LoadedSceneIsFlight) {
+                GameEvents.onPartWillDie.Remove(OnPartWillDie);
+            }
 
             // remove from preCull delegate
             Camera.onPreCull -= Render;
@@ -332,6 +346,13 @@ namespace ConformalDecals {
             }
         }
 
+        protected void OnPartWillDie(Part willDie) {
+            if (willDie == part.parent) {
+                this.Log("Parent part about to be destroyed! Killing decal part.");
+                part.Die();
+            }
+        }
+        
         protected void OnAttach() {
             if (part.parent == null) {
                 this.LogError("Attach function called but part has no parent!");

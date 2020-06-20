@@ -6,10 +6,14 @@ namespace ConformalDecals {
     public static class DecalConfig {
         private static Texture2D    _blankNormal;
         private static List<string> _shaderBlacklist;
-        private static int          _decalLayer = 31;
+        private static int          _decalLayer         = 31;
+        private static bool         _selectableInFlight = false;
 
         public static Texture2D BlankNormal => _blankNormal;
+
         public static int DecalLayer => _decalLayer;
+
+        public static bool SelectableInFlight => _selectableInFlight;
 
         public static bool IsBlacklisted(Shader shader) {
             return IsBlacklisted(shader.name);
@@ -26,6 +30,7 @@ namespace ConformalDecals {
                 }
 
                 ParseUtil.ParseIntIndirect(ref _decalLayer, node, "decalLayer");
+                ParseUtil.ParseBoolIndirect(ref _selectableInFlight, node, "selectableInFlight");
             }
         }
 

@@ -14,10 +14,11 @@ Shader "ConformalDecals/SelectionGlow"
     {
         Tags { "Queue" = "Transparent" }
         Cull Back
+        ZWrite Off 
         
         Pass
         {
-             Blend One One
+            Blend One One
 
             CGPROGRAM
             #pragma vertex vert

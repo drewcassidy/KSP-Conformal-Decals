@@ -200,8 +200,8 @@ namespace ConformalDecals.Util {
 
                 case 3:
                     if (!float.TryParse(split[0], out var red)) return false;
-                    if (!float.TryParse(split[0], out var green)) return false;
-                    if (!float.TryParse(split[0], out var blue)) return false;
+                    if (!float.TryParse(split[1], out var green)) return false;
+                    if (!float.TryParse(split[2], out var blue)) return false;
 
                     value.r = (byte) (red * 0xFF);
                     value.g = (byte) (green * 0xFF);

@@ -69,7 +69,6 @@ namespace ConformalDecals.MaterialProperties {
         public float AspectRatio => MainTexture == null ? 1 : MainTexture.AspectRatio;
 
         public void OnBeforeSerialize() {
-            Debug.Log($"Serializing MaterialPropertyCollection {this.GetInstanceID()}");
             if (_materialProperties == null) throw new SerializationException("Tried to serialize an uninitialized MaterialPropertyCollection");
 
             _serializedNames = _materialProperties.Keys.ToArray();
@@ -77,7 +76,6 @@ namespace ConformalDecals.MaterialProperties {
         }
 
         public void OnAfterDeserialize() {
-            Debug.Log($"Deserializing MaterialPropertyCollection {this.GetInstanceID()}");
             if (_serializedNames == null) throw new SerializationException("ID array is null");
             if (_serializedProperties == null) throw new SerializationException("Property array is null");
             if (_serializedProperties.Length != _serializedNames.Length) throw new SerializationException("Material property arrays are different lengths.");
@@ -95,7 +93,6 @@ namespace ConformalDecals.MaterialProperties {
         }
 
         public void Awake() {
-            Debug.Log($"MaterialPropertyCollection {this.GetInstanceID()} onAwake");
             _materialProperties ??= new Dictionary<string, MaterialProperty>();
         }
 
@@ -208,8 +205,6 @@ namespace ConformalDecals.MaterialProperties {
         public void UpdateTile(Rect tile) {
             if (_mainTexture == null) throw new InvalidOperationException("UpdateTile called but no main texture is specified!");
             var mainTexSize = _mainTexture.Dimensions;
-
-            Debug.Log($"Main texture is {_mainTexture.PropertyName} and its size is {mainTexSize}");
 
             foreach (var entry in _materialProperties) {
                 if (entry.Value is MaterialTextureProperty textureProperty && textureProperty.autoTile) {

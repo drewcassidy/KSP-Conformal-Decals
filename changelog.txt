@@ -1,6 +1,8 @@
 
 v0.2.0
 ------
+- New Parts:
+ - CDL-3 Surface Base Decal: A set of conformal decals based on the symbols from the movie Moon designed by Gavin Rothery
 - Fixes:
  - Fixed WIDTH and HEIGHT scale modes being flipped
  - Removed debug log statements

@@ -20,6 +20,7 @@ Optional:
 
 - Art and Plugin code: Andrew Cassidy (Cineboxandrew)
 - Semiotic decal pack based on the work of Ron Cobb
+- Munar decal pack based on the work of Gavin Rothery
 
 ## Installation
 

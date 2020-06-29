@@ -67,6 +67,7 @@ namespace ConformalDecals.MaterialProperties {
             material.SetTexture(_propertyID, _texture);
             material.SetTextureOffset(_propertyID, _textureOffset);
             material.SetTextureScale(_propertyID, _textureScale * _scale);
+            if (_propertyName != "_Decal") material.EnableKeyword("DECAL" + _propertyName.ToUpper());
         }
 
         public void SetScale(Vector2 scale) {

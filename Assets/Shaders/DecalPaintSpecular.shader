@@ -30,7 +30,7 @@ Shader "ConformalDecals/Paint/Specular"
     }
     SubShader
     {
-        Tags { "Queue" = "Geometry+100" }
+        Tags { "Queue" = "Geometry+100" "IgnoreProjector" = "true"}
         Cull [_Cull]
         Ztest LEqual  
         

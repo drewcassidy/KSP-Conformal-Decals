@@ -12,7 +12,7 @@ Shader "ConformalDecals/SelectionGlow"
     }
     SubShader
     {
-        Tags { "Queue" = "Transparent" }
+        Tags { "Queue" = "Transparent" "IgnoreProjector" = "true" }
         Cull Back
         ZWrite Off 
         

@@ -237,14 +237,23 @@ namespace ConformalDecals {
         public override void OnStart(StartState state) {
             this.Log("Starting module");
 
-
-
             materialProperties.RenderQueue = DecalQueue;
 
             _boundsRenderer = decalProjectorTransform.GetComponent<MeshRenderer>();
 
             UpdateMaterials();
 
+            // handle tweakables
+            if (HighLogic.LoadedSceneIsEditor) {
+                GameEvents.onEditorPartEvent.Add(OnEditorEvent);
+                GameEvents.onVariantApplied.Add(OnVariantApplied);
+
+                UpdateTweakables();
+            }
+        }
+
+        public override void OnStartFinished(StartState state) {
+            // handle game events
             if (HighLogic.LoadedSceneIsGame) {
                 // set initial attachment state
                 if (part.parent == null) {
@@ -254,27 +263,20 @@ namespace ConformalDecals {
                     OnAttach();
                 }
             }
-
-            // handle tweakables
-            if (HighLogic.LoadedSceneIsEditor) {
-                GameEvents.onEditorPartEvent.Add(OnEditorEvent);
-                GameEvents.onVariantApplied.Add(OnVariantApplied);
-
-                UpdateTweakables();
-            }
             
             // handle flight events
             if (HighLogic.LoadedSceneIsFlight) {
                 GameEvents.onPartWillDie.Add(OnPartWillDie);
+                
+                if (part.parent == null) part.explode();
                 
                 Part.layerMask |= 1 << DecalConfig.DecalLayer;
                 decalColliderTransform.gameObject.layer = DecalConfig.DecalLayer;
 
                 if (!selectableInFlight || !DecalConfig.SelectableInFlight) {
                     decalColliderTransform.GetComponent<Collider>().enabled = false;
+                    _boundsRenderer.enabled = false;
                 }
-
-                if (part.parent == null) part.explode();
             }
         }
 

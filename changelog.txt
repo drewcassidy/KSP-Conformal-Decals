@@ -1,5 +1,6 @@
 v0.1.4
 ------
+- Supported KSP versions: 1.8.x to 1.10.x
 - Fixes:
  - Fixed decals rendering onto disabled B9PS part variants
    - Decals will still not update whan their parent part's B9PS variant is changed, both in flight and in the editor. This is known and awaiting a change to B9PS to be fixed.

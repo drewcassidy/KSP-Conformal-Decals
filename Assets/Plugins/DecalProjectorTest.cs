@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+using System;
+using UnityEngine;
 
 [ExecuteInEditMode]
 public class DecalProjectorTest : MonoBehaviour
@@ -23,9 +24,6 @@ public class DecalProjectorTest : MonoBehaviour
     void Awake()
     {
         _projectionMatrix = Matrix4x4.identity;
-        _matrixID = Shader.PropertyToID("_ProjectionMatrix");
-        _normalID = Shader.PropertyToID("_DecalNormal");
-        _tangentID= Shader.PropertyToID("_DecalTangent");
         targetRenderer = target.GetComponent<MeshRenderer>();
     }
 
@@ -40,8 +38,9 @@ public class DecalProjectorTest : MonoBehaviour
         var projectorToTarget = targetRenderer.worldToLocalMatrix * transform.localToWorldMatrix;
         _projectionMatrix = _OrthoMatrix * targetToProjector;
         
-        targetMaterial.SetMatrix(_matrixID, _projectionMatrix);
-        targetMaterial.SetVector(_normalID, projectorToTarget.MultiplyVector(Vector3.back).normalized);
-        targetMaterial.SetVector(_tangentID, projectorToTarget.MultiplyVector(Vector3.right).normalized);
+        targetMaterial.SetMatrix("_ProjectionMatrix", _projectionMatrix);
+        targetMaterial.SetVector("_DecalNormal", projectorToTarget.MultiplyVector(Vector3.back).normalized);
+        targetMaterial.SetVector("_DecalTangent", projectorToTarget.MultiplyVector(Vector3.right).normalized);
     }
+
 }

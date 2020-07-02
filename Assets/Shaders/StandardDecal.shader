@@ -25,7 +25,7 @@ Shader "ConformalDecals/Decal/Standard"
     }
     SubShader
     {
-        Tags { "Queue" = "Geometry+100" "IgnoreProjector" = "true"}
+        Tags { "Queue" = "Geometry+100" "IgnoreProjector" = "true" "DisableBatching" = "true"}
         Cull [_Cull]
         Ztest LEqual  
         
@@ -40,6 +40,7 @@ Shader "ConformalDecals/Decal/Standard"
             #pragma fragment frag_forward
 
             #pragma multi_compile_fwdbase nolightmap nodirlightmap nodynlightmap
+            #pragma skip_variants SHADOWS_DEPTH SHADOWS_CUBE SHADOWS_SHADOWMASK LIGHTMAP_SHADOW_MIXING POINT_COOKIE
             #pragma multi_compile_local __ DECAL_PREVIEW
             #pragma multi_compile_local __ DECAL_BASE_NORMAL DECAL_BUMPMAP
             #pragma multi_compile_local __ DECAL_SPECMAP
@@ -65,6 +66,7 @@ Shader "ConformalDecals/Decal/Standard"
             #pragma fragment frag_forward
 
             #pragma multi_compile_fwdadd nolightmap nodirlightmap nodynlightmap
+            #pragma skip_variants SHADOWS_DEPTH SHADOWS_CUBE SHADOWS_SHADOWMASK LIGHTMAP_SHADOW_MIXING POINT_COOKIE
             #pragma multi_compile_local __ DECAL_PREVIEW
             #pragma multi_compile_local __ DECAL_BASE_NORMAL DECAL_BUMPMAP
             #pragma multi_compile_local __ DECAL_SPECMAP

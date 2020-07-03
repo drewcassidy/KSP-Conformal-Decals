@@ -5,6 +5,7 @@
 #include "Lighting.cginc"
 
 #define CLIP_MARGIN 0.1
+#define EDGE_MARGIN 0.01
 
 // UNIFORM VARIABLES
 // Projection matrix, normal, and tangent vectors
@@ -36,6 +37,7 @@ float4 _Decal_ST;
 #ifdef DECAL_SPECMAP
     sampler2D _SpecMap;
     float4 _SpecMap_ST;
+    // specular color is declared in a unity CGINC for some reason??
     fixed _Shininess;
 #endif //DECAL_SPECMAP
 
@@ -146,7 +148,7 @@ inline float BoundsDist(float3 p, float3 normal, float3 projNormal) {
         return 10 * max(q.x, q.y); // 2D pseudo SDF
     #else
         float dist = max(max(q.x, q.y), q.z); // pseudo SDF
-        float ndist = -dot(normal, projNormal); // SDF to normal
+        float ndist = EDGE_MARGIN - dot(normal, projNormal); // SDF to normal
         return 10 * max(dist, ndist); // return intersection
     #endif
 }

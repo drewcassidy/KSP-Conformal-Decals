@@ -19,7 +19,7 @@ namespace ConformalDecals {
 
         // CONFIGURABLE VALUES
 
-        [KSPField] public string shader = "ConformalDecals/Paint/Diffuse";
+        [KSPField] public string shader = "ConformalDecals/Decal/Standard";
 
         [KSPField] public string decalFront     = "Decal-Front";
         [KSPField] public string decalBack      = "Decal-Back";
@@ -170,6 +170,12 @@ namespace ConformalDecals {
 
                 // set shader
                 materialProperties.SetShader(shader);
+                materialProperties.AddOrGetProperty<MaterialKeywordProperty>("DECAL_BASE_NORMAL").value = useBaseNormal;
+
+                // add keyword nodes
+                foreach (var keywordNode in node.GetNodes("KEYWORD")) {
+                    materialProperties.ParseProperty<MaterialKeywordProperty>(keywordNode);
+                }
 
                 // add texture nodes
                 foreach (var textureNode in node.GetNodes("TEXTURE")) {
@@ -199,8 +205,6 @@ namespace ConformalDecals {
                 else if (tileIndex >= 0) {
                     materialProperties.UpdateTile(tileIndex, tileSize);
                 }
-
-
             }
             catch (Exception e) {
                 this.LogException("Exception parsing partmodule", e);
@@ -208,6 +212,10 @@ namespace ConformalDecals {
 
             UpdateMaterials();
 
+            foreach (var keyword in _decalMaterial.shaderKeywords) {
+                this.Log($"keyword: {keyword}");
+            }
+            
             if (HighLogic.LoadedSceneIsEditor) {
                 UpdateTweakables();
             }
@@ -221,7 +229,7 @@ namespace ConformalDecals {
                 opacity = defaultOpacity;
                 cutoff = defaultCutoff;
                 wear = defaultWear;
-                
+
                 // QUEUE PART FOR ICON FIXING IN VAB
                 DecalIconFixer.QueuePart(part.name);
             }
@@ -260,13 +268,13 @@ namespace ConformalDecals {
                     OnAttach();
                 }
             }
-            
+
             // handle flight events
             if (HighLogic.LoadedSceneIsFlight) {
                 GameEvents.onPartWillDie.Add(OnPartWillDie);
-                
+
                 if (part.parent == null) part.explode();
-                
+
                 Part.layerMask |= 1 << DecalConfig.DecalLayer;
                 decalColliderTransform.gameObject.layer = DecalConfig.DecalLayer;
 
@@ -351,7 +359,7 @@ namespace ConformalDecals {
                 part.Die();
             }
         }
-        
+
         protected void OnAttach() {
             if (part.parent == null) {
                 this.LogError("Attach function called but part has no parent!");

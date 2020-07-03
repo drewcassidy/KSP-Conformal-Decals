@@ -70,6 +70,13 @@ namespace ConformalDecals.MaterialProperties {
             if (_propertyName != "_Decal") material.EnableKeyword("DECAL" + _propertyName.ToUpper());
         }
 
+        public override void Remove(Material material) {
+            if (material == null) throw new ArgumentNullException(nameof(material));
+            base.Remove(material);
+            
+            if (_propertyName != "_Decal") material.DisableKeyword("DECAL" + _propertyName.ToUpper());
+        }
+
         public void SetScale(Vector2 scale) {
             _scale = scale;
         }

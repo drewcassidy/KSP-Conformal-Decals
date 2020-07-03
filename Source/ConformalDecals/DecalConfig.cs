@@ -6,8 +6,36 @@ namespace ConformalDecals {
     public static class DecalConfig {
         private static Texture2D    _blankNormal;
         private static List<string> _shaderBlacklist;
-        private static int          _decalLayer         = 31;
-        private static bool         _selectableInFlight = false;
+        private static int          _decalLayer = 31;
+        private static bool         _selectableInFlight;
+
+        private struct LegacyShaderEntry {
+            public string   name;
+            public string[] keywords;
+        }
+
+        private static readonly Dictionary<string, LegacyShaderEntry> LegacyShaderPairs = new Dictionary<string, LegacyShaderEntry>() {
+            ["ConformalDecals/Feature/Bumped"] = new LegacyShaderEntry() {
+                name = "ConformalDecals/Decal/Standard",
+                keywords = new[] {"DECAL_BUMPMAP"}
+            },
+            ["ConformalDecals/Paint/Diffuse"] = new LegacyShaderEntry() {
+                name = "ConformalDecals/Decal/Standard",
+                keywords = new string[] { }
+            },
+            ["ConformalDecals/Paint/Specular"] = new LegacyShaderEntry() {
+                name = "ConformalDecals/Decal/Standard",
+                keywords = new[] {"DECAL_SPECMAP"}
+            },
+            ["ConformalDecals/Paint/DiffuseSDF"] = new LegacyShaderEntry() {
+                name = "ConformalDecals/Decal/Standard",
+                keywords = new[] {"DECAL_SDF_ALPHA"}
+            },
+            ["ConformalDecals/Paint/SpecularSDF"] = new LegacyShaderEntry() {
+                name = "ConformalDecals/Decal/Standard",
+                keywords = new[] {"DECAL_SDF_ALPHA", "DECAL_SPECMAP"}
+            },
+        };
 
         public static Texture2D BlankNormal => _blankNormal;
 
@@ -21,6 +49,18 @@ namespace ConformalDecals {
 
         public static bool IsBlacklisted(string shaderName) {
             return _shaderBlacklist.Contains(shaderName);
+        }
+
+        public static bool IsLegacy(string shaderName, out string newShader, out string[] keywords) {
+            if (LegacyShaderPairs.TryGetValue(shaderName, out var entry)) {
+                newShader = entry.name;
+                keywords = entry.keywords;
+                return true;
+            }
+
+            newShader = null;
+            keywords = null;
+            return false;
         }
 
         private static void ParseConfig(ConfigNode node) {

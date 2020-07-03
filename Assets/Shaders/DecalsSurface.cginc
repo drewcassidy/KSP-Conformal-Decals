@@ -85,7 +85,6 @@ fixed4 frag_forward(v2f IN) : SV_Target
     // declare data
     DecalSurfaceInput i;
     SurfaceOutput o;
-    fixed4 c = 0;
     
     // setup world-space TBN vectors
     UNITY_EXTRACT_TBN(IN);
@@ -162,10 +161,10 @@ fixed4 frag_forward(v2f IN) : SV_Target
     WorldNormal.z = dot(_unity_tbn_2, o.Normal);
     WorldNormal = normalize(WorldNormal);
     o.Normal = WorldNormal;
-    
+
     //call modified KSP lighting function
-    c += LightingBlinnPhongDecal(o, lightDir, worldViewDir, atten);
-    
+    float4 c = LightingBlinnPhongDecal(o, lightDir, worldViewDir, atten);
+
     // Forward base emission and ambient/vertex lighting
     #ifdef UNITY_PASS_FORWARDBASE
         c.rgb += o.Emission;
@@ -177,7 +176,7 @@ fixed4 frag_forward(v2f IN) : SV_Target
     #ifdef UNITY_PASS_FORWARDADD
         c.rgb *= o.Alpha;
     #endif 
-    
+
     return c;
 }
 

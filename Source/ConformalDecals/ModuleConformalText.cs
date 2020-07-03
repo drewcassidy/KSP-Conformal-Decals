@@ -32,7 +32,7 @@ namespace ConformalDecals {
                 }
             }
 
-            materialProperties.AddOrGetTextureProperty("_Decal", true).Texture = TextRenderer.RenderToTexture(fonts[0], newText);
+            //materialProperties.AddOrGetTextureProperty("_Decal", true).Texture = TextRenderer.RenderToTexture(fonts[0], newText);
 
             UpdateMaterials();
         }

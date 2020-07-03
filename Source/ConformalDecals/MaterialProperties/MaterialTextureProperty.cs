@@ -1,7 +1,8 @@
 using System;
+using ConformalDecals.Util;
 using UnityEngine;
 
-namespace ConformalDecals.MaterialModifiers {
+namespace ConformalDecals.MaterialProperties {
     public class MaterialTextureProperty : MaterialProperty {
         [SerializeField] public bool isNormal;
         [SerializeField] public bool isMain;
@@ -9,7 +10,7 @@ namespace ConformalDecals.MaterialModifiers {
         [SerializeField] public bool autoTile;
 
         [SerializeField] private string    _textureUrl;
-        [SerializeField] private Texture2D _texture;
+        [SerializeField] private Texture2D _texture = Texture2D.whiteTexture;
 
         [SerializeField] private bool _hasTile;
         [SerializeField] private Rect _tileRect;
@@ -45,24 +46,17 @@ namespace ConformalDecals.MaterialModifiers {
         public override void ParseNode(ConfigNode node) {
             base.ParseNode(node);
 
-            isNormal = ParsePropertyBool(node, "isNormalMap", true, (PropertyName == "_BumpMap") || (PropertyName == "_DecalBumpMap") || isNormal);
-            isMain = ParsePropertyBool(node, "isMain", true, isMain);
-            autoScale = ParsePropertyBool(node, "autoScale", true, autoScale);
-            autoTile = ParsePropertyBool(node, "autoTile", true, autoTile);
+            ParseUtil.ParseBoolIndirect(ref isMain, node, "isMain");
+            ParseUtil.ParseBoolIndirect(ref isNormal, node, "isNormalMap");
+            ParseUtil.ParseBoolIndirect(ref autoScale, node, "autoScale");
+            ParseUtil.ParseBoolIndirect(ref autoTile, node, "autoTile");
 
-            var textureUrl = node.GetValue("textureUrl");
-
-            if (string.IsNullOrEmpty(textureUrl)) {
-                if (string.IsNullOrEmpty(_textureUrl)) {
-                    TextureUrl = "";
-                }
-            }
-            else {
-                TextureUrl = node.GetValue("textureUrl");
+            if (!autoTile) {
+                ParseUtil.ParseRectIndirect(ref _tileRect, node, "tile");
             }
 
-            if (node.HasValue("tile") && !autoTile) {
-                SetTile(ParsePropertyRect(node, "tile", true, _tileRect));
+            if (ParseUtil.ParseStringIndirect(ref _textureUrl, node, "textureUrl")) {
+                _texture = LoadTexture(_textureUrl, isNormal);
             }
         }
 
@@ -76,6 +70,14 @@ namespace ConformalDecals.MaterialModifiers {
             material.SetTexture(_propertyID, _texture);
             material.SetTextureOffset(_propertyID, _textureOffset);
             material.SetTextureScale(_propertyID, _textureScale * _scale);
+            if (_propertyName != "_Decal") material.EnableKeyword("DECAL" + _propertyName.ToUpper());
+        }
+
+        public override void Remove(Material material) {
+            if (material == null) throw new ArgumentNullException(nameof(material));
+            base.Remove(material);
+            
+            if (_propertyName != "_Decal") material.DisableKeyword("DECAL" + _propertyName.ToUpper());
         }
 
         public void SetScale(Vector2 scale) {

@@ -12,12 +12,13 @@ Shader "ConformalDecals/SelectionGlow"
     }
     SubShader
     {
-        Tags { "Queue" = "Transparent" }
+        Tags { "Queue" = "Transparent" "IgnoreProjector" = "true" }
         Cull Back
+        ZWrite Off 
         
         Pass
         {
-             Blend One One
+            Blend One One
 
             CGPROGRAM
             #pragma vertex vert

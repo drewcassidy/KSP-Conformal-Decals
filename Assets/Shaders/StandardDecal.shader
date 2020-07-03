@@ -1,19 +1,37 @@
-Shader "ConformalDecals/Decal/Standard"
+﻿Shader "ConformalDecals/Decal/Standard"
 {
     Properties
     {
-        [Header(Texture Maps)]
+        [Header(Decal)]
         _Decal("Decal Texture", 2D) = "gray" {}
+        [Toggle(DECAL_SDF_ALPHA)] _Decal_SDF_Alpha ("SDF in Alpha", int) = 0
+
+
+        [Header(Normal)]
+        [Toggle(DECAL_BASE_NORMAL)] _BaseNormal ("Use Base Normal", int) = 0
+        [Toggle(DECAL_BUMPMAP)] _Decal_BumpMap ("Has BumpMap", int) = 0
         _BumpMap("Bump Map", 2D) = "bump" {}
-        
         _EdgeWearStrength("Edge Wear Strength", Range(0,500)) = 100
         _EdgeWearOffset("Edge Wear Offset", Range(0,1)) = 0.1
     
+        [Header(Specularity)]
+        [Toggle(DECAL_SPECMAP)] _Decal_SpecMap ("Has SpecMap", int) = 0
+        _SpecMap ("Specular Map)", 2D) = "black" {}
+        _SpecColor ("_SpecColor", Color) = (0.25, 0.25, 0.25, 1)
+        _Shininess ("Shininess", Range (0.03, 10)) = 0.3
+
+        [Header(Emissive)]
+        [Toggle(DECAL_EMISSIVE)] _Decal_Emissive ("Has Emissive", int) = 0
+        _Emissive("_Emissive", 2D) = "black" {}
+        _EmissiveColor("_EmissiveColor", Color) = (0,0,0,1)
+
         _Cutoff ("Alpha cutoff", Range(0,1)) = 0.5
         _DecalOpacity("Opacity", Range(0,1) ) = 1
         _Background("Background Color", Color) = (0.9,0.9,0.9,0.7)
         
         [Enum(UnityEngine.Rendering.CullMode)] _Cull ("Cull", int) = 2
+        [Toggle] _ZWrite ("ZWrite", Float) = 1.0
+
         [Toggle(DECAL_PREVIEW)] _Preview ("Preview", int) = 0
 
         [Header(Effects)]
@@ -27,12 +45,13 @@ Shader "ConformalDecals/Decal/Standard"
     {
         Tags { "Queue" = "Geometry+100" "IgnoreProjector" = "true" "DisableBatching" = "true"}
         Cull [_Cull]
-        Ztest LEqual  
         
         Pass
         {
             Name "FORWARD"
             Tags { "LightMode" = "ForwardBase" }
+            ZWrite [_ZWrite] 
+            ZTest LEqual  
             Blend SrcAlpha OneMinusSrcAlpha
 
             CGPROGRAM
@@ -57,9 +76,12 @@ Shader "ConformalDecals/Decal/Standard"
         
         Pass
         {
-            Name "FORWARD_ADD"
+            Name "FORWARD"
             Tags { "LightMode" = "ForwardAdd" }
+            ZWrite Off
+            ZTest LEqual  
             Blend One One
+            Offset -1, -1
 
             CGPROGRAM
             #pragma vertex vert_forward

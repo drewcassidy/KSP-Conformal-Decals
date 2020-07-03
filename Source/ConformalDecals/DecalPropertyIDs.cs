@@ -1,4 +1,5 @@
 using UnityEngine;
+
 // ReSharper disable InconsistentNaming
 
 namespace ConformalDecals {
@@ -12,5 +13,6 @@ namespace ConformalDecals {
         public static readonly int _DecalTangent     = Shader.PropertyToID("_DecalTangent");
         public static readonly int _EdgeWearStrength = Shader.PropertyToID("_EdgeWearStrength");
         public static readonly int _ProjectionMatrix = Shader.PropertyToID("_ProjectionMatrix");
+        public static readonly int _ZWrite           = Shader.PropertyToID("_ZWrite");
     }
 }

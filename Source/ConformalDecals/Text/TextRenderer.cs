@@ -64,49 +64,5 @@ namespace ConformalDecals.Text {
 
             _blitMaterial = new Material(Shabby.Shabby.FindShader(BlitShader));
         }
-
-        public Texture2D RenderToTexture(Texture2D texture2D, TMP_FontAsset font, string text, float fontSize, float pixelDensity) {
-            // generate text mesh
-            _tmp.SetText(text);
-            _tmp.font = font;
-            _tmp.fontSize = fontSize;
-            _tmp.ForceMeshUpdate();
-
-            // calculate camera and texture size
-            var mesh = _tmp.mesh;
-            var bounds = mesh.bounds;
-
-            var width = Mathf.NextPowerOfTwo((int) (bounds.size.x * pixelDensity));
-            var height = Mathf.NextPowerOfTwo((int) (bounds.size.y * pixelDensity));
-
-            _camera.orthographicSize = height / pixelDensity / 2;
-            _camera.aspect = (float) width / height;
-
-            _cameraObject.transform.localPosition = new Vector3(bounds.center.x, bounds.center.y, -1);
-
-            width = Mathf.Min(width, MaxTextureSize);
-            height = Mathf.Max(height, MaxTextureSize);
-
-            // setup render texture
-            var renderTex = RenderTexture.GetTemporary(width, height, 0, TextRenderTextureFormat, RenderTextureReadWrite.Linear, 1);
-            _camera.targetTexture = renderTex;
-
-            // setup material
-            _blitMaterial.SetTexture(PropertyIDs._MainTex, font.atlas);
-            _blitMaterial.SetPass(0);
-
-            // draw the mesh
-            Graphics.DrawMeshNow(mesh, _tmp.renderer.localToWorldMatrix);
-
-            var request = AsyncGPUReadback.Request(renderTex, 0, TextTextureFormat);
-
-            request.WaitForCompletion();
-
-            if (request.hasError) {
-                throw new Exception("[ConformalDecals] Error encountered trying to request render texture data from the GPU!");
-            }
-            
-            
-        }
     }
 }

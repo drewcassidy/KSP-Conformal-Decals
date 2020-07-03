@@ -1,3 +1,42 @@
+v0.2.0
+------
+- New Parts:
+ - CDL-3 Surface Base Decal: A set of conformal decals based on the symbols from the movie Moon designed by Gavin Rothery
+- Changes:
+ - New "KEYWORD" material modifier, allowing for shader features to be enabled and disabled.
+ - material modifiers can now be removed in variants by setting `remove = true` inside them.
+ - Unified all shaders into a single "Standard" shader with variants supporting any combination of bump, specular and emissive maps, plus SDF alphas.
+  - Old shaders are remapped to Standard shader plus keywords automatically.
+  - New SDF-based antialiasing for when decals extend to their borders, i.e. on opaque flags.
+- Fixes:
+ - Fixed WIDTH and HEIGHT scale modes being flipped
+ - Removed debug log statements
+
+v0.1.4
+------
+- Fixes:
+ - Fixed decals rendering onto disabled B9PS part variants
+   - Decals will still not update whan their parent part's B9PS variant is changed, both in flight and in the editor. This is known and awaiting a change to B9PS to be fixed.
+ - Fixed decal bounds rendering as dark cubes when shadowed by EVE clouds.
+ - Fixed decals being shadowed by EVE clouds, causing the part underneath to appear overly dark.
+
+v0.1.3
+------
+Fixes:
+- Fixed decals being able to be scaled down to 0
+
+Changes:
+- Made decal bounds no longer collide in flight, this is done by repurposing layer 31 (which is configurable in the ConformalDecals.cfg file)
+- Decals will now be unselectable in flight by default. This can be disabled with the `selectableInFlight` value in ConformalDecals.cfg, or in the module config itself.
+- Decal parts will now destroy themselves automatically when the parent part is destroyed
+- Small refactor of node parsing code
+  - Colors can now be specified in hex (#RGB, #RGBA, #RRGGBB, or #RRGGBBAA) or using the colors specified in the XKCDColors class
+
+v0.1.2
+------
+Fixes:
+- Disabled writing to the zbuffer in the decal bounds shader. Should fix any issues with Scatterer or EVE.
+
 v0.1.1
 ------
 Fixes:
@@ -7,7 +46,6 @@ Fixes:
 
 v0.1.0
 ------
-
 Initial release!
 
 New parts:

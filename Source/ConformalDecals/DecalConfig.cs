@@ -1,13 +1,47 @@
 using System.Collections.Generic;
+using ConformalDecals.Util;
 using UnityEngine;
-using UnityEngine.Experimental.Rendering;
 
 namespace ConformalDecals {
     public static class DecalConfig {
-        private static Texture2D _blankNormal;
+        private static Texture2D    _blankNormal;
         private static List<string> _shaderBlacklist;
-        
+        private static int          _decalLayer = 31;
+        private static bool         _selectableInFlight;
+
+        private struct LegacyShaderEntry {
+            public string   name;
+            public string[] keywords;
+        }
+
+        private static readonly Dictionary<string, LegacyShaderEntry> LegacyShaderPairs = new Dictionary<string, LegacyShaderEntry>() {
+            ["ConformalDecals/Feature/Bumped"] = new LegacyShaderEntry() {
+                name = "ConformalDecals/Decal/Standard",
+                keywords = new[] {"DECAL_BUMPMAP"}
+            },
+            ["ConformalDecals/Paint/Diffuse"] = new LegacyShaderEntry() {
+                name = "ConformalDecals/Decal/Standard",
+                keywords = new string[] { }
+            },
+            ["ConformalDecals/Paint/Specular"] = new LegacyShaderEntry() {
+                name = "ConformalDecals/Decal/Standard",
+                keywords = new[] {"DECAL_SPECMAP"}
+            },
+            ["ConformalDecals/Paint/DiffuseSDF"] = new LegacyShaderEntry() {
+                name = "ConformalDecals/Decal/Standard",
+                keywords = new[] {"DECAL_SDF_ALPHA"}
+            },
+            ["ConformalDecals/Paint/SpecularSDF"] = new LegacyShaderEntry() {
+                name = "ConformalDecals/Decal/Standard",
+                keywords = new[] {"DECAL_SDF_ALPHA", "DECAL_SPECMAP"}
+            },
+        };
+
         public static Texture2D BlankNormal => _blankNormal;
+
+        public static int DecalLayer => _decalLayer;
+
+        public static bool SelectableInFlight => _selectableInFlight;
 
         public static bool IsBlacklisted(Shader shader) {
             return IsBlacklisted(shader.name);
@@ -17,11 +51,26 @@ namespace ConformalDecals {
             return _shaderBlacklist.Contains(shaderName);
         }
 
+        public static bool IsLegacy(string shaderName, out string newShader, out string[] keywords) {
+            if (LegacyShaderPairs.TryGetValue(shaderName, out var entry)) {
+                newShader = entry.name;
+                keywords = entry.keywords;
+                return true;
+            }
+
+            newShader = null;
+            keywords = null;
+            return false;
+        }
+
         private static void ParseConfig(ConfigNode node) {
             foreach (var blacklist in node.GetNodes("SHADERBLACKLIST")) {
                 foreach (var shaderName in blacklist.GetValuesList("shader")) {
                     _shaderBlacklist.Add(shaderName);
                 }
+
+                ParseUtil.ParseIntIndirect(ref _decalLayer, node, "decalLayer");
+                ParseUtil.ParseBoolIndirect(ref _selectableInFlight, node, "selectableInFlight");
             }
         }
 
@@ -30,7 +79,7 @@ namespace ConformalDecals {
             var width = 2;
             var height = 2;
             var color = new Color32(255, 128, 128, 128);
-            var colors = new Color32[] { color, color, color, color };
+            var colors = new[] {color, color, color, color};
 
             var tex = new Texture2D(width, height, TextureFormat.RGBA32, false);
             for (var x = 0; x <= width; x++) {
@@ -38,11 +87,13 @@ namespace ConformalDecals {
                     tex.SetPixels32(colors);
                 }
             }
+
             tex.Apply();
 
             return tex;
         }
 
+        // ReSharper disable once UnusedMember.Global
         public static void ModuleManagerPostLoad() {
             _shaderBlacklist = new List<string>();
 
@@ -54,6 +105,14 @@ namespace ConformalDecals {
                     ParseConfig(config.config);
                 }
             }
+
+            // setup physics for decals, ignore collision with everything
+            Physics.IgnoreLayerCollision(_decalLayer, 1, true); // default
+            Physics.IgnoreLayerCollision(_decalLayer, 17, true); // EVA
+            Physics.IgnoreLayerCollision(_decalLayer, 19, true); // PhysicalObjects
+            Physics.IgnoreLayerCollision(_decalLayer, 23, true); // AeroFXIgnore
+            Physics.IgnoreLayerCollision(_decalLayer, 26, true); // wheelCollidersIgnore
+            Physics.IgnoreLayerCollision(_decalLayer, 27, true); // wheelColliders
 
             _blankNormal = MakeBlankNormal();
         }

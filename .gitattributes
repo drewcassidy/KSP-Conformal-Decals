@@ -8,3 +8,5 @@
 *.dll filter=lfs diff=lfs merge=lfs -text
 *.shab filter=lfs diff=lfs merge=lfs -text
 *.truecolor filter=lfs diff=lfs merge=lfs -text
+*.conformaldecals filter=lfs diff=lfs merge=lfs -text
+*.kspfont filter=lfs diff=lfs merge=lfs -text

@@ -18,6 +18,8 @@ namespace ConformalDecals.UI {
             ProcessWindow(textEntryPrefab);
 
             Debug.Log("[ConformalDecals] UI prefabs loaded and modified");
+            
+            var window = Instantiate(UILoader.textEntryPrefab, MainCanvasUtil.MainCanvas.transform, true);
         }
 
         private static void ProcessWindow(GameObject window) {
@@ -37,7 +39,7 @@ namespace ConformalDecals.UI {
             var tags = window.GetComponentsInChildren<UITag>(true);
 
             foreach (var tag in tags) {
-                Debug.Log($"Handling object ${tag.gameObject.name}");
+                Debug.Log($"Handling object {tag.gameObject.name}");
                 switch (tag.type) {
                     case UITag.UIType.Window:
                         ProcessImage(tag.gameObject, skin.window);
@@ -46,6 +48,9 @@ namespace ConformalDecals.UI {
                         ProcessSelectable(tag.gameObject, skin.button);
                         break;
                     case UITag.UIType.ButtonToggle:
+                        ProcessToggleButton(tag.gameObject, skin.button);
+                        break;
+                    case UITag.UIType.RadioToggle:
                         ProcessSelectable(tag.gameObject, skin.toggle);
                         break;
                     case UITag.UIType.Slider:
@@ -68,10 +73,12 @@ namespace ConformalDecals.UI {
         }
 
         private static void ProcessImage(GameObject gameObject, UIStyle style) {
-            var image = gameObject.GetComponent<Image>();
-            if (image == null) throw new FormatException("No Image component present");
-            
-            image.sprite = style.normal.background;
+            ProcessImage(gameObject.GetComponent<Image>(), style.normal);
+        }
+
+        private static void ProcessImage(Image image, UIStyleState state) {
+            image.sprite = state.background;
+            image.color = Color.white;
             image.type = Image.Type.Sliced;  
         }
         
@@ -79,7 +86,7 @@ namespace ConformalDecals.UI {
             var selectable = gameObject.GetComponent<Selectable>();
             if (selectable == null) throw new FormatException("No Selectable component present");
             
-            ProcessImage(gameObject, style);
+            ProcessImage(selectable.image, style.normal);
 
             selectable.transition = Selectable.Transition.SpriteSwap;
 
@@ -87,6 +94,15 @@ namespace ConformalDecals.UI {
             state.highlightedSprite = style.highlight.background;
             state.pressedSprite = style.active.background;
             state.disabledSprite = style.disabled.background;
+            
+            selectable.spriteState = state;
+        }
+
+        private static void ProcessToggleButton(GameObject gameObject, UIStyle style) {
+            ProcessSelectable(gameObject, style);
+
+            var toggle = gameObject.GetComponent<Toggle>();
+            ProcessImage(toggle.graphic as Image, style.active);
         }
 
         private static void ProcessSlider(GameObject gameObject, UIStyle horizontalStyle, UIStyle horizontalThumbStyle, UIStyle verticalStyle, UIStyle verticalThumbStyle) {

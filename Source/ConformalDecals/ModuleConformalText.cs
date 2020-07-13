@@ -26,8 +26,8 @@ namespace ConformalDecals {
         {
             if (_textEntryGui == null) {
                 _textEntryGui = Instantiate(UILoader.textEntryPrefab, MainCanvasUtil.MainCanvas.transform, true);
-                _textEntryGui.AddComponent<DragPanel>();
-                MenuNavigation.SpawnMenuNavigation(_textEntryGui, Navigation.Mode.Automatic, true);
+                //_textEntryGui.AddComponent<DragPanel>();
+                //MenuNavigation.SpawnMenuNavigation(_textEntryGui, Navigation.Mode.Automatic, true);
             }
         }
     }

@@ -87,6 +87,7 @@
         <Compile Include="Text\TextRenderer.cs" />
         <Compile Include="Text\TextSettings.cs" />
         <Compile Include="Test\TestLayers.cs" />
+        <Compile Include="UI\TextEntryController.cs" />
         <Compile Include="UI\UILoader.cs" />
         <Compile Include="UI\UITag.cs" />
         <Compile Include="Util\Logging.cs" />

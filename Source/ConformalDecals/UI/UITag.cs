@@ -8,6 +8,7 @@ namespace ConformalDecals.UI {
             Box,
             Button,
             ButtonToggle,
+            RadioToggle,
             Slider,
             Dropdown,
             Label,

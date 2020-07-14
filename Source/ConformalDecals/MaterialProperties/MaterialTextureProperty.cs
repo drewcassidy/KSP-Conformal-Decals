@@ -10,7 +10,7 @@ namespace ConformalDecals.MaterialProperties {
         [SerializeField] public bool autoTile;
 
         [SerializeField] private string    _textureUrl;
-        [SerializeField] private Texture2D _texture = Texture2D.whiteTexture;
+        [SerializeField] private Texture2D _texture;
 
         [SerializeField] private bool _hasTile;
         [SerializeField] private Rect _tileRect;
@@ -55,6 +55,10 @@ namespace ConformalDecals.MaterialProperties {
             if (ParseUtil.ParseStringIndirect(ref _textureUrl, node, "textureUrl")) {
                 _texture = LoadTexture(_textureUrl, isNormal);
             }
+            
+            if (_texture == null) {
+                _texture = isNormal ? DecalConfig.BlankNormal : Texture2D.whiteTexture;
+            }
         }
 
         public override void Modify(Material material) {
@@ -73,7 +77,7 @@ namespace ConformalDecals.MaterialProperties {
         public override void Remove(Material material) {
             if (material == null) throw new ArgumentNullException(nameof(material));
             base.Remove(material);
-            
+
             if (_propertyName != "_Decal") material.DisableKeyword("DECAL" + _propertyName.ToUpper());
         }
 

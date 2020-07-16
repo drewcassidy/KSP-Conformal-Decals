@@ -14,11 +14,21 @@ namespace ConformalDecals.UI {
             var prefabs = AssetBundle.LoadFromFile(Path + "ui.conformaldecals");
 
             textEntryPrefab = prefabs.LoadAsset("TextEntryPanel") as GameObject;
-            
+
             ProcessWindow(textEntryPrefab);
 
             Debug.Log("[ConformalDecals] UI prefabs loaded and modified");
-            
+            Debug.Log($"[ConformalDecals] {MainCanvasUtil.MainCanvas.renderMode}");
+            Debug.Log($"[ConformalDecals] {MainCanvasUtil.MainCanvas.sortingOrder}");
+            Debug.Log($"[ConformalDecals] {MainCanvasUtil.MainCanvas.sortingLayerID}");
+            Debug.Log($"[ConformalDecals] {MainCanvasUtil.MainCanvas.sortingLayerName}");
+            foreach (var layer in SortingLayer.layers) {
+                Debug.Log(layer.name);
+                Debug.Log(layer.id);
+                Debug.Log(layer.value);
+            }
+
+
             var window = Instantiate(UILoader.textEntryPrefab, MainCanvasUtil.MainCanvas.transform, true);
         }
 
@@ -54,7 +64,7 @@ namespace ConformalDecals.UI {
                         ProcessSelectable(tag.gameObject, skin.toggle);
                         break;
                     case UITag.UIType.Slider:
-                        ProcessSlider(tag.gameObject, skin.horizontalScrollbar, skin.horizontalScrollbarThumb, skin.verticalScrollbar, skin.verticalScrollbarThumb);
+                        ProcessSlider(tag.gameObject, skin.horizontalSlider, skin.horizontalSliderThumb, skin.verticalSlider, skin.verticalSliderThumb);
                         break;
                     case UITag.UIType.Box:
                         ProcessSelectable(tag.gameObject, skin.box);
@@ -68,7 +78,7 @@ namespace ConformalDecals.UI {
                     case UITag.UIType.Header:
                         ProcessText(tag.GetComponent<TextMeshProUGUI>(), font, new Color(0.718f, 0.996f, 0.000f, 1.000f), 16);
                         break;
-                } 
+                }
             }
         }
 
@@ -79,13 +89,13 @@ namespace ConformalDecals.UI {
         private static void ProcessImage(Image image, UIStyleState state) {
             image.sprite = state.background;
             image.color = Color.white;
-            image.type = Image.Type.Sliced;  
+            image.type = Image.Type.Sliced;
         }
-        
+
         private static void ProcessSelectable(GameObject gameObject, UIStyle style) {
             var selectable = gameObject.GetComponent<Selectable>();
             if (selectable == null) throw new FormatException("No Selectable component present");
-            
+
             ProcessImage(selectable.image, style.normal);
 
             selectable.transition = Selectable.Transition.SpriteSwap;
@@ -94,7 +104,6 @@ namespace ConformalDecals.UI {
             state.highlightedSprite = style.highlight.background;
             state.pressedSprite = style.active.background;
             state.disabledSprite = style.disabled.background;
-            
             selectable.spriteState = state;
         }
 

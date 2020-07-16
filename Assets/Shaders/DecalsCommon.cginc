@@ -157,7 +157,6 @@ inline float SDFAA(float dist) {
     float ddist = length(float2(ddx(dist), ddy(dist)));
     float pixelDist = dist / ddist;
     return saturate(0.5-pixelDist);
-    return saturate(0.5 - dist);
 }
 
 #endif

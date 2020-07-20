@@ -8,30 +8,22 @@ namespace ConformalDecals.UI {
     public class UILoader : MonoBehaviour {
         private static readonly string Path = KSPUtil.ApplicationRootPath + "GameData/ConformalDecals/Resources/";
 
-        public static GameObject textEntryPrefab;
+        private static GameObject _textEntryPrefab;
+        private static GameObject _fontMenuPrefab;
+
+        public static GameObject FontMenuPrefab => _fontMenuPrefab;
+        public static GameObject TextEntryPrefab => _textEntryPrefab;
 
         private void Awake() {
             var prefabs = AssetBundle.LoadFromFile(Path + "ui.conformaldecals");
 
-            textEntryPrefab = prefabs.LoadAsset("TextEntryPanel") as GameObject;
+            _textEntryPrefab = prefabs.LoadAsset("TextEntryPanel") as GameObject;
+            _fontMenuPrefab = prefabs.LoadAsset("FontMenuPanel") as GameObject;
 
-            ProcessWindow(textEntryPrefab);
-
-            Debug.Log("[ConformalDecals] UI prefabs loaded and modified");
-            Debug.Log($"[ConformalDecals] {MainCanvasUtil.MainCanvas.renderMode}");
-            Debug.Log($"[ConformalDecals] {MainCanvasUtil.MainCanvas.sortingOrder}");
-            Debug.Log($"[ConformalDecals] {MainCanvasUtil.MainCanvas.sortingLayerID}");
-            Debug.Log($"[ConformalDecals] {MainCanvasUtil.MainCanvas.sortingLayerName}");
-            foreach (var layer in SortingLayer.layers) {
-                Debug.Log(layer.name);
-                Debug.Log(layer.id);
-                Debug.Log(layer.value);
-            }
-
-
-            var window = Instantiate(UILoader.textEntryPrefab, MainCanvasUtil.MainCanvas.transform, true);
+            ProcessWindow(_textEntryPrefab);
+            ProcessWindow(_fontMenuPrefab);
         }
-
+        
         private static void ProcessWindow(GameObject window) {
             var skin = UISkinManager.defaultSkin;
             var font = UISkinManager.TMPFont;

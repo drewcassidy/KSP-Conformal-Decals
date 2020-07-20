@@ -1,7 +1,8 @@
-Shader "ConformalDecals/UI/HSLSlider"
+Shader "ConformalDecals/UI/ColorSlider"
 {
     Properties
     {
+        _Color("Color", Color) = (0,0,0,0)
         _StencilComp ("Stencil Comparison", Float) = 8
         _Stencil ("Stencil ID", Float) = 0
         _StencilOp ("Stencil Operation", Float) = 0
@@ -11,6 +12,13 @@ Shader "ConformalDecals/UI/HSLSlider"
         _ColorMask ("Color Mask", Float) = 15
 
         [Toggle(UNITY_UI_ALPHACLIP)] _UseUIAlphaClip ("Use Alpha Clip", Float) = 0
+        
+        [Toggle(HUE)] _Hue ("Hue", int) = 0
+        [Toggle(RED)] _Red ("Red", int) = 0
+        [Toggle(GREEN)] _Green ("Green", int) = 0
+        [Toggle(BLUE)] _Blue ("Blue", int) = 0
+
+
     }
     SubShader
     {
@@ -52,8 +60,10 @@ Shader "ConformalDecals/UI/HSLSlider"
             
             #pragma multi_compile_local _ UNITY_UI_CLIP_RECT
             #pragma multi_compile_local _ UNITY_UI_ALPHACLIP
+            #pragma multi_compile_local HUE RED GREEN BLUE
             
             float4 _ClipRect;
+            float4 _Color;
 
             struct appdata
             {
@@ -81,7 +91,22 @@ Shader "ConformalDecals/UI/HSLSlider"
             {
                 // sample the texture
                 fixed4 color = 1;
+                
+                #ifdef HUE
                 color.rgb = HSL2RGB(float3(i.uv.y, 1, 0.5));
+                #endif //HUE
+                
+                #ifdef RED
+                color.rgb = float3(i.uv.x, _Color.g, _Color.b);
+                #endif //RED
+                
+                #ifdef GREEN
+                color.rgb = float3(_Color.r, i.uv.x, _Color.b);
+                #endif //GREEN
+                
+                #ifdef BLUE
+                color.rgb = float3(_Color.r, _Color.g, i.uv.x);
+                #endif //BLUE
                 
                 #ifdef UNITY_UI_CLIP_RECT
                     color.a *= UnityGet2DClipping(IN.worldPosition.xy, _ClipRect);

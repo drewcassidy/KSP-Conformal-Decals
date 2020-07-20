@@ -23,7 +23,7 @@ namespace ConformalDecals.UI {
             ProcessWindow(_textEntryPrefab);
             ProcessWindow(_fontMenuPrefab);
         }
-        
+
         private static void ProcessWindow(GameObject window) {
             var skin = UISkinManager.defaultSkin;
             var font = UISkinManager.TMPFont;
@@ -65,7 +65,7 @@ namespace ConformalDecals.UI {
                         ProcessDropdown(tag.gameObject, skin.button, skin.window);
                         break;
                     case UITag.UIType.Label:
-                        ProcessText(tag.GetComponent<TextMeshProUGUI>(), font, Color.white, 14);
+                        ProcessText(tag.GetComponent<TextMeshProUGUI>(), font, new Color(0.718f, 0.996f, 0.000f, 1.000f), 14);
                         break;
                     case UITag.UIType.Header:
                         ProcessText(tag.GetComponent<TextMeshProUGUI>(), font, new Color(0.718f, 0.996f, 0.000f, 1.000f), 16);
@@ -123,10 +123,11 @@ namespace ConformalDecals.UI {
 
             ProcessSelectable(gameObject, thumbStyle);
 
-            var back = gameObject.GetComponentInChildren<Image>();
-
-            back.sprite = sliderStyle.normal.background;
-            back.type = Image.Type.Sliced;
+            var back = gameObject.transform.Find("Background").GetComponent<Image>();
+            if (back != null) {
+                back.sprite = sliderStyle.normal.background;
+                back.type = Image.Type.Sliced;
+            }
         }
 
         private static void ProcessDropdown(GameObject gameObject, UIStyle buttonStyle, UIStyle windowStyle) {

@@ -3,6 +3,8 @@ Assets/*
 !Assets/Shaders/
 !Assets/Textures/
 !Assets/Scripts/
+!Assets/UI/
+!Assets/ConformalDecals/
 KSP/
 Library/
 Logs/

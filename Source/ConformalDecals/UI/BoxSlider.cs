@@ -26,7 +26,6 @@ namespace ConformalDecals.UI {
             }
         }
 
-
         public Vector2 Value {
             get => _value;
             set {

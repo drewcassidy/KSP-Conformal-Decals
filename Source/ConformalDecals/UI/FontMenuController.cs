@@ -3,27 +3,30 @@ using System.Collections.Generic;
 using ConformalDecals.Text;
 using UniLinq;
 using UnityEngine;
+using UnityEngine.Events;
 using UnityEngine.UI;
 
 namespace ConformalDecals.UI {
     public class FontMenuController : MonoBehaviour {
+        [Serializable]
+        public class FontUpdateEvent : UnityEvent<DecalFont> { }
+        
+        [SerializeField] private FontUpdateEvent _onFontChanged = new FontUpdateEvent();
+
         [SerializeField] private GameObject _menuItem;
         [SerializeField] private GameObject _menuList;
 
-        public DecalFont currentFont;
+        private DecalFont _currentFont;
 
-        public delegate void FontUpdateReceiver(DecalFont font);
-
-        public FontUpdateReceiver fontUpdateCallback;
-
-        public static FontMenuController Create(IEnumerable<DecalFont> fonts, DecalFont currentFont, FontUpdateReceiver fontUpdateCallback) {
+        public static FontMenuController Create(IEnumerable<DecalFont> fonts, DecalFont currentFont, UnityAction<DecalFont> fontUpdateCallback) {
             var menu = Instantiate(UILoader.FontMenuPrefab, MainCanvasUtil.MainCanvas.transform, true);
             menu.AddComponent<DragPanel>();
             MenuNavigation.SpawnMenuNavigation(menu, Navigation.Mode.Automatic, true);
 
             var controller = menu.GetComponent<FontMenuController>();
-            controller.fontUpdateCallback = fontUpdateCallback;
-            controller.currentFont = currentFont;
+            controller._currentFont = currentFont;
+            controller._onFontChanged.AddListener(fontUpdateCallback);
+
             controller.Populate(fonts);
             return controller;
         }
@@ -33,8 +36,8 @@ namespace ConformalDecals.UI {
         }
 
         public void OnFontSelected(DecalFont font) {
-            currentFont = font ?? throw new ArgumentNullException(nameof(font));
-            fontUpdateCallback(currentFont);
+            _currentFont = font ?? throw new ArgumentNullException(nameof(font));
+            _onFontChanged.Invoke(_currentFont);
         }
 
         public void Populate(IEnumerable<DecalFont> fonts) {
@@ -52,7 +55,7 @@ namespace ConformalDecals.UI {
                 fontItem.Font = font;
                 fontItem.fontSelectionCallback = OnFontSelected;
 
-                if (font == currentFont) active = fontItem.toggle;
+                if (font == _currentFont) active = fontItem.toggle;
             }
 
             if (active != null) active.isOn = true;

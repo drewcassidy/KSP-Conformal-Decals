@@ -1,9 +1,10 @@
-Shader "ConformalDecals/UI/ColorSlider"
+Shader "ConformalDecals/UI/HSLSquare"
 {
     Properties
     {
-        _Color("Color", Color) = (0,0,0,0)
+        _Hue("Hue", Range(0,1)) = 0
         _Radius("Radius", Float) = 4
+
         _StencilComp ("Stencil Comparison", Float) = 8
         _Stencil ("Stencil ID", Float) = 0
         _StencilOp ("Stencil Operation", Float) = 0
@@ -13,13 +14,6 @@ Shader "ConformalDecals/UI/ColorSlider"
         _ColorMask ("Color Mask", Float) = 15
 
         [Toggle(UNITY_UI_ALPHACLIP)] _UseUIAlphaClip ("Use Alpha Clip", Float) = 0
-        
-        [Toggle(HUE)] _Hue ("Hue", int) = 0
-        [Toggle(RED)] _Red ("Red", int) = 0
-        [Toggle(GREEN)] _Green ("Green", int) = 0
-        [Toggle(BLUE)] _Blue ("Blue", int) = 0
-
-
     }
     SubShader
     {
@@ -54,7 +48,7 @@ Shader "ConformalDecals/UI/ColorSlider"
             #pragma fragment frag
 
             #pragma require integers
-            
+
             #include "UnityCG.cginc"
             #include "UnityUI.cginc"
             #include "HSL.cginc"
@@ -62,11 +56,10 @@ Shader "ConformalDecals/UI/ColorSlider"
             
             #pragma multi_compile_local _ UNITY_UI_CLIP_RECT
             #pragma multi_compile_local _ UNITY_UI_ALPHACLIP
-            #pragma multi_compile_local HUE RED GREEN BLUE
             
-            float4 _ClipRect;
+            float _Hue;
             float _Radius;
-            float4 _Color;
+            float4 _ClipRect;
 
             struct appdata
             {
@@ -96,22 +89,8 @@ Shader "ConformalDecals/UI/ColorSlider"
                 fixed4 color = 1;
                 
                 color.a = saturate(0.5 - sdRoundedUVBox(i.uv, _Radius));
-                
-                #ifdef HUE
-                color.rgb = HSL2RGB(float3(i.uv.y, 1, 0.5));
-                #endif //HUE
-                
-                #ifdef RED
-                color.rgb = float3(i.uv.x, _Color.g, _Color.b);
-                #endif //RED
-                
-                #ifdef GREEN
-                color.rgb = float3(_Color.r, i.uv.x, _Color.b);
-                #endif //GREEN
-                
-                #ifdef BLUE
-                color.rgb = float3(_Color.r, _Color.g, i.uv.x);
-                #endif //BLUE
+
+                color.rgb = HSL2RGB(float3(_Hue, i.uv.x, i.uv.y));
                 
                 #ifdef UNITY_UI_CLIP_RECT
                     color.a *= UnityGet2DClipping(i.worldPosition.xy, _ClipRect);

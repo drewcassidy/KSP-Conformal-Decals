@@ -153,10 +153,6 @@ inline float BoundsDist(float3 p, float3 normal, float3 projNormal) {
     #endif
 }
 
-inline float SDFAA(float dist) {
-    float ddist = length(float2(ddx(dist), ddy(dist)));
-    float pixelDist = dist / ddist;
-    return saturate(0.5-pixelDist);
-}
+
 
 #endif

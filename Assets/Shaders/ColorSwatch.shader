@@ -1,9 +1,9 @@
-Shader "ConformalDecals/UI/HSLSquare"
+Shader "ConformalDecals/UI/Color Swatch"
 {
     Properties
     {
-        _Hue("Hue", Range(0,1)) = 0
-        
+        _Color("Color", Color) = (0,0,0,0)
+        _Radius("Radius", Float) = 4
         _StencilComp ("Stencil Comparison", Float) = 8
         _Stencil ("Stencil ID", Float) = 0
         _StencilOp ("Stencil Operation", Float) = 0
@@ -47,16 +47,19 @@ Shader "ConformalDecals/UI/HSLSquare"
             #pragma fragment frag
 
             #pragma require integers
-
+            
             #include "UnityCG.cginc"
             #include "UnityUI.cginc"
             #include "HSL.cginc"
+            #include "SDF.cginc"
             
             #pragma multi_compile_local _ UNITY_UI_CLIP_RECT
             #pragma multi_compile_local _ UNITY_UI_ALPHACLIP
+            #pragma multi_compile_local HUE RED GREEN BLUE
             
-            float _Hue;
             float4 _ClipRect;
+            float _Radius;
+            float4 _Color;
 
             struct appdata
             {
@@ -82,9 +85,9 @@ Shader "ConformalDecals/UI/HSLSquare"
             
             fixed4 frag (v2f i) : SV_Target
             {
-                // sample the texture
-                fixed4 color = 1;
-                color.rgb = HSL2RGB(float3(_Hue, i.uv.x, i.uv.y));
+                fixed4 color = _Color;
+                
+                color.a = saturate(0.5 - sdRoundedUVBox(i.uv, _Radius));
                 
                 #ifdef UNITY_UI_CLIP_RECT
                     color.a *= UnityGet2DClipping(i.worldPosition.xy, _ClipRect);

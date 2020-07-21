@@ -69,6 +69,7 @@
             #include "UnityCG.cginc"
             #include "DecalsCommon.cginc"
             #include "DecalsSurface.cginc"
+            #include "SDF.cginc"
             #include "StandardDecal.cginc"
  
             ENDCG
@@ -98,6 +99,7 @@
             #include "UnityCG.cginc"
             #include "DecalsCommon.cginc"
             #include "DecalsSurface.cginc"
+            #include "SDF.cginc"
             #include "StandardDecal.cginc"
 
             ENDCG

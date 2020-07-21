@@ -17,7 +17,7 @@ namespace ConformalDecals.Util {
         }
 
         public override string ToString() {
-            return $"HSLA({(object) this.h:F3}, {(object) this.s:F3}, {(object) this.l:F3}, {(object) this.a:F3})";
+            return $"HSLA({this.h:F3}, {this.s:F3}, {this.l:F3}, {this.a:F3})";
         }
 
         public string ToString(string format) {
@@ -47,6 +47,41 @@ namespace ConformalDecals.Util {
 
         public override int GetHashCode() {
             return ((Vector4) this).GetHashCode();
+        }
+
+        public float this[int index] {
+            get {
+                switch (index) {
+                    case 0:
+                        return this.h;
+                    case 1:
+                        return this.s;
+                    case 2:
+                        return this.l;
+                    case 3:
+                        return this.a;
+                    default:
+                        throw new IndexOutOfRangeException("Invalid Vector3 index!");
+                }
+            }
+            set {
+                switch (index) {
+                    case 0:
+                        this.h = value;
+                        break;
+                    case 1:
+                        this.s = value;
+                        break;
+                    case 2:
+                        this.l = value;
+                        break;
+                    case 3:
+                        this.a = value;
+                        break;
+                    default:
+                        throw new IndexOutOfRangeException("Invalid Vector3 index!");
+                }
+            }
         }
 
         public static bool operator ==(ColorHSL lhs, ColorHSL rhs) {

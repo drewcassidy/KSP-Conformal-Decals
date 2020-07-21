@@ -10,18 +10,22 @@ namespace ConformalDecals.UI {
 
         private static GameObject _textEntryPrefab;
         private static GameObject _fontMenuPrefab;
+        private static GameObject _colorPickerPrefab;
 
         public static GameObject FontMenuPrefab => _fontMenuPrefab;
         public static GameObject TextEntryPrefab => _textEntryPrefab;
+        public static GameObject ColorPickerPrefab => _colorPickerPrefab;
 
         private void Awake() {
             var prefabs = AssetBundle.LoadFromFile(Path + "ui.conformaldecals");
 
             _textEntryPrefab = prefabs.LoadAsset("TextEntryPanel") as GameObject;
             _fontMenuPrefab = prefabs.LoadAsset("FontMenuPanel") as GameObject;
+            _colorPickerPrefab = prefabs.LoadAsset("ColorPickerPanel") as GameObject;
 
             ProcessWindow(_textEntryPrefab);
             ProcessWindow(_fontMenuPrefab);
+            ProcessWindow(_colorPickerPrefab);
         }
 
         private static void ProcessWindow(GameObject window) {

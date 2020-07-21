@@ -12,7 +12,8 @@ namespace ConformalDecals.UI {
             Slider,
             Dropdown,
             Label,
-            Header
+            Header,
+            BoxSlider
         }
 
         [SerializeField] public UIType type = UIType.None;

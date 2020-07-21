@@ -14,7 +14,7 @@ namespace ConformalDecals.UI {
         [SerializeField] private BoxSlider _slider;
         [SerializeField] private Image     _image;
 
-        private Material _imageMaterial;
+        private static readonly int Hue = Shader.PropertyToID("_Hue");
 
         public Vector2 Value {
             get => _value;
@@ -24,10 +24,6 @@ namespace ConformalDecals.UI {
                 UpdateSlider();
                 OnChannelUpdate();
             }
-        }
-
-        public void Awake() {
-            _imageMaterial = _image.material;
         }
 
         public void OnSliderUpdate(Vector2 value) {
@@ -42,10 +38,11 @@ namespace ConformalDecals.UI {
 
         public void OnColorUpdate(Color rgb, ColorHSL hsl) {
             Vector2 newValue;
-            _imageMaterial.SetColor(PropertyIDs._Color, rgb);
             newValue.x = _hsl ? hsl[_channel.x] : rgb[_channel.x];
             newValue.y = _hsl ? hsl[_channel.y] : rgb[_channel.y];
             Value = newValue;
+            
+            _image.material.SetFloat(Hue, hsl.h);
         }
 
         public void UpdateSlider() {

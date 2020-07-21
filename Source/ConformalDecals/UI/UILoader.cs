@@ -59,6 +59,9 @@ namespace ConformalDecals.UI {
                     case UITag.UIType.RadioToggle:
                         ProcessSelectable(tag.gameObject, skin.toggle);
                         break;
+                    case UITag.UIType.BoxSlider:
+                        ProcessBoxSlider(tag.gameObject, skin.horizontalSlider, skin.horizontalSliderThumb);
+                        break;
                     case UITag.UIType.Slider:
                         ProcessSlider(tag.gameObject, skin.horizontalSlider, skin.horizontalSliderThumb, skin.verticalSlider, skin.verticalSliderThumb);
                         break;
@@ -90,47 +93,62 @@ namespace ConformalDecals.UI {
 
         private static void ProcessSelectable(GameObject gameObject, UIStyle style) {
             var selectable = gameObject.GetComponent<Selectable>();
-            if (selectable == null) throw new FormatException("No Selectable component present");
+            if (selectable == null) {
+                ProcessImage(gameObject, style);
+            }
+            else {
+                ProcessImage(selectable.image, style.normal);
 
-            ProcessImage(selectable.image, style.normal);
+                selectable.transition = Selectable.Transition.SpriteSwap;
 
-            selectable.transition = Selectable.Transition.SpriteSwap;
-
-            var state = selectable.spriteState;
-            state.highlightedSprite = style.highlight.background;
-            state.pressedSprite = style.active.background;
-            state.disabledSprite = style.disabled.background;
-            selectable.spriteState = state;
+                var state = selectable.spriteState;
+                state.highlightedSprite = style.highlight.background;
+                state.pressedSprite = style.active.background;
+                state.disabledSprite = style.disabled.background;
+                selectable.spriteState = state;
+            }
         }
 
         private static void ProcessToggleButton(GameObject gameObject, UIStyle style) {
             ProcessSelectable(gameObject, style);
 
             var toggle = gameObject.GetComponent<Toggle>();
-            ProcessImage(toggle.graphic as Image, style.active);
+            if (toggle != null) ProcessImage(toggle.graphic as Image, style.active);
         }
 
         private static void ProcessSlider(GameObject gameObject, UIStyle horizontalStyle, UIStyle horizontalThumbStyle, UIStyle verticalStyle, UIStyle verticalThumbStyle) {
             var slider = gameObject.GetComponent<Slider>();
-            if (slider == null) throw new FormatException("No Slider component present");
-
-            UIStyle sliderStyle;
-            UIStyle thumbStyle;
-            if (slider.direction == Slider.Direction.BottomToTop || slider.direction == Slider.Direction.TopToBottom) {
-                sliderStyle = verticalStyle;
-                thumbStyle = verticalThumbStyle;
+            if (slider == null) {
+                ProcessImage(gameObject, horizontalThumbStyle);
             }
             else {
-                sliderStyle = horizontalStyle;
-                thumbStyle = horizontalThumbStyle;
-            }
+                UIStyle sliderStyle;
+                UIStyle thumbStyle;
+                if (slider.direction == Slider.Direction.BottomToTop || slider.direction == Slider.Direction.TopToBottom) {
+                    sliderStyle = verticalStyle;
+                    thumbStyle = verticalThumbStyle;
+                }
+                else {
+                    sliderStyle = horizontalStyle;
+                    thumbStyle = horizontalThumbStyle;
+                }
 
+                ProcessSelectable(gameObject, thumbStyle);
+
+                var back = gameObject.transform.Find("Background").GetComponent<Image>();
+                if (back != null) {
+                    back.sprite = sliderStyle.normal.background;
+                    back.type = Image.Type.Sliced;
+                }
+            }
+        }
+
+        private static void ProcessBoxSlider(GameObject gameObject, UIStyle backgroundStyle, UIStyle thumbStyle) {
             ProcessSelectable(gameObject, thumbStyle);
 
-            var back = gameObject.transform.Find("Background").GetComponent<Image>();
-            if (back != null) {
-                back.sprite = sliderStyle.normal.background;
-                back.type = Image.Type.Sliced;
+            var background = gameObject.transform.Find("Background").gameObject;
+            if (background != null) {
+                ProcessImage(background, backgroundStyle);
             }
         }
 
@@ -138,7 +156,7 @@ namespace ConformalDecals.UI {
             ProcessSelectable(gameObject, buttonStyle);
 
             var template = gameObject.transform.Find("Template").gameObject;
-            ProcessImage(template, windowStyle);
+            if (template != null) ProcessImage(template, windowStyle);
         }
 
         private static void ProcessText(TextMeshProUGUI text, TMP_FontAsset font, Color color, int size = -1) {

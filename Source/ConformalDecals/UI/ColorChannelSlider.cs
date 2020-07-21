@@ -15,8 +15,6 @@ namespace ConformalDecals.UI {
         [SerializeField] private Slider     _slider;
         [SerializeField] private Image      _image;
 
-        private Material _imageMaterial;
-
         private bool _ignoreUpdates;
 
         public float Value {
@@ -27,10 +25,6 @@ namespace ConformalDecals.UI {
                 UpdateTextbox();
                 OnChannelUpdate();
             }
-        }
-
-        public void Awake() {
-            _imageMaterial = _image.material;
         }
 
         public void OnTextBoxUpdate(string text) {
@@ -60,7 +54,7 @@ namespace ConformalDecals.UI {
         }
 
         public void OnColorUpdate(Color rgb, ColorHSL hsl) {
-            _imageMaterial.SetColor(PropertyIDs._Color, rgb);
+            _image.material.SetColor(PropertyIDs._Color, rgb);
             Value = _hsl ? hsl[_channel] : rgb[_channel];
         }
 

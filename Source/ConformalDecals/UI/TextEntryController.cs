@@ -12,9 +12,6 @@ namespace ConformalDecals.UI {
 
         [SerializeField] private TextUpdateEvent _onTextUpdate = new TextUpdateEvent();
 
-        private DecalText          _decalText;
-        private FontMenuController _fontMenu;
-
         [SerializeField] private Selectable _textBox;
         [SerializeField] private Button     _fontButton;
         [SerializeField] private Slider     _outlineWidthSlider;
@@ -24,6 +21,9 @@ namespace ConformalDecals.UI {
         [SerializeField] private Toggle _underlineButton;
         [SerializeField] private Toggle _smallCapsButton;
         [SerializeField] private Toggle _verticalButton;
+        
+        private DecalText          _decalText;
+        private FontMenuController _fontMenu;
 
         public static TextEntryController Create(DecalText text, UnityAction<DecalText> textUpdateCallback) {
             var window = Instantiate(UILoader.TextEntryPrefab, MainCanvasUtil.MainCanvas.transform, true);
@@ -33,13 +33,14 @@ namespace ConformalDecals.UI {
             var controller = window.GetComponent<TextEntryController>();
             controller._decalText = text;
             controller._onTextUpdate.AddListener(textUpdateCallback);
-            text.font.SetupSample(controller._fontButton.GetComponentInChildren<TextMeshProUGUI>());
 
             return controller;
         }
 
         private void Start() {
             ((TMP_InputField) _textBox).text = _decalText.text;
+            
+            _decalText.font.SetupSample(_fontButton.GetComponentInChildren<TextMeshProUGUI>());
 
             _outlineWidthSlider.value = _decalText.outlineWidth;
             _boldButton.isOn = (_decalText.style & FontStyles.Bold) != 0;

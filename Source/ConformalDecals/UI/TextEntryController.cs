@@ -10,7 +10,7 @@ namespace ConformalDecals.UI {
         [Serializable]
         public class TextUpdateEvent : UnityEvent<DecalText> { }
 
-        [SerializeField] private TextUpdateEvent _onTextUpdate = new TextUpdateEvent();
+        [SerializeField] public TextUpdateEvent onTextUpdate = new TextUpdateEvent();
 
         [SerializeField] private Selectable _textBox;
         [SerializeField] private Button     _fontButton;
@@ -32,7 +32,7 @@ namespace ConformalDecals.UI {
 
             var controller = window.GetComponent<TextEntryController>();
             controller._decalText = text;
-            controller._onTextUpdate.AddListener(textUpdateCallback);
+            controller.onTextUpdate.AddListener(textUpdateCallback);
 
             return controller;
         }
@@ -57,7 +57,7 @@ namespace ConformalDecals.UI {
         }
 
         public void OnAnyUpdate() {
-            _onTextUpdate.Invoke(_decalText);
+            onTextUpdate.Invoke(_decalText);
         }
 
         public void OnTextUpdate(string newText) {

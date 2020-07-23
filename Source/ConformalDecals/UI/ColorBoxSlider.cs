@@ -1,20 +1,16 @@
-using ConformalDecals.Util;
 using UnityEngine;
 using UnityEngine.UI;
 
 namespace ConformalDecals.UI {
     public class ColorBoxSlider : MonoBehaviour {
-        [SerializeField] private ColorPickerController.ChannelUpdateEvent _onXChannelChanged = new ColorPickerController.ChannelUpdateEvent();
-        [SerializeField] private ColorPickerController.ChannelUpdateEvent _onYChannelChanged = new ColorPickerController.ChannelUpdateEvent();
+        [SerializeField] public ColorPickerController.SVUpdateEvent onValueChanged = new ColorPickerController.SVUpdateEvent();
 
         [SerializeField] private Vector2    _value;
-        [SerializeField] private Vector2Int _channel;
-        [SerializeField] private bool       _hsl;
 
         [SerializeField] private BoxSlider _slider;
         [SerializeField] private Image     _image;
-
-        private static readonly int Hue = Shader.PropertyToID("_Hue");
+        
+        private bool _ignoreUpdates;
 
         public Vector2 Value {
             get => _value;
@@ -22,31 +18,46 @@ namespace ConformalDecals.UI {
                 _value.x = Mathf.Clamp01(value.x);
                 _value.y = Mathf.Clamp01(value.y);
                 UpdateSlider();
-                OnChannelUpdate();
+                UpdateChannels();
             }
         }
 
+        public void OnColorUpdate(Color rgb, Util.ColorHSV hsv) {
+            if (_ignoreUpdates) return;
+
+            _image.material.SetColor(PropertyIDs._Color, (Vector4) hsv);
+
+            _value.x = hsv.s;
+            _value.y = hsv.v;
+            UpdateSlider();
+        }
+        
         public void OnSliderUpdate(Vector2 value) {
-            _value = value;
-            OnChannelUpdate();
-        }
-
-        public void OnChannelUpdate() {
-            _onXChannelChanged.Invoke(_value.x, _channel.x, _hsl);
-            _onYChannelChanged.Invoke(_value.y, _channel.y, _hsl);
-        }
-
-        public void OnColorUpdate(Color rgb, ColorHSL hsl) {
-            Vector2 newValue;
-            newValue.x = _hsl ? hsl[_channel.x] : rgb[_channel.x];
-            newValue.y = _hsl ? hsl[_channel.y] : rgb[_channel.y];
-            Value = newValue;
+            if (_ignoreUpdates) return;
             
-            _image.material.SetFloat(Hue, hsl.h);
+            _value = value;
+            UpdateChannels();
         }
 
-        public void UpdateSlider() {
+        private void Awake() {
+            var boxSlider = gameObject.GetComponentInChildren<BoxSlider>();
+            boxSlider.OnValueChanged.AddListener(OnSliderUpdate);
+        }
+
+        private void UpdateChannels() {
+            _ignoreUpdates = true;
+            
+            onValueChanged.Invoke(_value);
+            
+            _ignoreUpdates = false;
+        }
+        
+        private void UpdateSlider() {
+            _ignoreUpdates = true;
+            
             _slider.Value = _value;
+            
+            _ignoreUpdates = false;
         }
     }
 }

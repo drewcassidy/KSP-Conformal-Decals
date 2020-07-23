@@ -65,12 +65,17 @@ Material:
     - _GlossMapScale: 1
     - _Glossiness: 0.5
     - _GlossyReflections: 1
+    - _GradientStep: 0.2
     - _Green: 1
     - _Hue: 0
     - _Metallic: 0
     - _Mode: 0
     - _OcclusionStrength: 1
+    - _OutlineGradient: 0.7
+    - _OutlineOpacity: 0.15
+    - _OutlineWidth: 2.5
     - _Parallax: 0.02
+    - _Radius: 4
     - _Red: 0
     - _SmoothnessTextureChannel: 0
     - _SpecularHighlights: 1

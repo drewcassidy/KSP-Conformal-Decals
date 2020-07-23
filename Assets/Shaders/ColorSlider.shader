@@ -1,9 +1,14 @@
-Shader "ConformalDecals/UI/ColorSlider"
+Shader "ConformalDecals/UI/Color Slider"
 {
     Properties
     {
         _Color("Color", Color) = (0,0,0,0)
         _Radius("Radius", Float) = 4
+        
+        _OutlineGradient("Outline Gradient Step", Range (0, 1)) = 0.6
+        _OutlineOpacity("Outline Opacity", Range (0, 0.5)) = 0.1
+        _OutlineWidth("Outline Width", Float) = 3
+        
         _StencilComp ("Stencil Comparison", Float) = 8
         _Stencil ("Stencil ID", Float) = 0
         _StencilOp ("Stencil Operation", Float) = 0
@@ -68,6 +73,10 @@ Shader "ConformalDecals/UI/ColorSlider"
             float _Radius;
             float4 _Color;
 
+            float _OutlineGradient;
+            float _OutlineOpacity;
+            float _OutlineWidth;
+            
             struct appdata
             {
                 float4 vertex : POSITION;
@@ -92,13 +101,10 @@ Shader "ConformalDecals/UI/ColorSlider"
             
             fixed4 frag (v2f i) : SV_Target
             {
-                // sample the texture
-                fixed4 color = 1;
-                
-                color.a = saturate(0.5 - sdRoundedUVBox(i.uv, _Radius));
+                float4 color = 1;
                 
                 #ifdef HUE
-                color.rgb = HSL2RGB(float3(i.uv.y, 1, 0.5));
+                color.rgb = HSV2RGB(float3(i.uv.y, _Color.y, _Color.z));
                 #endif //HUE
                 
                 #ifdef RED
@@ -112,6 +118,14 @@ Shader "ConformalDecals/UI/ColorSlider"
                 #ifdef BLUE
                 color.rgb = float3(_Color.r, _Color.g, i.uv.x);
                 #endif //BLUE
+                
+                float rrect = sdRoundedUVBox(i.uv, _Radius);
+                float gradient = smoothstep(_OutlineGradient, 1 - _OutlineGradient, i.uv.y);
+                float outlineOpacity = _OutlineOpacity * smoothstep(-1*_OutlineWidth, 0, rrect);
+                
+                color.rgb = lerp(color.rgb, gradient, outlineOpacity);
+
+                color.a = saturate(0.5 - rrect);
                 
                 #ifdef UNITY_UI_CLIP_RECT
                     color.a *= UnityGet2DClipping(i.worldPosition.xy, _ClipRect);

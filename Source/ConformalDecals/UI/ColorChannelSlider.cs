@@ -1,15 +1,14 @@
-using ConformalDecals.Util;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
 namespace ConformalDecals.UI {
     public class ColorChannelSlider : MonoBehaviour {
-        [SerializeField] private ColorPickerController.ChannelUpdateEvent _onChannelChanged = new ColorPickerController.ChannelUpdateEvent();
+        [SerializeField] public ColorPickerController.ChannelUpdateEvent onChannelChanged = new ColorPickerController.ChannelUpdateEvent();
 
         [SerializeField] private float _value;
         [SerializeField] private int   _channel;
-        [SerializeField] private bool  _hsl;
+        [SerializeField] private bool  _hsv;
 
         [SerializeField] private Selectable _textBox;
         [SerializeField] private Slider     _slider;
@@ -23,17 +22,27 @@ namespace ConformalDecals.UI {
                 _value = Mathf.Clamp01(value);
                 UpdateSlider();
                 UpdateTextbox();
-                OnChannelUpdate();
+                UpdateChannel();
             }
         }
+        
+        public void OnColorUpdate(Color rgb, Util.ColorHSV hsv) {
+            if (_ignoreUpdates) return;
 
+            _image.material.SetColor(PropertyIDs._Color, _hsv ? (Color) (Vector4) hsv : rgb);
+            
+            _value = _hsv ? hsv[_channel] : rgb[_channel];
+            UpdateSlider();
+            UpdateTextbox();
+        }
+        
         public void OnTextBoxUpdate(string text) {
             if (_ignoreUpdates) return;
 
             if (byte.TryParse(text, out byte byteValue)) {
                 _value = (float) byteValue / 255;
                 UpdateSlider();
-                OnChannelUpdate();
+                UpdateChannel();
             }
             else {
                 // value is invalid, reset value
@@ -46,25 +55,20 @@ namespace ConformalDecals.UI {
 
             _value = value;
             UpdateTextbox();
-            OnChannelUpdate();
+            UpdateChannel();
         }
 
-        public void OnChannelUpdate() {
-            _onChannelChanged.Invoke(_value, _channel, _hsl);
+        private void UpdateChannel() {
+            onChannelChanged.Invoke(_value, _channel, _hsv);
         }
 
-        public void OnColorUpdate(Color rgb, ColorHSL hsl) {
-            _image.material.SetColor(PropertyIDs._Color, rgb);
-            Value = _hsl ? hsl[_channel] : rgb[_channel];
-        }
-
-        public void UpdateSlider() {
+        private void UpdateSlider() {
             _ignoreUpdates = true;
             _slider.value = _value;
             _ignoreUpdates = false;
         }
 
-        public void UpdateTextbox() {
+        private void UpdateTextbox() {
             if (_textBox == null) return;
 
             _ignoreUpdates = true;

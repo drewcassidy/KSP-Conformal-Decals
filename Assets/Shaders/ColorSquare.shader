@@ -1,10 +1,14 @@
-Shader "ConformalDecals/UI/HSLSquare"
+Shader "ConformalDecals/UI/HSV Square"
 {
     Properties
     {
-        _Hue("Hue", Range(0,1)) = 0
+        _Color("Color", Color) = (0,0,0,0)
         _Radius("Radius", Float) = 4
 
+        _OutlineGradient("Outline Gradient Step", Range (0, 1)) = 0.6
+        _OutlineOpacity("Outline Opacity", Range (0, 0.5)) = 0.1
+        _OutlineWidth("Outline Width", Float) = 3
+        
         _StencilComp ("Stencil Comparison", Float) = 8
         _Stencil ("Stencil ID", Float) = 0
         _StencilOp ("Stencil Operation", Float) = 0
@@ -57,10 +61,14 @@ Shader "ConformalDecals/UI/HSLSquare"
             #pragma multi_compile_local _ UNITY_UI_CLIP_RECT
             #pragma multi_compile_local _ UNITY_UI_ALPHACLIP
             
-            float _Hue;
-            float _Radius;
             float4 _ClipRect;
+            float _Radius;
+            float4 _Color;
 
+            float _OutlineGradient;
+            float _OutlineOpacity;
+            float _OutlineWidth;
+            
             struct appdata
             {
                 float4 vertex : POSITION;
@@ -90,7 +98,13 @@ Shader "ConformalDecals/UI/HSLSquare"
                 
                 color.a = saturate(0.5 - sdRoundedUVBox(i.uv, _Radius));
 
-                color.rgb = HSL2RGB(float3(_Hue, i.uv.x, i.uv.y));
+                color.rgb = HSV2RGB(float3(_Color.x, i.uv.x, i.uv.y));
+                
+                float rrect = sdRoundedUVBox(i.uv, _Radius);
+                float gradient = smoothstep(_OutlineGradient, 1 - _OutlineGradient, i.uv.y);
+                float outlineOpacity = _OutlineOpacity * smoothstep(-1*_OutlineWidth, 0, rrect);
+                
+                color.rgb = lerp(color.rgb, gradient, outlineOpacity);
                 
                 #ifdef UNITY_UI_CLIP_RECT
                     color.a *= UnityGet2DClipping(i.worldPosition.xy, _ClipRect);

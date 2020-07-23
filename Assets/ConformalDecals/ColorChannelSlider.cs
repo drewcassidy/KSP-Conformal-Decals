@@ -1,14 +1,11 @@
-using ConformalDecals.Util;
 using UnityEngine;
 using UnityEngine.UI;
 
 namespace ConformalDecals.UI {
     public class ColorChannelSlider : MonoBehaviour {
-        [SerializeField] private ColorPickerController.ChannelUpdateEvent _onChannelChanged = new ColorPickerController.ChannelUpdateEvent();
-
         [SerializeField] private float _value;
         [SerializeField] private int   _channel;
-        [SerializeField] private bool  _hsl;
+        [SerializeField] private bool  _hsv;
 
         [SerializeField] private Selectable _textBox;
         [SerializeField] private Slider     _slider;
@@ -17,7 +14,5 @@ namespace ConformalDecals.UI {
         public void OnTextBoxUpdate(string text) { }
 
         public void OnSliderUpdate(float value) { }
-
-        public void OnColorUpdate(Color rgb, ColorHSL hsl) { }
     }
 }

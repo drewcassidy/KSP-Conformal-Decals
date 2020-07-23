@@ -1,7 +1,5 @@
-using System;
 using ConformalDecals.Text;
 using ConformalDecals.UI;
-using ConformalDecals.Util;
 using TMPro;
 using UnityEngine;
 
@@ -11,29 +9,27 @@ namespace ConformalDecals {
         [KSPField(isPersistant = true)] public string font = "Calibri SDF";
         [KSPField(isPersistant = true)] public int    style;
         [KSPField(isPersistant = true)] public bool   vertical;
-        [KSPField(isPersistant = true)] public Color  color        = Color.black;
+        [KSPField(isPersistant = true)] public Color  fillColor    = Color.black;
         [KSPField(isPersistant = true)] public Color  outlineColor = Color.white;
         [KSPField(isPersistant = true)] public float  outlineWidth;
 
         private DecalText _text;
 
-        private TextEntryController _textEntryController;
-
-        public override void OnLoad(ConfigNode node) {
-            base.OnLoad(node);
-        }
+        private TextEntryController   _textEntryController;
+        private ColorPickerController _fillColorPickerController;
+        private ColorPickerController _outlineColorPickerCOntroller;
 
         public override void OnStart(StartState state) {
             base.OnStart(state);
 
-            var decalFont =  DecalConfig.GetFont(font);
+            var decalFont = DecalConfig.GetFont(font);
 
             _text = new DecalText {
                 text = text,
                 font = decalFont,
                 style = (FontStyles) style,
                 vertical = vertical,
-                color = color,
+                color = fillColor,
                 outlineColor = outlineColor,
                 outlineWidth = outlineWidth
             };
@@ -43,10 +39,32 @@ namespace ConformalDecals {
             _text = newText;
         }
 
+        public void OnFillColorUpdate(Color rgb, Util.ColorHSV hsv) {
+            Debug.Log($"new fill color: {rgb}, {hsv}");
+        }
+
+        public void OnOutlineColorUpdate(Color rgb, Util.ColorHSV hsv) {
+            Debug.Log($"new outline color: {rgb}, {hsv}");
+        }
+
         [KSPEvent(guiActive = false, guiActiveEditor = true, guiName = "#LOC_ConformalDecals_gui-select-flag")]
         public void SetText() {
             if (_textEntryController == null) {
                 _textEntryController = TextEntryController.Create(_text, OnTextUpdate);
+            }
+        }
+
+        [KSPEvent(guiActive = false, guiActiveEditor = true, guiName = "Set Fill Color")]
+        public void SetFillColor() {
+            if (_fillColorPickerController == null) {
+                _fillColorPickerController = ColorPickerController.Create(fillColor, OnFillColorUpdate);
+            }
+        }
+
+        [KSPEvent(guiActive = false, guiActiveEditor = true, guiName = "Set Outline Color")]
+        public void SetOutlineColor() {
+            if (_outlineColorPickerCOntroller == null) {
+                _outlineColorPickerCOntroller = ColorPickerController.Create(outlineColor, OnOutlineColorUpdate);
             }
         }
     }

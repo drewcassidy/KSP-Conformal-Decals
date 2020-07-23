@@ -1,4 +1,3 @@
-using System;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
@@ -63,7 +62,7 @@ namespace ConformalDecals.UI {
                         ProcessBoxSlider(tag.gameObject, skin.horizontalSlider, skin.horizontalSliderThumb);
                         break;
                     case UITag.UIType.Slider:
-                        ProcessSlider(tag.gameObject, skin.horizontalSlider, skin.horizontalSliderThumb, skin.verticalSlider, skin.verticalSliderThumb);
+                        ProcessSlider(tag.gameObject, skin.horizontalSlider, skin.horizontalSliderThumb, skin.horizontalSlider, skin.horizontalSliderThumb);
                         break;
                     case UITag.UIType.Box:
                         ProcessSelectable(tag.gameObject, skin.box);
@@ -82,7 +81,10 @@ namespace ConformalDecals.UI {
         }
 
         private static void ProcessImage(GameObject gameObject, UIStyle style) {
-            ProcessImage(gameObject.GetComponent<Image>(), style.normal);
+            var image = gameObject.GetComponent<Image>();
+            if (image != null) {
+                ProcessImage(image, style.normal);
+            }
         }
 
         private static void ProcessImage(Image image, UIStyleState state) {
@@ -135,10 +137,9 @@ namespace ConformalDecals.UI {
 
                 ProcessSelectable(gameObject, thumbStyle);
 
-                var back = gameObject.transform.Find("Background").GetComponent<Image>();
+                var back = gameObject.transform.Find("Background");
                 if (back != null) {
-                    back.sprite = sliderStyle.normal.background;
-                    back.type = Image.Type.Sliced;
+                    ProcessImage(back.gameObject, sliderStyle);
                 }
             }
         }
@@ -146,9 +147,9 @@ namespace ConformalDecals.UI {
         private static void ProcessBoxSlider(GameObject gameObject, UIStyle backgroundStyle, UIStyle thumbStyle) {
             ProcessSelectable(gameObject, thumbStyle);
 
-            var background = gameObject.transform.Find("Background").gameObject;
+            var background = gameObject.transform.Find("Background");
             if (background != null) {
-                ProcessImage(background, backgroundStyle);
+                ProcessImage(background.gameObject, backgroundStyle);
             }
         }
 

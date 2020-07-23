@@ -30,6 +30,7 @@ namespace ConformalDecals.UI {
             get => _value;
             set {
                 _value = value;
+                _onValueChanged.Invoke(value);
                 UpdateVisuals();
             }
         }

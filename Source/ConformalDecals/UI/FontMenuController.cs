@@ -11,7 +11,7 @@ namespace ConformalDecals.UI {
         [Serializable]
         public class FontUpdateEvent : UnityEvent<DecalFont> { }
         
-        [SerializeField] private FontUpdateEvent _onFontChanged = new FontUpdateEvent();
+        [SerializeField] public FontUpdateEvent onFontChanged = new FontUpdateEvent();
 
         [SerializeField] private GameObject _menuItem;
         [SerializeField] private GameObject _menuList;
@@ -25,7 +25,7 @@ namespace ConformalDecals.UI {
 
             var controller = menu.GetComponent<FontMenuController>();
             controller._currentFont = currentFont;
-            controller._onFontChanged.AddListener(fontUpdateCallback);
+            controller.onFontChanged.AddListener(fontUpdateCallback);
 
             controller.Populate(fonts);
             return controller;
@@ -37,7 +37,7 @@ namespace ConformalDecals.UI {
 
         public void OnFontSelected(DecalFont font) {
             _currentFont = font ?? throw new ArgumentNullException(nameof(font));
-            _onFontChanged.Invoke(_currentFont);
+            onFontChanged.Invoke(_currentFont);
         }
 
         public void Populate(IEnumerable<DecalFont> fonts) {

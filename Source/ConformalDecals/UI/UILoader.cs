@@ -59,10 +59,8 @@ namespace ConformalDecals.UI {
                         ProcessSelectable(tag.gameObject, skin.toggle);
                         break;
                     case UITag.UIType.BoxSlider:
-                        ProcessBoxSlider(tag.gameObject, skin.horizontalSlider, skin.horizontalSliderThumb);
-                        break;
                     case UITag.UIType.Slider:
-                        ProcessSlider(tag.gameObject, skin.horizontalSlider, skin.horizontalSliderThumb, skin.horizontalSlider, skin.horizontalSliderThumb);
+                        ProcessSlider(tag.gameObject, skin.horizontalSlider, skin.horizontalSliderThumb);
                         break;
                     case UITag.UIType.Box:
                         ProcessSelectable(tag.gameObject, skin.box);
@@ -105,6 +103,7 @@ namespace ConformalDecals.UI {
 
                 var state = selectable.spriteState;
                 state.highlightedSprite = style.highlight.background;
+                state.selectedSprite = style.highlight.background;
                 state.pressedSprite = style.active.background;
                 state.disabledSprite = style.disabled.background;
                 selectable.spriteState = state;
@@ -118,39 +117,11 @@ namespace ConformalDecals.UI {
             if (toggle != null) ProcessImage(toggle.graphic as Image, style.active);
         }
 
-        private static void ProcessSlider(GameObject gameObject, UIStyle horizontalStyle, UIStyle horizontalThumbStyle, UIStyle verticalStyle, UIStyle verticalThumbStyle) {
-            var slider = gameObject.GetComponent<Slider>();
-            if (slider == null) {
-                ProcessImage(gameObject, horizontalThumbStyle);
-            }
-            else {
-                UIStyle sliderStyle;
-                UIStyle thumbStyle;
-                if (slider.direction == Slider.Direction.BottomToTop || slider.direction == Slider.Direction.TopToBottom) {
-                    sliderStyle = verticalStyle;
-                    thumbStyle = verticalThumbStyle;
-                }
-                else {
-                    sliderStyle = horizontalStyle;
-                    thumbStyle = horizontalThumbStyle;
-                }
-
-                ProcessSelectable(gameObject, thumbStyle);
-
-                var back = gameObject.transform.Find("Background");
-                if (back != null) {
-                    ProcessImage(back.gameObject, sliderStyle);
-                }
-            }
-        }
-
-        private static void ProcessBoxSlider(GameObject gameObject, UIStyle backgroundStyle, UIStyle thumbStyle) {
+        private static void ProcessSlider(GameObject gameObject, UIStyle backgroundStyle, UIStyle thumbStyle) {
             ProcessSelectable(gameObject, thumbStyle);
 
             var background = gameObject.transform.Find("Background");
-            if (background != null) {
-                ProcessImage(background.gameObject, backgroundStyle);
-            }
+            if (background != null) ProcessImage(background.gameObject, backgroundStyle);
         }
 
         private static void ProcessDropdown(GameObject gameObject, UIStyle buttonStyle, UIStyle windowStyle) {

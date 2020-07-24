@@ -12,18 +12,18 @@ public class TextRenderTest : MonoBehaviour {
     public GameObject _cameraObject;
 
     public TextMeshPro _tmp;
-    
+
     public Material _blitMaterial;
 
     public Material _targetMaterial;
 
-    public RenderTexture renderTex;
-    private float pixelDensity = 36;
-    private int MaxTextureSize = 4096;
+    public  RenderTexture renderTex;
+    private float         pixelDensity   = 5;
+    private int           MaxTextureSize = 4096;
 
-    public const TextureFormat TextTextureFormat = TextureFormat.RG16;
+    public const TextureFormat       TextTextureFormat       = TextureFormat.RG16;
     public const RenderTextureFormat TextRenderTextureFormat = RenderTextureFormat.R8;
-    
+
     // Start is called before the first frame update
     void Start() {
         Debug.Log("starting...");
@@ -32,12 +32,7 @@ public class TextRenderTest : MonoBehaviour {
     }
 
     // Update is called once per frame
-    void Update() {
-    }
-
-    private void go() {
-        Debug.Log("starting...");
-    }
+    void Update() { }
 
     private IEnumerator OnRender() {
         Debug.Log("starting...2");
@@ -49,42 +44,71 @@ public class TextRenderTest : MonoBehaviour {
         var bounds = mesh.bounds;
         Debug.Log(bounds.size);
 
-        var width = Mathf.NextPowerOfTwo((int) (bounds.size.x * pixelDensity));
-        var height = Mathf.NextPowerOfTwo((int) (bounds.size.y * pixelDensity));
-        
-        Debug.Log($"width = {width}");
-        Debug.Log($"height = {height}");
-        
-        _camera.orthographicSize = height / pixelDensity / 2;
-        _camera.aspect = (float) width / height;
+        var width = bounds.size.x * pixelDensity;
+        var height = bounds.size.y * pixelDensity;
+
+        var widthPoT = Mathf.NextPowerOfTwo((int) width);
+        var heightPoT = Mathf.NextPowerOfTwo((int) height);
+
+        if (widthPoT > MaxTextureSize) {
+            widthPoT /= widthPoT / MaxTextureSize;
+            heightPoT /= widthPoT / MaxTextureSize;
+        }
+
+        if (heightPoT > MaxTextureSize) {
+            widthPoT /= heightPoT / MaxTextureSize;
+            heightPoT /= heightPoT / MaxTextureSize;
+        }
+
+        widthPoT = Mathf.Min(widthPoT, MaxTextureSize);
+        heightPoT = Mathf.Min(heightPoT, MaxTextureSize);
+
+        var widthRatio = widthPoT / width;
+        var heightRatio = heightPoT / height;
+
+        var sizeRatio = Mathf.Min(widthRatio, heightRatio);
+
+        int scaledHeight = (int) (sizeRatio * height);
+        int scaledWidth = (int) (sizeRatio * width);
+
+        Debug.Log($"width = {scaledWidth}");
+        Debug.Log($"height = {scaledHeight}");
+
+        _camera.orthographicSize = scaledHeight / pixelDensity / 2;
+        _camera.aspect = (float) widthPoT / heightPoT;
 
         _cameraObject.transform.localPosition = new Vector3(bounds.center.x, bounds.center.y, -1);
 
-        width = Mathf.Min(width, MaxTextureSize);
-        height = Mathf.Min(height, MaxTextureSize);
-        
+        var halfHeight = scaledHeight / pixelDensity / 2;
+        var halfWidth = scaledWidth / pixelDensity / 2;
+        var matrix = Matrix4x4.Ortho(bounds.center.x - halfWidth, bounds.center.x + halfWidth,
+            bounds.center.y - halfHeight, bounds.center.y + halfHeight, -1, 1);
+
         // setup texture
-        var texture = new Texture2D(width, height, TextTextureFormat, true);
+        var texture = new Texture2D(widthPoT, heightPoT, TextTextureFormat, true);
         _targetMaterial.mainTexture = texture;
 
+
         // setup render texture
-        renderTex = RenderTexture.GetTemporary(width, height, 0, TextRenderTextureFormat, RenderTextureReadWrite.Linear, 1);
-        renderTex.autoGenerateMips = true;
-        _camera.targetTexture = renderTex;
+        renderTex = RenderTexture.GetTemporary(widthPoT, heightPoT, 0, TextRenderTextureFormat, RenderTextureReadWrite.Linear, 1);
+        renderTex.autoGenerateMips = false;
+
+        RenderTexture.active = renderTex;
+        GL.PushMatrix();
+        GL.LoadProjectionMatrix(matrix);
+        _blitMaterial.SetPass(0);
+        Graphics.DrawMeshNow(mesh, Matrix4x4.identity);
+        GL.PopMatrix();
 
         // setup material
         _blitMaterial.mainTexture = _tmp.font.atlas;
 
-        // draw the mesh
-        Graphics.DrawMesh(mesh, _tmp.renderer.localToWorldMatrix, _blitMaterial, 0, _camera, 0);
-        _camera.Render();
-
         yield return null;
 
         RenderTexture.active = renderTex;
-        texture.ReadPixels(new Rect(0, 0, width, height), 0, 0, true);
+        texture.ReadPixels(new Rect(0, 0, widthPoT, heightPoT), 0, 0, true);
         texture.Apply(false, true);
-        
+
         RenderTexture.ReleaseTemporary(renderTex);
     }
 }

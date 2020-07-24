@@ -1,4 +1,4 @@
-Shader "ConformalDecals/TMP_Blit"
+Shader "ConformalDecals/Text Blit"
 {
     Properties
     {
@@ -13,7 +13,7 @@ Shader "ConformalDecals/TMP_Blit"
         
         Pass
         {
-            Blend One One
+            BlendOp Max
 
             CGPROGRAM
             #pragma vertex vert

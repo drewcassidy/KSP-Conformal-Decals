@@ -1,20 +1,20 @@
 using ConformalDecals.Text;
 using ConformalDecals.UI;
-using TMPro;
 using UnityEngine;
 
 namespace ConformalDecals {
     public class ModuleConformalText : ModuleConformalDecal {
         [KSPField(isPersistant = true)] public string text = "Hello World!";
-        [KSPField(isPersistant = true)] public string font = "Calibri SDF";
+        [KSPField(isPersistant = true)] public string fontName = "Calibri SDF";
         [KSPField(isPersistant = true)] public int    style;
         [KSPField(isPersistant = true)] public bool   vertical;
         [KSPField(isPersistant = true)] public Color  fillColor    = Color.black;
         [KSPField(isPersistant = true)] public Color  outlineColor = Color.white;
         [KSPField(isPersistant = true)] public float  outlineWidth;
 
-        private DecalText _text;
-
+        private DecalTextStyle _style;
+        private DecalFont _font;
+        
         private TextEntryController   _textEntryController;
         private ColorPickerController _fillColorPickerController;
         private ColorPickerController _outlineColorPickerCOntroller;
@@ -22,21 +22,21 @@ namespace ConformalDecals {
         public override void OnStart(StartState state) {
             base.OnStart(state);
 
-            var decalFont = DecalConfig.GetFont(font);
+            _font = DecalConfig.GetFont(fontName);
+            _style = new DecalTextStyle();
 
-            _text = new DecalText {
-                text = text,
-                font = decalFont,
-                style = (FontStyles) style,
-                vertical = vertical,
-                color = fillColor,
-                outlineColor = outlineColor,
-                outlineWidth = outlineWidth
-            };
+            var decalText = new DecalText("Hello World!", _font, _style);
+            
+            TextRenderer.Instance.RenderText(decalText, out var texture, out var window);
+            materialProperties.AddOrGetTextureProperty("_Decal", true).Texture = texture;
+            UpdateMaterials();
+            UpdateScale();
         }
 
-        public void OnTextUpdate(DecalText newText) {
-            _text = newText;
+        public void OnTextUpdate(string newText, DecalFont newFont, DecalTextStyle newStyle) {
+            text = newText;
+            _font = newFont;
+            _style = newStyle;
         }
 
         public void OnFillColorUpdate(Color rgb, Util.ColorHSV hsv) {
@@ -50,7 +50,7 @@ namespace ConformalDecals {
         [KSPEvent(guiActive = false, guiActiveEditor = true, guiName = "#LOC_ConformalDecals_gui-select-flag")]
         public void SetText() {
             if (_textEntryController == null) {
-                _textEntryController = TextEntryController.Create(_text, OnTextUpdate);
+                _textEntryController = TextEntryController.Create(text, _font, _style, OnTextUpdate);
             }
         }
 

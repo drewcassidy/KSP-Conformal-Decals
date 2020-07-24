@@ -8,46 +8,48 @@ using UnityEngine.UI;
 namespace ConformalDecals.UI {
     public class TextEntryController : MonoBehaviour {
         [Serializable]
-        public class TextUpdateEvent : UnityEvent<DecalText> { }
+        public class TextUpdateEvent : UnityEvent<string, DecalFont, DecalTextStyle> { }
 
-        [SerializeField] public TextUpdateEvent onTextUpdate = new TextUpdateEvent();
+        [SerializeField] public TextUpdateEvent onValueChanged = new TextUpdateEvent();
 
         [SerializeField] private Selectable _textBox;
         [SerializeField] private Button     _fontButton;
-        [SerializeField] private Slider     _outlineWidthSlider;
 
         [SerializeField] private Toggle _boldButton;
         [SerializeField] private Toggle _italicButton;
         [SerializeField] private Toggle _underlineButton;
         [SerializeField] private Toggle _smallCapsButton;
         [SerializeField] private Toggle _verticalButton;
-        
-        private DecalText          _decalText;
+
+        private string         _text;
+        private DecalFont      _font;
+        private DecalTextStyle _style;
+
         private FontMenuController _fontMenu;
 
-        public static TextEntryController Create(DecalText text, UnityAction<DecalText> textUpdateCallback) {
+        public static TextEntryController Create(string text, DecalFont font, DecalTextStyle style, UnityAction<string, DecalFont, DecalTextStyle> textUpdateCallback) {
+
             var window = Instantiate(UILoader.TextEntryPrefab, MainCanvasUtil.MainCanvas.transform, true);
             window.AddComponent<DragPanel>();
             MenuNavigation.SpawnMenuNavigation(window, Navigation.Mode.Automatic, true);
 
             var controller = window.GetComponent<TextEntryController>();
-            controller._decalText = text;
-            controller.onTextUpdate.AddListener(textUpdateCallback);
+            controller._text = text;
+            controller.onValueChanged.AddListener(textUpdateCallback);
 
             return controller;
         }
 
         private void Start() {
-            ((TMP_InputField) _textBox).text = _decalText.text;
-            
-            _decalText.font.SetupSample(_fontButton.GetComponentInChildren<TextMeshProUGUI>());
+            ((TMP_InputField) _textBox).text = _text;
 
-            _outlineWidthSlider.value = _decalText.outlineWidth;
-            _boldButton.isOn = (_decalText.style & FontStyles.Bold) != 0;
-            _italicButton.isOn = (_decalText.style & FontStyles.Italic) != 0;
-            _underlineButton.isOn = (_decalText.style & FontStyles.Underline) != 0;
-            _smallCapsButton.isOn = (_decalText.style & FontStyles.SmallCaps) != 0;
-            _verticalButton.isOn = _decalText.vertical;
+            _font.SetupSample(_fontButton.GetComponentInChildren<TextMeshProUGUI>());
+
+            _boldButton.isOn = _style.Bold;
+            _italicButton.isOn = _style.Italic;
+            _underlineButton.isOn = _style.Underline;
+            _smallCapsButton.isOn = _style.SmallCaps;
+            _verticalButton.isOn = _style.Vertical;
 
         }
 
@@ -56,93 +58,58 @@ namespace ConformalDecals.UI {
             Destroy(gameObject);
         }
 
-        public void OnAnyUpdate() {
-            onTextUpdate.Invoke(_decalText);
+        public void OnValueChanged() {
+            onValueChanged.Invoke(_text, _font, _style);
         }
 
         public void OnTextUpdate(string newText) {
-            this._decalText.text = newText;
+            this._text = newText;
 
-            OnAnyUpdate();
+            OnValueChanged();
         }
 
         public void OnFontMenu() {
-            if (_fontMenu == null) _fontMenu = FontMenuController.Create(DecalConfig.Fonts, _decalText.font, OnFontUpdate);
+            if (_fontMenu == null) _fontMenu = FontMenuController.Create(DecalConfig.Fonts, _font, OnFontUpdate);
         }
 
         public void OnFontUpdate(DecalFont font) {
-            _decalText.font = font;
+            _font = font;
             font.SetupSample(_fontButton.GetComponentInChildren<TextMeshProUGUI>());
 
             var textBox = ((TMP_InputField) _textBox);
-            textBox.textComponent.fontStyle = _decalText.style | _decalText.font.fontStyle;
-            textBox.fontAsset = _decalText.font.fontAsset;
+            textBox.textComponent.fontStyle = _style.FontStyle | _font.fontStyle;
+            textBox.fontAsset = _font.fontAsset;
 
-            OnAnyUpdate();
-        }
-
-        public void OnColorMenu() { }
-
-        public void OnColorUpdate(Color color) {
-            _decalText.color = color;
-            OnAnyUpdate();
-        }
-
-        public void OnOutlineColorMenu() { }
-
-        public void OnOutlineColorUpdate(Color color) {
-            _decalText.outlineColor = color;
-            OnAnyUpdate();
-        }
-
-        public void OnOutlineUpdate(float value) {
-            _decalText.outlineWidth = value;
-            OnAnyUpdate();
+            OnValueChanged();
         }
 
         public void OnBoldUpdate(bool state) {
-            if (state) _decalText.style |= FontStyles.Bold;
-            else _decalText.style &= ~FontStyles.Bold;
+            _style.Bold = state;
 
-            ((TMP_InputField) _textBox).textComponent.fontStyle = _decalText.style | _decalText.font.fontStyle;
-
-            OnAnyUpdate();
-
+            OnValueChanged();
         }
 
         public void OnItalicUpdate(bool state) {
-            if (state) _decalText.style |= FontStyles.Italic;
-            else _decalText.style &= ~FontStyles.Italic;
-
-            ((TMP_InputField) _textBox).textComponent.fontStyle = _decalText.style | _decalText.font.fontStyle;
-
-            OnAnyUpdate();
+            _style.Italic = state;
+            OnValueChanged();
 
         }
 
         public void OnUnderlineUpdate(bool state) {
-            if (state) _decalText.style |= FontStyles.Underline;
-            else _decalText.style &= ~FontStyles.Underline;
-
-            ((TMP_InputField) _textBox).textComponent.fontStyle = _decalText.style | _decalText.font.fontStyle;
-
-            OnAnyUpdate();
+            _style.Underline = state;
+            OnValueChanged();
 
         }
 
         public void OnSmallCapsUpdate(bool state) {
-            if (state) _decalText.style |= FontStyles.SmallCaps;
-            else _decalText.style &= ~FontStyles.SmallCaps;
-
-            ((TMP_InputField) _textBox).textComponent.fontStyle = _decalText.style | _decalText.font.fontStyle;
-
-            OnAnyUpdate();
+            _style.SmallCaps = state;
+            OnValueChanged();
 
         }
 
         public void OnVerticalUpdate(bool state) {
-            _decalText.vertical = state;
-            OnAnyUpdate();
+            _style.Vertical = state;
+            OnValueChanged();
         }
     }
 }

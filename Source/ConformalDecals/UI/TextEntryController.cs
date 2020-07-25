@@ -35,31 +35,17 @@ namespace ConformalDecals.UI {
 
             var controller = window.GetComponent<TextEntryController>();
             controller._text = text;
+            controller._font = font;
+            controller._style = style;
             controller.onValueChanged.AddListener(textUpdateCallback);
 
             return controller;
         }
 
-        private void Start() {
-            ((TMP_InputField) _textBox).text = _text;
-
-            _font.SetupSample(_fontButton.GetComponentInChildren<TextMeshProUGUI>());
-
-            _boldButton.isOn = _style.Bold;
-            _italicButton.isOn = _style.Italic;
-            _underlineButton.isOn = _style.Underline;
-            _smallCapsButton.isOn = _style.SmallCaps;
-            _verticalButton.isOn = _style.Vertical;
-
-        }
 
         public void OnClose() {
             if (_fontMenu != null) _fontMenu.OnClose();
             Destroy(gameObject);
-        }
-
-        public void OnValueChanged() {
-            onValueChanged.Invoke(_text, _font, _style);
         }
 
         public void OnTextUpdate(string newText) {
@@ -77,9 +63,10 @@ namespace ConformalDecals.UI {
             font.SetupSample(_fontButton.GetComponentInChildren<TextMeshProUGUI>());
 
             var textBox = ((TMP_InputField) _textBox);
-            textBox.textComponent.fontStyle = _style.FontStyle | _font.fontStyle;
-            textBox.fontAsset = _font.fontAsset;
+            textBox.textComponent.fontStyle = _style.FontStyle | _font.FontStyle;
+            textBox.fontAsset = _font.FontAsset;
 
+            UpdateStyleButtons();
             OnValueChanged();
         }
 
@@ -110,6 +97,31 @@ namespace ConformalDecals.UI {
         public void OnVerticalUpdate(bool state) {
             _style.Vertical = state;
             OnValueChanged();
+        }
+        
+        
+        private void Start() {
+            ((TMP_InputField) _textBox).text = _text;
+
+            _font.SetupSample(_fontButton.GetComponentInChildren<TextMeshProUGUI>());
+
+            _boldButton.isOn = _style.Bold;
+            _italicButton.isOn = _style.Italic;
+            _underlineButton.isOn = _style.Underline;
+            _smallCapsButton.isOn = _style.SmallCaps;
+            _verticalButton.isOn = _style.Vertical;
+            UpdateStyleButtons();
+        }
+
+        private void OnValueChanged() {
+            onValueChanged.Invoke(_text, _font, _style);
+        }
+
+        private void UpdateStyleButtons() {
+            _boldButton.interactable = !_font.Bold && !_font.BoldMask;
+            _italicButton.interactable = !_font.Italic && !_font.ItalicMask;
+            _underlineButton.interactable = !_font.Underline && !_font.UnderlineMask;
+            _smallCapsButton.interactable = !_font.SmallCaps && !_font.SmallCapsMask;
         }
     }
 }

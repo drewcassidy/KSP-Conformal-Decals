@@ -1,6 +1,7 @@
 using System;
 using TMPro;
 using UnityEngine;
+// ReSharper disable NonReadonlyMemberInGetHashCode
 
 namespace ConformalDecals.Text {
     public struct DecalTextStyle : IEquatable<DecalTextStyle> {

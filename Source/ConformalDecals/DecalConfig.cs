@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using ConformalDecals.Text;
 using ConformalDecals.Util;
@@ -95,17 +96,13 @@ namespace ConformalDecals {
             var allFonts = Resources.FindObjectsOfTypeAll<TMP_FontAsset>();
             
             foreach (var fontNode in node.GetNodes("FONT")) {
-                var name = ParseUtil.ParseString(fontNode, "name");
-                var title = ParseUtil.ParseString(fontNode, "title", true, name);
-                var style = ParseUtil.ParseInt(fontNode, "style", true);
-
-                 var font = allFonts.First(o => o.name == name);
-                 if (font == null) {
-                     Debug.LogWarning($"[ConformalDecals] Could not found named {name}");
-                 }
-
-                 Debug.Log($"Adding font named {name}");
-                _fontList.Add(name, new DecalFont(title, font, (FontStyles) style));
+                try {
+                    var font = new DecalFont(node, allFonts);
+                    _fontList.Add(font.Name, font);
+                }
+                catch (Exception e) {
+                    Debug.LogException(e);
+                }
             }
         }
 

@@ -63,8 +63,8 @@ namespace ConformalDecals.Text {
         public void RenderText(DecalText text, out Texture2D texture, out Rect window) {
             // SETUP TMP OBJECT FOR RENDERING
             _tmp.text = text.FormattedText;
-            _tmp.font = text.Font.fontAsset;
-            _tmp.fontStyle = text.Style.FontStyle | text.Font.fontStyle;
+            _tmp.font = text.Font.FontAsset;
+            _tmp.fontStyle = text.Style.FontStyle | text.Font.FontStyle;
             _tmp.lineSpacing = text.Style.LineSpacing;
             _tmp.characterSpacing = text.Style.CharacterSpacing;
 
@@ -76,7 +76,7 @@ namespace ConformalDecals.Text {
             _tmp.fontSize = FontSize;
 
             // SETUP BLIT MATERIAL
-            _blitMaterial.SetTexture(PropertyIDs._MainTex, text.Font.fontAsset.atlas);
+            _blitMaterial.SetTexture(PropertyIDs._MainTex, text.Font.FontAsset.atlas);
 
             // GENERATE MESH
             _tmp.ForceMeshUpdate();

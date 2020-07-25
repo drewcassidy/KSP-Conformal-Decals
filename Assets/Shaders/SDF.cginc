@@ -29,10 +29,17 @@ float sdRoundedUVBox( float2 uv, float r ) {
     return sdRoundedBox(pos, halfDim, r);
 }
 
-float SDFAA(float dist) {
-    float ddist = length(float2(ddx(dist), ddy(dist)));
+inline float SDFdDist(float dist) {
+    return length(float2(ddx(dist), ddy(dist)));
+}
+
+inline float SDFAA(float dist, float ddist) {
     float pixelDist = dist / ddist;
     return saturate(0.5-pixelDist);
+}
+
+inline float SDFAA(float dist) {
+    return SDFAA(dist, SDFdDist(dist));
 }
 
 #endif

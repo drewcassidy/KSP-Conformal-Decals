@@ -17,9 +17,10 @@ public class TextRenderTest : MonoBehaviour {
 
     public Material _targetMaterial;
 
-    public  RenderTexture renderTex;
-    private float         pixelDensity   = 5;
-    private int           MaxTextureSize = 4096;
+    public                  RenderTexture renderTex;
+    private                 float         pixelDensity   = 8;
+    private                 int           MaxTextureSize = 4096;
+    private static readonly int           Decal          = Shader.PropertyToID("_Decal");
 
     public const TextureFormat       TextTextureFormat       = TextureFormat.RG16;
     public const RenderTextureFormat TextRenderTextureFormat = RenderTextureFormat.R8;
@@ -68,6 +69,8 @@ public class TextRenderTest : MonoBehaviour {
 
         var sizeRatio = Mathf.Min(widthRatio, heightRatio);
 
+        Debug.Log(sizeRatio);
+
         int scaledHeight = (int) (sizeRatio * height);
         int scaledWidth = (int) (sizeRatio * width);
 
@@ -79,14 +82,14 @@ public class TextRenderTest : MonoBehaviour {
 
         _cameraObject.transform.localPosition = new Vector3(bounds.center.x, bounds.center.y, -1);
 
-        var halfHeight = scaledHeight / pixelDensity / 2;
-        var halfWidth = scaledWidth / pixelDensity / 2;
+        var halfHeight = heightPoT / pixelDensity / 2 / sizeRatio;
+        var halfWidth = widthPoT / pixelDensity / 2 / sizeRatio;
         var matrix = Matrix4x4.Ortho(bounds.center.x - halfWidth, bounds.center.x + halfWidth,
             bounds.center.y - halfHeight, bounds.center.y + halfHeight, -1, 1);
 
         // setup texture
         var texture = new Texture2D(widthPoT, heightPoT, TextTextureFormat, true);
-        _targetMaterial.mainTexture = texture;
+        _targetMaterial.SetTexture(Decal, texture);
 
 
         // setup render texture

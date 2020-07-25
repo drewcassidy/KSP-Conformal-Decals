@@ -61,29 +61,30 @@ namespace ConformalDecals.Text {
         }
 
         public void RenderText(DecalText text, out Texture2D texture, out Rect window) {
-            // Setup TMP object for rendering
+            // SETUP TMP OBJECT FOR RENDERING
             _tmp.text = text.FormattedText;
             _tmp.font = text.Font.fontAsset;
             _tmp.fontStyle = text.Style.FontStyle | text.Font.fontStyle;
             _tmp.lineSpacing = text.Style.LineSpacing;
             _tmp.characterSpacing = text.Style.CharacterSpacing;
 
+            _tmp.extraPadding = true;
             _tmp.enableKerning = true;
             _tmp.enableWordWrapping = false;
             _tmp.overflowMode = TextOverflowModes.Overflow;
             _tmp.alignment = TextAlignmentOptions.Center | TextAlignmentOptions.Baseline;
             _tmp.fontSize = FontSize;
 
-            // Setup blit material
+            // SETUP BLIT MATERIAL
             _blitMaterial.SetTexture(PropertyIDs._MainTex, text.Font.fontAsset.atlas);
 
-            // Generate Mesh
+            // GENERATE MESH
             _tmp.ForceMeshUpdate();
             var mesh = _tmp.mesh;
             mesh.RecalculateBounds();
             var bounds = mesh.bounds;
 
-            // Calculate Sizes
+            // CALCULATE SIZES
             var size = bounds.size * PixelDensity;
 
             var textureSize = new Vector2Int {
@@ -91,24 +92,28 @@ namespace ConformalDecals.Text {
                 y = Mathf.NextPowerOfTwo((int) size.y)
             };
 
+            // make sure texture isnt too big, scale it down if it is
+            // this is just so you dont crash the game by pasting in the entire script of The Bee Movie
             if (textureSize.x > MaxTextureSize) {
-                textureSize.x /= textureSize.x / MaxTextureSize;
                 textureSize.y /= textureSize.x / MaxTextureSize;
+                textureSize.x = MaxTextureSize;
             }
 
             if (textureSize.y > MaxTextureSize) {
                 textureSize.x /= textureSize.y / MaxTextureSize;
-                textureSize.y /= textureSize.y / MaxTextureSize;
+                textureSize.y = MaxTextureSize;
             }
 
+            // scale up everything to fit the texture for maximum usage
             float sizeRatio = Mathf.Min(textureSize.x / size.x, textureSize.y, size.y);
 
+            // calculate where in the texture the used area actually is
             window = new Rect {
                 size = size * sizeRatio,
                 center = (Vector2) textureSize / 2
             };
 
-            // Get Texture
+            // GET TEXTURE
             if (_lastTexture != null) {
                 texture = _lastTexture;
                 texture.Resize(textureSize.x, textureSize.y, TextTextureFormat, false);
@@ -118,16 +123,16 @@ namespace ConformalDecals.Text {
                 texture = new Texture2D(textureSize.x, textureSize.y, TextTextureFormat, false);
             }
 
-            // Generate Projection Matrix
-            var halfSize = window.size / PixelDensity / 2;
+            // GENERATE PROJECTION MATRIX
+            var halfSize = (Vector2) textureSize / PixelDensity / 2 / sizeRatio;
             var matrix = Matrix4x4.Ortho(bounds.center.x - halfSize.x, bounds.center.x + halfSize.x,
                 bounds.center.y - halfSize.y, bounds.center.y + halfSize.y, -1, 1);
 
-            // Get Rendertex
+            // GET RENDERTEX
             var renderTex = RenderTexture.GetTemporary(textureSize.x, textureSize.y, 0, TextRenderTextureFormat, RenderTextureReadWrite.Linear, 1);
             renderTex.autoGenerateMips = false;
 
-            // Render
+            // RENDER
             Graphics.SetRenderTarget(renderTex);
             GL.PushMatrix();
             GL.LoadProjectionMatrix(matrix);
@@ -135,11 +140,12 @@ namespace ConformalDecals.Text {
             Graphics.DrawMeshNow(mesh, Matrix4x4.identity);
             GL.PopMatrix();
 
-            // Copy texture back into RAM
+            // COPY TEXTURE BACK INTO RAM
             RenderTexture.active = renderTex;
             texture.ReadPixels(new Rect(0, 0, textureSize.x, textureSize.y), 0, 0, false);
             texture.Apply();
 
+            // RELEASE RENDERTEX
             RenderTexture.ReleaseTemporary(renderTex);
         }
     }

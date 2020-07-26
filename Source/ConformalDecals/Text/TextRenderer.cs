@@ -1,13 +1,15 @@
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
-using UnityEngine.Rendering;
+using UnityEngine.Events;
 
 namespace ConformalDecals.Text {
     [KSPAddon(KSPAddon.Startup.Instantly, true)]
     public class TextRenderer : MonoBehaviour {
+        public const TextureFormat       TextTextureFormat       = TextureFormat.RG16;
+        public const RenderTextureFormat TextRenderTextureFormat = RenderTextureFormat.R8;
+
         public static TextRenderer Instance {
             get {
                 if (!_instance._isSetup) {
@@ -18,8 +20,8 @@ namespace ConformalDecals.Text {
             }
         }
 
-        public const TextureFormat       TextTextureFormat       = TextureFormat.RG16;
-        public const RenderTextureFormat TextRenderTextureFormat = RenderTextureFormat.R8;
+        [Serializable]
+        public class TextRenderEvent : UnityEvent<RenderedText> { }
 
         private const string BlitShader     = "ConformalDecals/Text Blit";
         private const int    MaxTextureSize = 4096;
@@ -32,8 +34,30 @@ namespace ConformalDecals.Text {
         private TextMeshPro _tmp;
         private Material    _blitMaterial;
 
-        private Dictionary<DecalText, RenderedText> _renderedTextures = new Dictionary<DecalText, RenderedText>();
-        private Texture2D                           _lastTexture; // to reduce the number of Texture2D objects created and destroyed, keep the last one on hand
+        private readonly Dictionary<DecalText, RenderedText> _renderCache = new Dictionary<DecalText, RenderedText>();
+        private readonly Queue<TextRenderJob>                _renderJobs  = new Queue<TextRenderJob>();
+
+        public TextRenderJob RenderText(DecalText text, UnityAction<RenderedText> renderFinishedCallback) {
+            var job = new TextRenderJob(text, renderFinishedCallback);
+            _renderJobs.Enqueue(job);
+            return job;
+        }
+
+        public TextRenderJob UpdateText(DecalText oldText, DecalText newText, UnityAction<RenderedText> renderFinishedCallback) {
+            var job = new TextRenderJob(oldText, newText, renderFinishedCallback);
+            _renderJobs.Enqueue(job);
+            return job;
+        }
+
+        public void UnregisterText(DecalText text) {
+            if (_renderCache.TryGetValue(text, out var renderedText)) {
+                renderedText.UserCount--;
+                if (renderedText.UserCount <= 0) {
+                    _renderCache.Remove(text);
+                    Destroy(renderedText.Texture);
+                }
+            }
+        }
 
         private void Start() {
             if (_instance != null) {
@@ -43,6 +67,16 @@ namespace ConformalDecals.Text {
             Debug.Log("[ConformalDecals] Creating TextRenderer Object");
             _instance = this;
             DontDestroyOnLoad(gameObject);
+        }
+
+        private void Update() {
+            TextRenderJob nextJob;
+            do {
+                if (_renderJobs.Count <= 0) return;
+                nextJob = _renderJobs.Dequeue();
+            } while (nextJob.Needed);
+
+            RunJob(nextJob);
         }
 
         private void Setup() {
@@ -60,7 +94,47 @@ namespace ConformalDecals.Text {
             _isSetup = true;
         }
 
-        public void RenderText(DecalText text, out Texture2D texture, out Rect window) {
+        private void RunJob(TextRenderJob job) {
+            Debug.Log($"Starting Text Rendering Job. queue depth = {_renderJobs.Count}, cache size = {_renderCache.Count}");
+            job.Start();
+            
+            Texture2D texture = null;
+            if (job.OldText != null && _renderCache.TryGetValue(job.OldText, out var oldRender)) {
+                // old output still exists
+
+                oldRender.UserCount--;
+                    
+                if (oldRender.UserCount <= 0) {
+                    // this is the only usage of this output, so we are free to re-render into the texture
+                    Debug.Log("Render output is not shared with other users, so reusing texture and removing cache slot");
+                    
+                    texture = oldRender.Texture;
+                    _renderCache.Remove(job.OldText);
+                }
+                else {
+                    // other things are using this render output, so decriment usercount, and we'll make a new entry instead
+                    Debug.Log("Render output is shared with other users, so making new output");
+                }
+            }
+            
+            // now that all old references are handled, begin rendering the new output
+
+            if (_renderCache.TryGetValue(job.NewText, out var cachedRender)) {
+                Debug.Log("Using Cached Render Output");
+                Debug.Log($"Finished Text Rendering Job. queue depth = {_renderJobs.Count}, cache size = {_renderCache.Count}");
+
+                cachedRender.UserCount++;
+                return;
+            }
+
+            var output = RenderText(job.NewText, texture);
+            _renderCache.Add(job.NewText, output);
+            
+            job.Finish(output);
+            Debug.Log($"Finished Text Rendering Job. queue depth = {_renderJobs.Count}, cache size = {_renderCache.Count}");
+        }
+
+        public RenderedText RenderText(DecalText text, Texture2D texture) {
             // SETUP TMP OBJECT FOR RENDERING
             _tmp.text = text.FormattedText;
             _tmp.font = text.Font.FontAsset;
@@ -108,19 +182,17 @@ namespace ConformalDecals.Text {
             float sizeRatio = Mathf.Min(textureSize.x / size.x, textureSize.y, size.y);
 
             // calculate where in the texture the used area actually is
-            window = new Rect {
+            var window = new Rect {
                 size = size * sizeRatio,
                 center = (Vector2) textureSize / 2
             };
 
-            // GET TEXTURE
-            if (_lastTexture != null) {
-                texture = _lastTexture;
-                texture.Resize(textureSize.x, textureSize.y, TextTextureFormat, false);
-                _lastTexture = null;
-            }
-            else {
+            // SETUP TEXTURE
+            if (texture == null) {
                 texture = new Texture2D(textureSize.x, textureSize.y, TextTextureFormat, false);
+            }
+            else if (texture.width != textureSize.x || texture.height != textureSize.y || texture.format != TextTextureFormat) {
+                texture.Resize(textureSize.x, textureSize.y, TextTextureFormat, false);
             }
 
             // GENERATE PROJECTION MATRIX
@@ -147,6 +219,8 @@ namespace ConformalDecals.Text {
 
             // RELEASE RENDERTEX
             RenderTexture.ReleaseTemporary(renderTex);
+
+            return new RenderedText(texture, window);
         }
     }
 }

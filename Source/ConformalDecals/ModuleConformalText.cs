@@ -27,8 +27,8 @@ namespace ConformalDecals {
 
             var decalText = new DecalText("Hello World!", _font, _style);
             
-            TextRenderer.Instance.RenderText(decalText, out var texture, out var window);
-            materialProperties.AddOrGetTextureProperty("_Decal", true).Texture = texture;
+            //TextRenderer.Instance.RenderText(decalText, out var texture, out var window);
+            //materialProperties.AddOrGetTextureProperty("_Decal", true).Texture = texture;
             UpdateMaterials();
             UpdateScale();
         }

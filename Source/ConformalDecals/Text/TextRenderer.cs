@@ -37,16 +37,18 @@ namespace ConformalDecals.Text {
         private static readonly Dictionary<DecalText, TextRenderOutput> RenderCache = new Dictionary<DecalText, TextRenderOutput>();
         private static readonly Queue<TextRenderJob>                    RenderJobs  = new Queue<TextRenderJob>();
 
-        public static TextRenderJob RenderText(DecalText text, UnityAction<TextRenderOutput> renderFinishedCallback) {
-            var job = new TextRenderJob(text, renderFinishedCallback);
-            RenderJobs.Enqueue(job);
-            return job;
-        }
-
         public static TextRenderJob UpdateText(DecalText oldText, DecalText newText, UnityAction<TextRenderOutput> renderFinishedCallback) {
+            if (newText == null) throw new ArgumentNullException(nameof(newText));
+
             var job = new TextRenderJob(oldText, newText, renderFinishedCallback);
             RenderJobs.Enqueue(job);
             return job;
+        }
+        
+        public static TextRenderOutput UpdateTextNow(DecalText oldText, DecalText newText) {
+            if (newText == null) throw new ArgumentNullException(nameof(newText));
+            
+            return Instance.RunJob(new TextRenderJob(oldText, newText, null), out _);
         }
 
         public static void UnregisterText(DecalText text) {
@@ -58,6 +60,8 @@ namespace ConformalDecals.Text {
                 }
             }
         }
+
+
 
         private void Start() {
             if (_instance != null) {
@@ -72,9 +76,9 @@ namespace ConformalDecals.Text {
         private void Update() {
             bool renderNeeded;
             do {
-                if (RenderJobs.Count <= 0) return;
+                if (RenderJobs.Count == 0) return;
                 var nextJob = RenderJobs.Dequeue();
-                renderNeeded = nextJob.Needed && RunJob(nextJob);
+                RunJob(nextJob, out renderNeeded);
             } while (!renderNeeded);
         }
 
@@ -93,7 +97,12 @@ namespace ConformalDecals.Text {
             _isSetup = true;
         }
 
-        private bool RunJob(TextRenderJob job) {
+        private TextRenderOutput RunJob(TextRenderJob job, out bool renderNeeded) {
+            if (!job.Needed) {
+                renderNeeded = false;
+                return null;
+            }
+
             Debug.Log($"Starting Text Rendering Job. queue depth = {RenderJobs.Count}, cache size = {RenderCache.Count}");
             job.Start();
 
@@ -123,7 +132,9 @@ namespace ConformalDecals.Text {
                 Debug.Log($"Finished Text Rendering Job. queue depth = {RenderJobs.Count}, cache size = {RenderCache.Count}");
 
                 cachedRender.UserCount++;
-                return false;
+                job.Finish(cachedRender);
+                renderNeeded = false;
+                return cachedRender;
             }
 
             var output = RenderText(job.NewText, texture);
@@ -131,7 +142,8 @@ namespace ConformalDecals.Text {
 
             job.Finish(output);
             Debug.Log($"Finished Text Rendering Job. queue depth = {RenderJobs.Count}, cache size = {RenderCache.Count}");
-            return true;
+            renderNeeded = true;
+            return output;
         }
 
         public TextRenderOutput RenderText(DecalText text, Texture2D texture) {

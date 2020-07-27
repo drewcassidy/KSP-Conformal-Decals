@@ -27,6 +27,8 @@ namespace ConformalDecals.UI {
 
         private FontMenuController _fontMenu;
 
+        private bool _ignoreUpdates;
+
         public static TextEntryController Create(string text, DecalFont font, DecalTextStyle style, UnityAction<string, DecalFont, DecalTextStyle> textUpdateCallback) {
 
             var window = Instantiate(UILoader.TextEntryPrefab, MainCanvasUtil.MainCanvas.transform, true);
@@ -41,7 +43,6 @@ namespace ConformalDecals.UI {
 
             return controller;
         }
-
 
         public void OnClose() {
             if (_fontMenu != null) _fontMenu.OnClose();
@@ -59,6 +60,8 @@ namespace ConformalDecals.UI {
         }
 
         public void OnFontUpdate(DecalFont font) {
+            if (_ignoreUpdates) return;
+
             _font = font;
             font.SetupSample(_fontButton.GetComponentInChildren<TextMeshProUGUI>());
 
@@ -71,45 +74,49 @@ namespace ConformalDecals.UI {
         }
 
         public void OnBoldUpdate(bool state) {
-            _style.Bold = state;
+            if (_ignoreUpdates) return;
 
+            _style.Bold = state;
             OnValueChanged();
         }
 
         public void OnItalicUpdate(bool state) {
+            if (_ignoreUpdates) return;
+
             _style.Italic = state;
             OnValueChanged();
 
         }
 
         public void OnUnderlineUpdate(bool state) {
+            if (_ignoreUpdates) return;
+
             _style.Underline = state;
             OnValueChanged();
 
         }
 
         public void OnSmallCapsUpdate(bool state) {
+            if (_ignoreUpdates) return;
+
             _style.SmallCaps = state;
             OnValueChanged();
 
         }
 
         public void OnVerticalUpdate(bool state) {
+            if (_ignoreUpdates) return;
+
             _style.Vertical = state;
             OnValueChanged();
         }
-        
-        
+
+
         private void Start() {
             ((TMP_InputField) _textBox).text = _text;
 
             _font.SetupSample(_fontButton.GetComponentInChildren<TextMeshProUGUI>());
 
-            _boldButton.isOn = _style.Bold;
-            _italicButton.isOn = _style.Italic;
-            _underlineButton.isOn = _style.Underline;
-            _smallCapsButton.isOn = _style.SmallCaps;
-            _verticalButton.isOn = _style.Vertical;
             UpdateStyleButtons();
         }
 
@@ -118,10 +125,63 @@ namespace ConformalDecals.UI {
         }
 
         private void UpdateStyleButtons() {
-            _boldButton.interactable = !_font.Bold && !_font.BoldMask;
-            _italicButton.interactable = !_font.Italic && !_font.ItalicMask;
-            _underlineButton.interactable = !_font.Underline && !_font.UnderlineMask;
-            _smallCapsButton.interactable = !_font.SmallCaps && !_font.SmallCapsMask;
+            _ignoreUpdates = true;
+
+            if (_font.Bold) {
+                _boldButton.interactable = false;
+                _boldButton.isOn = true;
+            }
+            else if (_font.BoldMask) {
+                _boldButton.interactable = false;
+                _boldButton.isOn = false;
+            }
+            else {
+                _boldButton.interactable = true;
+                _boldButton.isOn = _style.Bold;
+            }
+
+            if (_font.Italic) {
+                _italicButton.interactable = false;
+                _italicButton.isOn = true;
+            }
+            else if (_font.ItalicMask) {
+                _italicButton.interactable = false;
+                _italicButton.isOn = false;
+            }
+            else {
+                _italicButton.interactable = true;
+                _italicButton.isOn = _style.Italic;
+            }
+
+            if (_font.Underline) {
+                _underlineButton.interactable = false;
+                _underlineButton.isOn = true;
+            }
+            else if (_font.UnderlineMask) {
+                _underlineButton.interactable = false;
+                _underlineButton.isOn = false;
+            }
+            else {
+                _underlineButton.interactable = true;
+                _underlineButton.isOn = _style.Underline;
+            }
+
+            if (_font.SmallCaps) {
+                _smallCapsButton.interactable = false;
+                _smallCapsButton.isOn = true;
+            }
+            else if (_font.SmallCapsMask) {
+                _smallCapsButton.interactable = false;
+                _smallCapsButton.isOn = false;
+            }
+            else {
+                _smallCapsButton.interactable = true;
+                _smallCapsButton.isOn = _style.SmallCaps;
+            }
+
+            _verticalButton.isOn = _style.Vertical;
+
+            _ignoreUpdates = false;
         }
     }
 }

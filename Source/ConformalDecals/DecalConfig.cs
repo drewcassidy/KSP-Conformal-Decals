@@ -97,7 +97,7 @@ namespace ConformalDecals {
             
             foreach (var fontNode in node.GetNodes("FONT")) {
                 try {
-                    var font = new DecalFont(node, allFonts);
+                    var font = new DecalFont(fontNode, allFonts);
                     _fontList.Add(font.Name, font);
                 }
                 catch (Exception e) {

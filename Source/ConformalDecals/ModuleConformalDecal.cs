@@ -246,7 +246,7 @@ namespace ConformalDecals {
 
             _boundsRenderer = decalProjectorTransform.GetComponent<MeshRenderer>();
 
-            UpdateMaterials();
+            //UpdateMaterials();
 
             // handle tweakables
             if (HighLogic.LoadedSceneIsEditor) {
@@ -456,7 +456,7 @@ namespace ConformalDecals {
             }
         }
 
-        protected void UpdateMaterials() {
+        protected virtual void UpdateMaterials() {
             materialProperties.UpdateMaterials();
             materialProperties.SetOpacity(opacity);
             materialProperties.SetCutoff(cutoff);

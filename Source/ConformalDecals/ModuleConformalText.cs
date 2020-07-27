@@ -1,6 +1,6 @@
+using ConformalDecals.MaterialProperties;
 using ConformalDecals.Text;
 using ConformalDecals.UI;
-using ConformalDecals.Util;
 using TMPro;
 using UnityEngine;
 
@@ -68,6 +68,9 @@ namespace ConformalDecals {
         private ColorPickerController _fillColorPickerController;
         private ColorPickerController _outlineColorPickerCOntroller;
 
+        private TextRenderJob _currentJob;
+        private DecalText     _currentText;
+
         public override void OnLoad(ConfigNode node) {
             base.OnLoad(node);
             OnAfterDeserialize();
@@ -81,53 +84,14 @@ namespace ConformalDecals {
         public override void OnStart(StartState state) {
             base.OnStart(state);
 
-            _font = DecalConfig.GetFont(fontName);
-            _style = new DecalTextStyle();
-            // handle tweakables
-
-            if (HighLogic.LoadedSceneIsEditor) {
-                GameEvents.onEditorPartEvent.Add(OnEditorEvent);
-            }
-
-            //TextRenderer.Instance.RenderText(decalText, out var texture, out var window);
-            //materialProperties.AddOrGetTextureProperty("_Decal", true).Texture = texture;
-            UpdateMaterials();
-            UpdateScale();
-        }
-
-        public override void OnDestroy() {
-            base.OnDestroy();
-            this.Log("OnDestroy");
-
-            if (HighLogic.LoadedSceneIsEditor) {
-                GameEvents.onEditorPartEvent.Remove(OnEditorEvent);
-            }
-        }
-
-        public void OnPartDeleted() {
-            this.Log("OnPartDeleted");
-        }
-
-        public void OnPartSymmetryDeleted() {
-            this.Log("OnPartSymmetryDeleted");
-        }
-
-        protected new void OnEditorEvent(ConstructionEventType eventType, Part eventPart) {
-            if (eventPart != part) return;
-            switch (eventType) {
-                case ConstructionEventType.PartSymmetryDeleted:
-                    OnPartSymmetryDeleted();
-                    break;
-                case ConstructionEventType.PartDeleted:
-                    OnPartDeleted();
-                    break;
-            }
+            UpdateTextRecursive();
         }
 
         public void OnTextUpdate(string newText, DecalFont newFont, DecalTextStyle newStyle) {
             text = newText;
             _font = newFont;
             _style = newStyle;
+            UpdateTextRecursive();
         }
 
         public void OnFillColorUpdate(Color rgb, Util.ColorHSV hsv) {
@@ -165,6 +129,63 @@ namespace ConformalDecals {
         public void OnAfterDeserialize() {
             _font = DecalConfig.GetFont(fontName);
             _style = new DecalTextStyle((FontStyles) style, vertical, lineSpacing, characterSpacing);
+        }
+
+        public override void OnDestroy() {
+            TextRenderer.UnregisterText(_currentText);
+            base.OnDestroy();
+        }
+
+        private void UpdateTextRecursive() {
+            UpdateText();
+
+            foreach (var counterpart in part.symmetryCounterparts) {
+                var decal = counterpart.GetComponent<ModuleConformalText>();
+                decal.text = text;
+                decal._font = _font;
+                decal._style = _style;
+
+                decal._currentJob = _currentJob;
+                decal._currentText = _currentText;
+                decal.UpdateText();
+            }
+        }
+
+        private void UpdateText() {
+
+            // Render text
+            var newText = new DecalText(text, _font, _style);
+            var output = TextRenderer.UpdateTextNow(_currentText, newText);
+            _currentText = newText;
+
+            UpdateTexture(output);
+            
+            // TODO: ASYNC RENDERING
+            // var newText = new DecalText(text, _font, _style);
+            // _currentJob = TextRenderer.UpdateText(_currentText, newText, UpdateTexture);
+            // _currentText = newText;
+        }
+
+        public void UpdateTexture(TextRenderOutput output) {
+            var textureProperty = materialProperties.AddOrGetTextureProperty("_Decal", true);
+            textureProperty.Texture = output.Texture;
+            textureProperty.SetTile(output.Window);
+            UpdateMaterials();
+        }
+
+        protected override void UpdateMaterials() {
+            materialProperties.AddOrGetProperty<MaterialKeywordProperty>("DECAL_FILL").value = fillEnabled;
+            materialProperties.AddOrGetProperty<MaterialKeywordProperty>("DECAL_OUTLINE").value = outlineEnabled;
+            if (fillEnabled) {
+                materialProperties.AddOrGetProperty<MaterialColorProperty>("_DecalColor").color = fillColor;
+            }
+
+            if (outlineEnabled) {
+                materialProperties.AddOrGetProperty<MaterialColorProperty>("_OutlineColor").color = outlineColor;
+                materialProperties.AddOrGetProperty<MaterialFloatProperty>("_OutlineWidth").value = outlineWidth;
+            }
+
+            base.UpdateMaterials();
         }
     }
 }

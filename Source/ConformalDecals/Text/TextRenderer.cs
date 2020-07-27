@@ -21,7 +21,7 @@ namespace ConformalDecals.Text {
         }
 
         [Serializable]
-        public class TextRenderEvent : UnityEvent<RenderedText> { }
+        public class TextRenderEvent : UnityEvent<TextRenderOutput> { }
 
         private const string BlitShader     = "ConformalDecals/Text Blit";
         private const int    MaxTextureSize = 4096;
@@ -34,26 +34,26 @@ namespace ConformalDecals.Text {
         private TextMeshPro _tmp;
         private Material    _blitMaterial;
 
-        private readonly Dictionary<DecalText, RenderedText> _renderCache = new Dictionary<DecalText, RenderedText>();
-        private readonly Queue<TextRenderJob>                _renderJobs  = new Queue<TextRenderJob>();
+        private static readonly Dictionary<DecalText, TextRenderOutput> RenderCache = new Dictionary<DecalText, TextRenderOutput>();
+        private static readonly Queue<TextRenderJob>                    RenderJobs  = new Queue<TextRenderJob>();
 
-        public TextRenderJob RenderText(DecalText text, UnityAction<RenderedText> renderFinishedCallback) {
+        public static TextRenderJob RenderText(DecalText text, UnityAction<TextRenderOutput> renderFinishedCallback) {
             var job = new TextRenderJob(text, renderFinishedCallback);
-            _renderJobs.Enqueue(job);
+            RenderJobs.Enqueue(job);
             return job;
         }
 
-        public TextRenderJob UpdateText(DecalText oldText, DecalText newText, UnityAction<RenderedText> renderFinishedCallback) {
+        public static TextRenderJob UpdateText(DecalText oldText, DecalText newText, UnityAction<TextRenderOutput> renderFinishedCallback) {
             var job = new TextRenderJob(oldText, newText, renderFinishedCallback);
-            _renderJobs.Enqueue(job);
+            RenderJobs.Enqueue(job);
             return job;
         }
 
-        public void UnregisterText(DecalText text) {
-            if (_renderCache.TryGetValue(text, out var renderedText)) {
+        public static void UnregisterText(DecalText text) {
+            if (RenderCache.TryGetValue(text, out var renderedText)) {
                 renderedText.UserCount--;
                 if (renderedText.UserCount <= 0) {
-                    _renderCache.Remove(text);
+                    RenderCache.Remove(text);
                     Destroy(renderedText.Texture);
                 }
             }
@@ -70,13 +70,12 @@ namespace ConformalDecals.Text {
         }
 
         private void Update() {
-            TextRenderJob nextJob;
+            bool renderNeeded;
             do {
-                if (_renderJobs.Count <= 0) return;
-                nextJob = _renderJobs.Dequeue();
-            } while (nextJob.Needed);
-
-            RunJob(nextJob);
+                if (RenderJobs.Count <= 0) return;
+                var nextJob = RenderJobs.Dequeue();
+                renderNeeded = nextJob.Needed && RunJob(nextJob);
+            } while (!renderNeeded);
         }
 
         private void Setup() {
@@ -94,47 +93,48 @@ namespace ConformalDecals.Text {
             _isSetup = true;
         }
 
-        private void RunJob(TextRenderJob job) {
-            Debug.Log($"Starting Text Rendering Job. queue depth = {_renderJobs.Count}, cache size = {_renderCache.Count}");
+        private bool RunJob(TextRenderJob job) {
+            Debug.Log($"Starting Text Rendering Job. queue depth = {RenderJobs.Count}, cache size = {RenderCache.Count}");
             job.Start();
-            
+
             Texture2D texture = null;
-            if (job.OldText != null && _renderCache.TryGetValue(job.OldText, out var oldRender)) {
+            if (job.OldText != null && RenderCache.TryGetValue(job.OldText, out var oldRender)) {
                 // old output still exists
 
                 oldRender.UserCount--;
-                    
+
                 if (oldRender.UserCount <= 0) {
                     // this is the only usage of this output, so we are free to re-render into the texture
                     Debug.Log("Render output is not shared with other users, so reusing texture and removing cache slot");
-                    
+
                     texture = oldRender.Texture;
-                    _renderCache.Remove(job.OldText);
+                    RenderCache.Remove(job.OldText);
                 }
                 else {
                     // other things are using this render output, so decriment usercount, and we'll make a new entry instead
                     Debug.Log("Render output is shared with other users, so making new output");
                 }
             }
-            
+
             // now that all old references are handled, begin rendering the new output
 
-            if (_renderCache.TryGetValue(job.NewText, out var cachedRender)) {
+            if (RenderCache.TryGetValue(job.NewText, out var cachedRender)) {
                 Debug.Log("Using Cached Render Output");
-                Debug.Log($"Finished Text Rendering Job. queue depth = {_renderJobs.Count}, cache size = {_renderCache.Count}");
+                Debug.Log($"Finished Text Rendering Job. queue depth = {RenderJobs.Count}, cache size = {RenderCache.Count}");
 
                 cachedRender.UserCount++;
-                return;
+                return false;
             }
 
             var output = RenderText(job.NewText, texture);
-            _renderCache.Add(job.NewText, output);
-            
+            RenderCache.Add(job.NewText, output);
+
             job.Finish(output);
-            Debug.Log($"Finished Text Rendering Job. queue depth = {_renderJobs.Count}, cache size = {_renderCache.Count}");
+            Debug.Log($"Finished Text Rendering Job. queue depth = {RenderJobs.Count}, cache size = {RenderCache.Count}");
+            return true;
         }
 
-        public RenderedText RenderText(DecalText text, Texture2D texture) {
+        public TextRenderOutput RenderText(DecalText text, Texture2D texture) {
             // SETUP TMP OBJECT FOR RENDERING
             _tmp.text = text.FormattedText;
             _tmp.font = text.Font.FontAsset;
@@ -220,7 +220,7 @@ namespace ConformalDecals.Text {
             // RELEASE RENDERTEX
             RenderTexture.ReleaseTemporary(renderTex);
 
-            return new RenderedText(texture, window);
+            return new TextRenderOutput(texture, window);
         }
     }
 }

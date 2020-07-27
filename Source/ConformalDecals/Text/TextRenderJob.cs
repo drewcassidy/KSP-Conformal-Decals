@@ -10,19 +10,19 @@ namespace ConformalDecals.Text {
         public bool IsDone { get; private set; }
 
         public readonly TextRenderer.TextRenderEvent onRenderFinished = new TextRenderer.TextRenderEvent();
-        
-        public TextRenderJob(DecalText oldText, DecalText newText, UnityAction<RenderedText> renderFinishedCallback) {
+
+        public TextRenderJob(DecalText oldText, DecalText newText, UnityAction<TextRenderOutput> renderFinishedCallback) {
             OldText = oldText ?? throw new ArgumentNullException(nameof(oldText));
             NewText = newText ?? throw new ArgumentNullException(nameof(newText));
             Needed = true;
-            
+
             if (renderFinishedCallback != null) onRenderFinished.AddListener(renderFinishedCallback);
         }
-        
-        public TextRenderJob( DecalText newText, UnityAction<RenderedText> renderFinishedCallback) {
+
+        public TextRenderJob(DecalText newText, UnityAction<TextRenderOutput> renderFinishedCallback) {
             NewText = newText ?? throw new ArgumentNullException(nameof(newText));
             Needed = true;
-            
+
             if (renderFinishedCallback != null) onRenderFinished.AddListener(renderFinishedCallback);
         }
 
@@ -34,7 +34,7 @@ namespace ConformalDecals.Text {
             IsStarted = true;
         }
 
-        public void Finish(RenderedText output) {
+        public void Finish(TextRenderOutput output) {
             IsDone = true;
             onRenderFinished.Invoke(output);
         }

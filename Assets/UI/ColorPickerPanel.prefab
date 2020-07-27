@@ -111,8 +111,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _value: {x: 0, y: 0}
-  _channel: {x: 1, y: 2}
-  _hsv: 1
   _slider: {fileID: 170662711293987444}
   _image: {fileID: 1670219945733215598}
 --- !u!114 &941972267497223076
@@ -4190,8 +4188,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 1, y: 1}
-  m_AnchoredPosition: {x: 60, y: 0}
-  m_SizeDelta: {x: -120, y: 0}
+  m_AnchoredPosition: {x: 58, y: 0}
+  m_SizeDelta: {x: -124, y: 0}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!222 &1102500229012921285
 CanvasRenderer:

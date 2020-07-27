@@ -1,16 +1,14 @@
 using System;
-using ConformalDecals.Util;
 using TMPro;
 using UnityEngine;
-
 // ReSharper disable NonReadonlyMemberInGetHashCode
 
 namespace ConformalDecals.Text {
-    public class DecalTextStyle : ScriptableObject, IEquatable<DecalTextStyle> {
+    public struct DecalTextStyle : IEquatable<DecalTextStyle> {
         private FontStyles _fontStyle;
-        private bool       _vertical;
-        private float      _lineSpacing;
-        private float      _characterSpacing;
+        private bool _vertical;
+        private float _lineSpacing;
+        private float _characterSpacing;
 
         public FontStyles FontStyle {
             get => _fontStyle;
@@ -63,55 +61,42 @@ namespace ConformalDecals.Text {
             get => _characterSpacing;
             set => _characterSpacing = value;
         }
-
-        public static DecalTextStyle Load(ConfigNode node) {
-            var style = CreateInstance<DecalTextStyle>();
-            style._fontStyle = (FontStyles) ParseUtil.ParseInt(node, "fontStyle", true);
-            style._vertical = ParseUtil.ParseBool(node, "vertical", true);
-            style._lineSpacing = ParseUtil.ParseFloat(node, "lineSpacing", true);
-            style._characterSpacing = ParseUtil.ParseFloat(node, "characterSpacing", true);
-            return style;
+        
+        
+        public DecalTextStyle(FontStyles fontStyle, bool vertical, float lineSpacing, float characterSpacing) {
+            _fontStyle = fontStyle;
+            _vertical = vertical;
+            _lineSpacing = lineSpacing;
+            _characterSpacing = characterSpacing;
         }
-
-        public ConfigNode Save() {
-            var node = new ConfigNode("STYLE");
-            node.AddValue("fontStyle", (int) _fontStyle);
-            node.AddValue("vertical", _vertical);
-            node.AddValue("lineSpacing", _lineSpacing);
-            node.AddValue("characterSpacing", _characterSpacing);
-            return node;
-        }
+        
 
         public bool Equals(DecalTextStyle other) {
-            if (ReferenceEquals(null, other)) return false;
-            if (ReferenceEquals(this, other)) return true;
-            return base.Equals(other) && _fontStyle == other._fontStyle && _vertical == other._vertical && _lineSpacing.Equals(other._lineSpacing) && _characterSpacing.Equals(other._characterSpacing);
+            return FontStyle == other.FontStyle && Vertical == other.Vertical && 
+                   Mathf.Approximately(LineSpacing, other.LineSpacing) &&
+                   Mathf.Approximately(CharacterSpacing, other.CharacterSpacing);
         }
 
         public override bool Equals(object obj) {
-            if (ReferenceEquals(null, obj)) return false;
-            if (ReferenceEquals(this, obj)) return true;
-            if (obj.GetType() != this.GetType()) return false;
-            return Equals((DecalTextStyle) obj);
+            return obj is DecalTextStyle other && Equals(other);
         }
 
         public override int GetHashCode() {
             unchecked {
-                int hashCode = base.GetHashCode();
-                hashCode = (hashCode * 397) ^ (int) _fontStyle;
-                hashCode = (hashCode * 397) ^ _vertical.GetHashCode();
-                hashCode = (hashCode * 397) ^ _lineSpacing.GetHashCode();
-                hashCode = (hashCode * 397) ^ _characterSpacing.GetHashCode();
+                var hashCode = (int) FontStyle;
+                hashCode = (hashCode * 397) ^ Vertical.GetHashCode();
+                hashCode = (hashCode * 397) ^ LineSpacing.GetHashCode();
+                hashCode = (hashCode * 397) ^ CharacterSpacing.GetHashCode();
                 return hashCode;
             }
         }
 
         public static bool operator ==(DecalTextStyle left, DecalTextStyle right) {
-            return Equals(left, right);
+            return left.Equals(right);
         }
 
         public static bool operator !=(DecalTextStyle left, DecalTextStyle right) {
-            return !Equals(left, right);
+            return !left.Equals(right);
         }
     }
 }

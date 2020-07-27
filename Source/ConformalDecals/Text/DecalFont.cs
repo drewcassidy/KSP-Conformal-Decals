@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using ConformalDecals.Util;
-using JetBrains.Annotations;
 using TMPro;
 using UniLinq;
 
@@ -36,7 +35,7 @@ namespace ConformalDecals.Text {
         public bool SmallCapsMask => (FontStyleMask & FontStyles.SmallCaps) != 0;
 
 
-        public DecalFont([NotNull] ConfigNode node, [NotNull] IEnumerable<TMP_FontAsset> fontAssets) {
+        public DecalFont(ConfigNode node, IEnumerable<TMP_FontAsset> fontAssets) {
             if (node == null) throw new ArgumentNullException(nameof(node));
             if (fontAssets == null) throw new ArgumentNullException(nameof(fontAssets));
 

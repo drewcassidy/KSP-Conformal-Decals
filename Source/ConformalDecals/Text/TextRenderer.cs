@@ -61,8 +61,6 @@ namespace ConformalDecals.Text {
             }
         }
 
-
-
         private void Start() {
             if (_instance != null) {
                 Debug.Log("[ConformalDecals] Duplicate TextRenderer created???");
@@ -74,12 +72,13 @@ namespace ConformalDecals.Text {
         }
 
         private void Update() {
-            bool renderNeeded;
-            do {
-                if (RenderJobs.Count == 0) return;
-                var nextJob = RenderJobs.Dequeue();
-                RunJob(nextJob, out renderNeeded);
-            } while (!renderNeeded);
+            // TODO: ASYNC RENDERING
+            // bool renderNeeded;
+            // do {
+            //     if (RenderJobs.Count == 0) return;
+            //     var nextJob = RenderJobs.Dequeue();
+            //     RunJob(nextJob, out renderNeeded);
+            // } while (!renderNeeded);
         }
 
         private void Setup() {
@@ -160,6 +159,13 @@ namespace ConformalDecals.Text {
             _tmp.overflowMode = TextOverflowModes.Overflow;
             _tmp.alignment = TextAlignmentOptions.Center | TextAlignmentOptions.Baseline;
             _tmp.fontSize = FontSize;
+            
+            // CALCULATE FONT WEIGHT
+
+            float weight = 0;
+            if (text.Style.Bold && text.Font.FontAsset.fontWeights[7].regularTypeface == null) {
+                weight = text.Font.FontAsset.boldStyle;
+            }
 
             // SETUP BLIT MATERIAL
             _blitMaterial.SetTexture(PropertyIDs._MainTex, text.Font.FontAsset.atlas);
@@ -191,13 +197,16 @@ namespace ConformalDecals.Text {
             }
 
             // scale up everything to fit the texture for maximum usage
-            float sizeRatio = Mathf.Min(textureSize.x / size.x, textureSize.y, size.y);
+            float sizeRatio = Mathf.Min(textureSize.x / size.x, textureSize.y / size.y);
 
             // calculate where in the texture the used area actually is
             var window = new Rect {
                 size = size * sizeRatio,
                 center = (Vector2) textureSize / 2
             };
+            
+            Debug.Log($"Window size: {window.size}");
+            Debug.Log($"Texture size: {textureSize}");
 
             // SETUP TEXTURE
             if (texture == null) {
@@ -220,6 +229,7 @@ namespace ConformalDecals.Text {
             Graphics.SetRenderTarget(renderTex);
             GL.PushMatrix();
             GL.LoadProjectionMatrix(matrix);
+            GL.Clear(false, true, Color.black);
             _blitMaterial.SetPass(0);
             Graphics.DrawMeshNow(mesh, Matrix4x4.identity);
             GL.PopMatrix();
@@ -232,7 +242,7 @@ namespace ConformalDecals.Text {
             // RELEASE RENDERTEX
             RenderTexture.ReleaseTemporary(renderTex);
 
-            return new TextRenderOutput(texture, window);
+            return new TextRenderOutput(texture, window, weight);
         }
     }
 }

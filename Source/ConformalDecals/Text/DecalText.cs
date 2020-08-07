@@ -27,11 +27,16 @@ namespace ConformalDecals.Text {
         }
 
         public bool Equals(DecalText other) {
-            return other != null && (Text == other.Text && Equals(Font, other.Font) && Style.Equals(other.Style));
+            if (ReferenceEquals(null, other)) return false;
+            if (ReferenceEquals(this, other)) return true;
+            return Text == other.Text && Equals(Font, other.Font) && Style.Equals(other.Style);
         }
 
         public override bool Equals(object obj) {
-            return obj is DecalText other && Equals(other);
+            if (ReferenceEquals(null, obj)) return false;
+            if (ReferenceEquals(this, obj)) return true;
+            if (obj.GetType() != this.GetType()) return false;
+            return Equals((DecalText) obj);
         }
 
         public override int GetHashCode() {
@@ -44,11 +49,11 @@ namespace ConformalDecals.Text {
         }
 
         public static bool operator ==(DecalText left, DecalText right) {
-            return left != null && left.Equals(right);
+            return Equals(left, right);
         }
 
         public static bool operator !=(DecalText left, DecalText right) {
-            return left != null && !left.Equals(right);
+            return !Equals(left, right);
         }
     }
 }

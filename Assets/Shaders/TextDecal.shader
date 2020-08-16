@@ -3,6 +3,7 @@
     Properties
     {
         [Header(Decal)]
+        [Toggle(DECAL_FILL)] _Fill ("Fill", int) = 0
         _Decal("Decal Texture", 2D) = "gray" {}
         _DecalColor("Decal Color", Color) = (1,1,1,1)
         
@@ -64,6 +65,7 @@
             #pragma multi_compile_local __ DECAL_BASE_NORMAL
             #pragma multi_compile_local __ DECAL_SPECMAP
             #pragma multi_compile_local __ DECAL_OUTLINE
+            #pragma multi_compile_local __ DECAL_FILL
 
             #include "UnityCG.cginc"
             #include "DecalsCommon.cginc"
@@ -93,6 +95,7 @@
             #pragma multi_compile_local __ DECAL_BASE_NORMAL
             #pragma multi_compile_local __ DECAL_SPECMAP
             #pragma multi_compile_local __ DECAL_OUTLINE
+            #pragma multi_compile_local __ DECAL_FILL
   
             #include "UnityCG.cginc"
             #include "DecalsCommon.cginc"

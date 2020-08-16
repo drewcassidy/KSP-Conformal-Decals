@@ -6,22 +6,32 @@ float _OutlineWidth;
 
 void surf(DecalSurfaceInput IN, inout SurfaceOutput o) {
     float4 color = _DecalColor;
-
     float bias = _Cutoff - (_Weight / 4);
-    #ifdef DECAL_OUTLINE
-        bias -= _OutlineWidth * 0.25;
-    #endif
-    float dist = bias - tex2D(_Decal, IN.uv_decal).r;
-    float ddist = SDFdDist(dist);
+    float dist = bias - tex2D(_Decal, IN.uv_decal).r; // text distance
+    float ddist = SDFdDist(dist); // distance gradient magnitude
     
     #ifdef DECAL_OUTLINE
-        float outlineDist = (_OutlineWidth * 0.5) + dist;
-        float outline = SDFAA(outlineDist, -ddist);
-        color = lerp(color, _OutlineColor, outline);
+        // Outline
+        float outlineOffset = _OutlineWidth * 0.25;
+        float outlineRadius = _OutlineWidth * 0.5;
+        
+        #ifdef DECAL_FILL
+            // Outline and Fill
+            float outlineDist = -dist - outlineOffset;
+            float outlineFactor = SDFAA(outlineDist, ddist);
+            dist -= outlineOffset;
+            color = lerp(_DecalColor, _OutlineColor, outlineFactor);
+        #else
+            // Outline Only
+            float outlineDist = abs(dist) - outlineOffset;
+            dist = outlineDist;
+            color = _OutlineColor;
+        #endif
     #endif
-    
+
+    dist = max(dist, BoundsDist(IN.uv, IN.vertex_normal, _DecalNormal));
+    o.Alpha = _DecalOpacity * SDFAA(dist, ddist);
     o.Albedo = UnderwaterFog(IN.worldPosition, color).rgb;
-    o.Alpha =  _DecalOpacity * SDFAA(dist, ddist);
 
     #ifdef DECAL_BASE_NORMAL
         float3 normal = IN.normal;

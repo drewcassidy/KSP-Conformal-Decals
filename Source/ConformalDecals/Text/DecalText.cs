@@ -21,6 +21,7 @@ namespace ConformalDecals.Text {
         }
 
         public DecalText(string text, DecalFont font, DecalTextStyle style) {
+            if (font == null) throw new ArgumentNullException(nameof(font));
             Text = text;
             Font = font;
             Style = style;

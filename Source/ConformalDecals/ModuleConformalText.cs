@@ -78,7 +78,7 @@ namespace ConformalDecals {
         private ColorPickerController _outlineColorPickerController;
 
         private MaterialTextureProperty _decalTextureProperty;
-        private MaterialFloatProperty _decalTextWeightProperty;
+        private MaterialFloatProperty   _decalTextWeightProperty;
 
         private MaterialKeywordProperty _fillEnabledProperty;
         private MaterialColorProperty   _fillColorProperty;
@@ -93,7 +93,7 @@ namespace ConformalDecals {
         public override void OnLoad(ConfigNode node) {
             base.OnLoad(node);
             OnAfterDeserialize();
-            
+
             UpdateTextRecursive();
         }
 
@@ -104,13 +104,13 @@ namespace ConformalDecals {
 
         public override void OnStart(StartState state) {
             base.OnStart(state);
-            
+
             UpdateTextRecursive();
         }
 
         public override void OnAwake() {
             base.OnAwake();
-            
+
             _decalTextureProperty = materialProperties.AddOrGetTextureProperty("_Decal", true);
             _decalTextWeightProperty = materialProperties.AddOrGetProperty<MaterialFloatProperty>("_Weight");
 
@@ -121,7 +121,7 @@ namespace ConformalDecals {
             _outlineColorProperty = materialProperties.AddOrGetProperty<MaterialColorProperty>("_OutlineColor");
             _outlineWidthProperty = materialProperties.AddOrGetProperty<MaterialFloatProperty>("_OutlineWidth");
         }
-        
+
         public void OnTextUpdate(string newText, DecalFont newFont, DecalTextStyle newStyle) {
             text = newText;
             _font = newFont;
@@ -152,30 +152,28 @@ namespace ConformalDecals {
         }
 
         public void OnFillToggle(BaseField field, object obj) {
-            if (!fillEnabled && !outlineEnabled) {
-                outlineEnabled = true;
-                OnOutlineToggle(field, obj);
-            }
+            // fill and outline cant both be disabled
+            outlineEnabled = outlineEnabled || (!outlineEnabled && !fillEnabled);
 
             UpdateTweakables();
 
             foreach (var counterpart in part.symmetryCounterparts) {
                 var decal = counterpart.GetComponent<ModuleConformalText>();
                 decal.fillEnabled = fillEnabled;
+                decal.outlineEnabled = outlineEnabled;
                 decal.UpdateTweakables();
             }
         }
 
         public void OnOutlineToggle(BaseField field, object obj) {
-            if (!fillEnabled && !outlineEnabled) {
-                fillEnabled = true;
-                OnFillToggle(field, obj);
-            }
+            // fill and outline cant both be disabled
+            fillEnabled = fillEnabled || (!fillEnabled && !outlineEnabled);
 
             UpdateTweakables();
 
             foreach (var counterpart in part.symmetryCounterparts) {
                 var decal = counterpart.GetComponent<ModuleConformalText>();
+                decal.fillEnabled = fillEnabled;
                 decal.outlineEnabled = outlineEnabled;
                 decal.UpdateTweakables();
             }
@@ -206,7 +204,7 @@ namespace ConformalDecals {
 
         public override void OnDestroy() {
             if (_currentText != null) TextRenderer.UnregisterText(_currentText);
-            
+
             base.OnDestroy();
         }
 
@@ -215,7 +213,7 @@ namespace ConformalDecals {
             if (_textEntryController != null) _textEntryController.OnClose();
             if (_fillColorPickerController != null) _fillColorPickerController.OnClose();
             if (_outlineColorPickerController != null) _outlineColorPickerController.OnClose();
-            
+
             base.OnDetach();
         }
 
@@ -251,8 +249,7 @@ namespace ConformalDecals {
         public void UpdateTexture(TextRenderOutput output) {
             _decalTextureProperty.Texture = output.Texture;
             _decalTextureProperty.SetTile(output.Window);
-            _decalTextWeightProperty.value = output.Weight;
-            
+
             UpdateMaterials();
             UpdateScale();
         }
@@ -269,22 +266,17 @@ namespace ConformalDecals {
         }
 
         protected override void UpdateTweakables() {
-            Debug.Log($"Fields is null: {Fields == null}");
-            Debug.Log($"Actions is null: {Actions == null}");
             var fillEnabledField = Fields[nameof(fillEnabled)];
-            var fillColorAction = Actions["SetFillColor"];
+            var fillColorEvent = Events["SetFillColor"];
 
             var outlineEnabledField = Fields[nameof(outlineEnabled)];
             var outlineWidthField = Fields[nameof(outlineWidth)];
-            var outlineColorAction = Actions["SetOutlineColor"];
-            
-            Debug.Log($"outlineColorAction is null: {outlineColorAction == null}");
+            var outlineColorEvent = Events["SetOutlineColor"];
 
-            // fillColorAction.activeEditor = fillEnabled;
-            // outlineWidthField.guiActiveEditor = outlineEnabled;
-            // outlineColorAction.activeEditor = outlineEnabled;
+            fillColorEvent.guiActiveEditor = fillEnabled;
+            outlineWidthField.guiActiveEditor = outlineEnabled;
+            outlineColorEvent.guiActiveEditor = outlineEnabled;
 
-            Debug.Log("Fart");
             ((UI_Toggle) fillEnabledField.uiControlEditor).onFieldChanged = OnFillToggle;
             ((UI_Toggle) outlineEnabledField.uiControlEditor).onFieldChanged = OnOutlineToggle;
             ((UI_FloatRange) outlineWidthField.uiControlEditor).onFieldChanged = OnOutlineWidthUpdate;

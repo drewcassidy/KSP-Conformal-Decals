@@ -6,14 +6,11 @@ namespace ConformalDecals.Text {
 
         public Rect Window { get; private set; }
         
-        public float Weight { get; private set; }
-
         public int UserCount { get; set; }
 
-        public TextRenderOutput(Texture2D texture, Rect window, float weight) {
+        public TextRenderOutput(Texture2D texture, Rect window) {
             Texture = texture;
             Window = window;
-            Weight = weight;
         }
     }
 }

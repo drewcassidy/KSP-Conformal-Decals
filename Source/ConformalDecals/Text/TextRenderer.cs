@@ -1,4 +1,5 @@
 using System;
+using System.Reflection;
 using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
@@ -32,7 +33,7 @@ namespace ConformalDecals.Text {
 
         private bool        _isSetup;
         private TextMeshPro _tmp;
-        private Material    _blitMaterial;
+        private Shader      _blitShader;
 
         private static readonly Dictionary<DecalText, TextRenderOutput> RenderCache = new Dictionary<DecalText, TextRenderOutput>();
         private static readonly Queue<TextRenderJob>                    RenderJobs  = new Queue<TextRenderJob>();
@@ -44,10 +45,10 @@ namespace ConformalDecals.Text {
             RenderJobs.Enqueue(job);
             return job;
         }
-        
+
         public static TextRenderOutput UpdateTextNow(DecalText oldText, DecalText newText) {
             if (newText == null) throw new ArgumentNullException(nameof(newText));
-            
+
             return Instance.RunJob(new TextRenderJob(oldText, newText, null), out _);
         }
 
@@ -91,7 +92,7 @@ namespace ConformalDecals.Text {
 
             var shader = Shabby.Shabby.FindShader(BlitShader);
             if (shader == null) Debug.LogError($"[ConformalDecals] could not find text blit shader named '{shader}'");
-            _blitMaterial = new Material(Shabby.Shabby.FindShader(BlitShader));
+            _blitShader = Shabby.Shabby.FindShader(BlitShader);
 
             _isSetup = true;
         }
@@ -146,6 +147,11 @@ namespace ConformalDecals.Text {
         }
 
         public TextRenderOutput RenderText(DecalText text, Texture2D texture) {
+            if (text == null) throw new ArgumentNullException(nameof(text));
+            if (_tmp == null) throw new InvalidOperationException("TextMeshPro object not yet created.");
+            
+            Debug.Log($"[ConformalDecals] rendering text '{text.Text}' in {text.Font.Name}");
+
             // SETUP TMP OBJECT FOR RENDERING
             _tmp.text = text.FormattedText;
             _tmp.font = text.Font.FontAsset;
@@ -157,32 +163,53 @@ namespace ConformalDecals.Text {
             _tmp.enableKerning = true;
             _tmp.enableWordWrapping = false;
             _tmp.overflowMode = TextOverflowModes.Overflow;
-            _tmp.alignment = TextAlignmentOptions.Center | TextAlignmentOptions.Baseline;
+            _tmp.alignment = TextAlignmentOptions.Center;
             _tmp.fontSize = FontSize;
-            
-            // CALCULATE FONT WEIGHT
-
-            float weight = 0;
-            if (text.Style.Bold && text.Font.FontAsset.fontWeights[7].regularTypeface == null) {
-                weight = text.Font.FontAsset.boldStyle;
-            }
-
-            // SETUP BLIT MATERIAL
-            _blitMaterial.SetTexture(PropertyIDs._MainTex, text.Font.FontAsset.atlas);
 
             // GENERATE MESH
             _tmp.ForceMeshUpdate();
-            var mesh = _tmp.mesh;
-            mesh.RecalculateBounds();
-            var bounds = mesh.bounds;
+
+            var meshFilters = gameObject.GetComponentsInChildren<MeshFilter>();
+            var meshes = new Mesh[meshFilters.Length];
+            var materials = new Material[meshFilters.Length];
+
+            var bounds = new Bounds();
+
+            Debug.Log($"meshFilter count: {meshFilters.Length}");
+            // SETUP MATERIALS AND BOUNDS
+            for (int i = 0; i < meshFilters.Length; i++) {
+                var renderer = meshFilters[i].gameObject.GetComponent<MeshRenderer>();
+                
+                meshes[i] = meshFilters[i].mesh;
+                meshes[i].RecalculateBounds();
+
+                materials[i] = Instantiate(renderer.material);
+                materials[i].shader = _blitShader;
+                
+                if (renderer == null) throw new FormatException($"Object {meshFilters[i].gameObject.name} has filter but no renderer");
+                if (meshes[i] == null) throw new FormatException($"Object {meshFilters[i].gameObject.name} has a null mesh");
+
+                if (i == 0) {
+                    bounds = meshes[i].bounds;
+                }
+                else {
+                    bounds.Encapsulate(meshes[i].bounds);
+                }
+            }
 
             // CALCULATE SIZES
             var size = bounds.size * PixelDensity;
-
             var textureSize = new Vector2Int {
                 x = Mathf.NextPowerOfTwo((int) size.x),
                 y = Mathf.NextPowerOfTwo((int) size.y)
             };
+
+            if (textureSize.x == 0 || textureSize.y == 0) {
+                Debug.LogWarning("[ConformalDecals] No text present or error in texture size calculation. Aborting.");
+                return new TextRenderOutput(Texture2D.blackTexture, Rect.zero);
+            }
+
+            Debug.Log($"Texture size: {textureSize}");
 
             // make sure texture isnt too big, scale it down if it is
             // this is just so you dont crash the game by pasting in the entire script of The Bee Movie
@@ -204,9 +231,8 @@ namespace ConformalDecals.Text {
                 size = size * sizeRatio,
                 center = (Vector2) textureSize / 2
             };
-            
+
             Debug.Log($"Window size: {window.size}");
-            Debug.Log($"Texture size: {textureSize}");
 
             // SETUP TEXTURE
             if (texture == null) {
@@ -230,8 +256,14 @@ namespace ConformalDecals.Text {
             GL.PushMatrix();
             GL.LoadProjectionMatrix(matrix);
             GL.Clear(false, true, Color.black);
-            _blitMaterial.SetPass(0);
-            Graphics.DrawMeshNow(mesh, Matrix4x4.identity);
+
+            for (var i = 0; i < meshes.Length; i++) {
+                if (meshes[i].vertexCount >= 3) {
+                    materials[i].SetPass(0);
+                    Graphics.DrawMeshNow(meshes[i], Matrix4x4.identity);
+                }
+            }
+
             GL.PopMatrix();
 
             // COPY TEXTURE BACK INTO RAM
@@ -242,7 +274,12 @@ namespace ConformalDecals.Text {
             // RELEASE RENDERTEX
             RenderTexture.ReleaseTemporary(renderTex);
 
-            return new TextRenderOutput(texture, window, weight);
+            // CLEAR SUBMESHES
+            for (int i = 0; i < transform.childCount; i++) {
+                Destroy(transform.GetChild(i).gameObject);
+            }
+
+            return new TextRenderOutput(texture, window);
         }
     }
 }

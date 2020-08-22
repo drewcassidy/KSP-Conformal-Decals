@@ -5,6 +5,6 @@ namespace ConformalDecals.UI {
         [SerializeField] private GameObject _menuItem;
         [SerializeField] private GameObject _menuList;
 
-        public void OnClose() { }
+        public void Close() { }
     }
 }

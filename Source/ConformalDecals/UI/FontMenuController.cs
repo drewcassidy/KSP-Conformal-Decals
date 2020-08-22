@@ -31,7 +31,7 @@ namespace ConformalDecals.UI {
             return controller;
         }
 
-        public void OnClose() {
+        public void Close() {
             Destroy(gameObject);
         }
 

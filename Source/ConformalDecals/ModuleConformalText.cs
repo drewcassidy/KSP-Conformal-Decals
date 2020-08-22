@@ -10,22 +10,25 @@ namespace ConformalDecals {
         [KSPField(isPersistant = true)] public Color  fillColor    = Color.black;
         [KSPField(isPersistant = true)] public Color  outlineColor = Color.white;
 
+        [KSPField] public Vector2 lineSpacingRange = new Vector2(-20, 50);
+        [KSPField] public Vector2 charSpacingRange = new Vector2(-20, 50);
+
         // serialization-only fields. do not use except in serialization functions
         [KSPField(isPersistant = true)] public string fontName = "Calibri SDF";
         [KSPField(isPersistant = true)] public int    style;
         [KSPField(isPersistant = true)] public bool   vertical;
         [KSPField(isPersistant = true)] public float  lineSpacing;
-        [KSPField(isPersistant = true)] public float  characterSpacing;
+        [KSPField(isPersistant = true)] public float  charSpacing;
 
         // KSP TWEAKABLES
 
         [KSPEvent(guiName = "#LOC_ConformalDecals_gui-set-text", guiActive = false, guiActiveEditor = true)]
         public void SetText() {
             if (_textEntryController == null) {
-                _textEntryController = TextEntryController.Create(text, _font, _style, OnTextUpdate);
+                _textEntryController = TextEntryController.Create(text, _font, _style, lineSpacingRange, charSpacingRange, OnTextUpdate);
             }
             else {
-                _textEntryController.OnClose();
+                _textEntryController.Close();
             }
         }
 
@@ -43,7 +46,7 @@ namespace ConformalDecals {
                 _fillColorPickerController = ColorPickerController.Create(fillColor, OnFillColorUpdate);
             }
             else {
-                _fillColorPickerController.OnClose();
+                _fillColorPickerController.Close();
             }
         }
 
@@ -66,7 +69,7 @@ namespace ConformalDecals {
                 _outlineColorPickerController = ColorPickerController.Create(outlineColor, OnOutlineColorUpdate);
             }
             else {
-                _outlineColorPickerController.OnClose();
+                _outlineColorPickerController.Close();
             }
         }
 

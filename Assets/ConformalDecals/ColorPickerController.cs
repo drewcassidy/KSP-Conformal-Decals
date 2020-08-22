@@ -10,7 +10,7 @@ namespace ConformalDecals.UI {
         [SerializeField] private Image      _previewImage;
         [SerializeField] private Selectable _hexTextBox;
 
-        public void OnClose() { }
+        public void Close() { }
 
         public void OnHexColorUpdate(string text) { }
     }

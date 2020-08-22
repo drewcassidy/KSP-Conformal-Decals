@@ -15,6 +15,12 @@ namespace ConformalDecals.UI {
         [SerializeField] private Selectable _textBox;
         [SerializeField] private Button     _fontButton;
 
+        [SerializeField] private Slider     _lineSpacingSlider;
+        [SerializeField] private Selectable _lineSpacingTextBox;
+
+        [SerializeField] private Slider     _charSpacingSlider;
+        [SerializeField] private Selectable _charSpacingTextBox;
+
         [SerializeField] private Toggle _boldButton;
         [SerializeField] private Toggle _italicButton;
         [SerializeField] private Toggle _underlineButton;
@@ -24,12 +30,17 @@ namespace ConformalDecals.UI {
         private string         _text;
         private DecalFont      _font;
         private DecalTextStyle _style;
+        private Vector2        _lineSpacingRange;
+        private Vector2        _charSpacingRange;
 
         private FontMenuController _fontMenu;
 
         private bool _ignoreUpdates;
 
-        public static TextEntryController Create(string text, DecalFont font, DecalTextStyle style, UnityAction<string, DecalFont, DecalTextStyle> textUpdateCallback) {
+        public static TextEntryController Create(
+            string text, DecalFont font, DecalTextStyle style,
+            Vector2 lineSpacingRange, Vector2 charSpacingRange,
+            UnityAction<string, DecalFont, DecalTextStyle> textUpdateCallback) {
 
             var window = Instantiate(UILoader.TextEntryPrefab, MainCanvasUtil.MainCanvas.transform, true);
             window.AddComponent<DragPanel>();
@@ -39,13 +50,15 @@ namespace ConformalDecals.UI {
             controller._text = text;
             controller._font = font;
             controller._style = style;
+            controller._lineSpacingRange = lineSpacingRange;
+            controller._charSpacingRange = charSpacingRange;
             controller.onValueChanged.AddListener(textUpdateCallback);
 
             return controller;
         }
 
-        public void OnClose() {
-            if (_fontMenu != null) _fontMenu.OnClose();
+        public void Close() {
+            if (_fontMenu != null) _fontMenu.Close();
             Destroy(gameObject);
         }
 
@@ -73,6 +86,52 @@ namespace ConformalDecals.UI {
             OnValueChanged();
         }
 
+        public void OnLineSpacingUpdate(float value) {
+            if (_ignoreUpdates) return;
+
+            _style.LineSpacing = Mathf.Lerp(_lineSpacingRange.x, _lineSpacingRange.y, value);
+            
+            UpdateLineSpacing();
+            OnValueChanged();
+        }
+        
+        public void OnLineSpacingUpdate(string text) {
+            if (_ignoreUpdates) return;
+
+            if (float.TryParse(text, out var value)) {
+                _style.LineSpacing = Mathf.Clamp(value, _lineSpacingRange.x, _lineSpacingRange.y);
+            }
+            else {
+                Debug.LogWarning("[ConformalDecals] line spacing value '{text}' could not be parsed.");
+            }
+            
+            UpdateLineSpacing();
+            OnValueChanged();
+        }
+
+        public void OnCharSpacingUpdate(float value) {
+            if (_ignoreUpdates) return;
+
+            _style.CharSpacing = Mathf.Lerp(_charSpacingRange.x, _charSpacingRange.y, value);
+            
+            UpdateCharSpacing();
+            OnValueChanged();
+        }
+        
+        public void OnCharSpacingUpdate(string text) {
+            if (_ignoreUpdates) return;
+
+            if (float.TryParse(text, out var value)) {
+                _style.CharSpacing = Mathf.Clamp(value, _charSpacingRange.x, _charSpacingRange.y);
+            }
+            else {
+                Debug.LogWarning("[ConformalDecals] char spacing value '{text}' could not be parsed.");
+            }
+            
+            UpdateCharSpacing();
+            OnValueChanged();
+        }
+
         public void OnBoldUpdate(bool state) {
             if (_ignoreUpdates) return;
 
@@ -85,7 +144,6 @@ namespace ConformalDecals.UI {
 
             _style.Italic = state;
             OnValueChanged();
-
         }
 
         public void OnUnderlineUpdate(bool state) {
@@ -93,7 +151,6 @@ namespace ConformalDecals.UI {
 
             _style.Underline = state;
             OnValueChanged();
-
         }
 
         public void OnSmallCapsUpdate(bool state) {
@@ -101,7 +158,6 @@ namespace ConformalDecals.UI {
 
             _style.SmallCaps = state;
             OnValueChanged();
-
         }
 
         public void OnVerticalUpdate(bool state) {
@@ -118,6 +174,8 @@ namespace ConformalDecals.UI {
             _font.SetupSample(_fontButton.GetComponentInChildren<TextMeshProUGUI>());
 
             UpdateStyleButtons();
+            UpdateLineSpacing();
+            UpdateCharSpacing();
         }
 
         private void OnValueChanged() {
@@ -181,6 +239,24 @@ namespace ConformalDecals.UI {
 
             _verticalButton.isOn = _style.Vertical;
 
+            _ignoreUpdates = false;
+        }
+
+        private void UpdateLineSpacing() {
+            _ignoreUpdates = true;
+            
+            _lineSpacingSlider.value = Mathf.InverseLerp(_lineSpacingRange.x, _lineSpacingRange.y, _style.LineSpacing);
+            ((TMP_InputField) _lineSpacingTextBox).text = $"{_style.LineSpacing:F1}";
+            
+            _ignoreUpdates = false;
+        }
+        
+        private void UpdateCharSpacing() {
+            _ignoreUpdates = true;
+            
+            _charSpacingSlider.value = Mathf.InverseLerp(_charSpacingRange.x, _charSpacingRange.y, _style.CharSpacing);
+            ((TMP_InputField) _charSpacingTextBox).text = $"{_style.CharSpacing:F1}";
+            
             _ignoreUpdates = false;
         }
     }

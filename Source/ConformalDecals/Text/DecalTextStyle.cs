@@ -8,7 +8,7 @@ namespace ConformalDecals.Text {
         private FontStyles _fontStyle;
         private bool _vertical;
         private float _lineSpacing;
-        private float _characterSpacing;
+        private float _charSpacing;
 
         public FontStyles FontStyle {
             get => _fontStyle;
@@ -57,24 +57,22 @@ namespace ConformalDecals.Text {
             set => _lineSpacing = value;
         }
 
-        public float CharacterSpacing {
-            get => _characterSpacing;
-            set => _characterSpacing = value;
+        public float CharSpacing {
+            get => _charSpacing;
+            set => _charSpacing = value;
         }
         
-        
-        public DecalTextStyle(FontStyles fontStyle, bool vertical, float lineSpacing, float characterSpacing) {
+        public DecalTextStyle(FontStyles fontStyle, bool vertical, float lineSpacing, float charSpacing) {
             _fontStyle = fontStyle;
             _vertical = vertical;
             _lineSpacing = lineSpacing;
-            _characterSpacing = characterSpacing;
+            _charSpacing = charSpacing;
         }
-        
 
         public bool Equals(DecalTextStyle other) {
             return FontStyle == other.FontStyle && Vertical == other.Vertical && 
                    Mathf.Approximately(LineSpacing, other.LineSpacing) &&
-                   Mathf.Approximately(CharacterSpacing, other.CharacterSpacing);
+                   Mathf.Approximately(CharSpacing, other.CharSpacing);
         }
 
         public override bool Equals(object obj) {
@@ -86,7 +84,7 @@ namespace ConformalDecals.Text {
                 var hashCode = (int) FontStyle;
                 hashCode = (hashCode * 397) ^ Vertical.GetHashCode();
                 hashCode = (hashCode * 397) ^ LineSpacing.GetHashCode();
-                hashCode = (hashCode * 397) ^ CharacterSpacing.GetHashCode();
+                hashCode = (hashCode * 397) ^ CharSpacing.GetHashCode();
                 return hashCode;
             }
         }

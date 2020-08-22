@@ -1,13 +1,11 @@
 float4 _DecalColor;
-float _Weight;
 
 float4 _OutlineColor;
 float _OutlineWidth;
 
 void surf(DecalSurfaceInput IN, inout SurfaceOutput o) {
     float4 color = _DecalColor;
-    float bias = _Cutoff - (_Weight / 4);
-    float dist = bias - tex2D(_Decal, IN.uv_decal).r; // text distance
+    float dist = _Cutoff - tex2D(_Decal, IN.uv_decal).r; // text distance
     float ddist = SDFdDist(dist); // distance gradient magnitude
     
     #ifdef DECAL_OUTLINE

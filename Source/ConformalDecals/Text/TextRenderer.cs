@@ -24,7 +24,7 @@ namespace ConformalDecals.Text {
         [Serializable]
         public class TextRenderEvent : UnityEvent<TextRenderOutput> { }
 
-        private const string BlitShader     = "ConformalDecals/Text Blit";
+        private const string ShaderName     = "ConformalDecals/Text Blit";
         private const int    MaxTextureSize = 4096;
         private const float  FontSize       = 100;
         private const float  PixelDensity   = 5;
@@ -90,9 +90,8 @@ namespace ConformalDecals.Text {
             _tmp = gameObject.AddComponent<TextMeshPro>();
             _tmp.renderer.enabled = false; // dont automatically render
 
-            var shader = Shabby.Shabby.FindShader(BlitShader);
-            if (shader == null) Debug.LogError($"[ConformalDecals] could not find text blit shader named '{shader}'");
-            _blitShader = Shabby.Shabby.FindShader(BlitShader);
+            _blitShader = Shabby.Shabby.FindShader(ShaderName);
+            if (_blitShader == null) Debug.LogError($"[ConformalDecals] could not find text blit shader named '{ShaderName}'");
 
             _isSetup = true;
         }
@@ -157,7 +156,7 @@ namespace ConformalDecals.Text {
             _tmp.font = text.Font.FontAsset;
             _tmp.fontStyle = text.Style.FontStyle | text.Font.FontStyle;
             _tmp.lineSpacing = text.Style.LineSpacing;
-            _tmp.characterSpacing = text.Style.CharacterSpacing;
+            _tmp.characterSpacing = text.Style.CharSpacing;
 
             _tmp.extraPadding = true;
             _tmp.enableKerning = true;
@@ -236,10 +235,10 @@ namespace ConformalDecals.Text {
 
             // SETUP TEXTURE
             if (texture == null) {
-                texture = new Texture2D(textureSize.x, textureSize.y, TextTextureFormat, false);
+                texture = new Texture2D(textureSize.x, textureSize.y, TextTextureFormat, true);
             }
             else if (texture.width != textureSize.x || texture.height != textureSize.y || texture.format != TextTextureFormat) {
-                texture.Resize(textureSize.x, textureSize.y, TextTextureFormat, false);
+                texture.Resize(textureSize.x, textureSize.y, TextTextureFormat, true);
             }
 
             // GENERATE PROJECTION MATRIX
@@ -268,7 +267,7 @@ namespace ConformalDecals.Text {
 
             // COPY TEXTURE BACK INTO RAM
             RenderTexture.active = renderTex;
-            texture.ReadPixels(new Rect(0, 0, textureSize.x, textureSize.y), 0, 0, false);
+            texture.ReadPixels(new Rect(0, 0, textureSize.x, textureSize.y), 0, 0, true);
             texture.Apply();
 
             // RELEASE RENDERTEX

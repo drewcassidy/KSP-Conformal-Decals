@@ -78,7 +78,6 @@ namespace ConformalDecals {
         private ColorPickerController _outlineColorPickerController;
 
         private MaterialTextureProperty _decalTextureProperty;
-        private MaterialFloatProperty   _decalTextWeightProperty;
 
         private MaterialKeywordProperty _fillEnabledProperty;
         private MaterialColorProperty   _fillColorProperty;
@@ -112,7 +111,6 @@ namespace ConformalDecals {
             base.OnAwake();
 
             _decalTextureProperty = materialProperties.AddOrGetTextureProperty("_Decal", true);
-            _decalTextWeightProperty = materialProperties.AddOrGetProperty<MaterialFloatProperty>("_Weight");
 
             _fillEnabledProperty = materialProperties.AddOrGetProperty<MaterialKeywordProperty>("DECAL_FILL");
             _fillColorProperty = materialProperties.AddOrGetProperty<MaterialColorProperty>("_DecalColor");
@@ -194,12 +192,12 @@ namespace ConformalDecals {
             style = (int) _style.FontStyle;
             vertical = _style.Vertical;
             lineSpacing = _style.LineSpacing;
-            characterSpacing = _style.CharacterSpacing;
+            charSpacing = _style.CharSpacing;
         }
 
         public void OnAfterDeserialize() {
             _font = DecalConfig.GetFont(fontName);
-            _style = new DecalTextStyle((FontStyles) style, vertical, lineSpacing, characterSpacing);
+            _style = new DecalTextStyle((FontStyles) style, vertical, lineSpacing, charSpacing);
         }
 
         public override void OnDestroy() {
@@ -210,9 +208,9 @@ namespace ConformalDecals {
 
         protected override void OnDetach() {
             // close all UIs
-            if (_textEntryController != null) _textEntryController.OnClose();
-            if (_fillColorPickerController != null) _fillColorPickerController.OnClose();
-            if (_outlineColorPickerController != null) _outlineColorPickerController.OnClose();
+            if (_textEntryController != null) _textEntryController.Close();
+            if (_fillColorPickerController != null) _fillColorPickerController.Close();
+            if (_outlineColorPickerController != null) _outlineColorPickerController.Close();
 
             base.OnDetach();
         }
@@ -283,7 +281,5 @@ namespace ConformalDecals {
 
             base.UpdateTweakables();
         }
-
-        protected void UpdateCachedProperties() { }
     }
 }

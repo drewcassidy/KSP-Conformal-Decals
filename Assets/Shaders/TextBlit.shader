@@ -53,16 +53,17 @@ Shader "ConformalDecals/Text Blit"
                 
                 v2f o;
                 o.pos = UnityObjectToClipPos(vertex);
-                o.uv = float4(uv0.x, uv0.y, bias, 0);
+                o.uv = float4(uv0.x, uv0.y, bias, weight);
                 return o;
             }
 
             fixed4 frag (v2f i) : SV_Target {
                 float2 uv = i.uv.xy;
                 float bias = i.uv.z;
+                float weight = i.uv.w;
                 
                 fixed4 c = 0;
-                c.r = saturate(tex2D(_MainTex,(uv)).a - bias);
+                c.r = saturate(tex2D(_MainTex,(uv)).a + weight);
                 return c;
             }
 

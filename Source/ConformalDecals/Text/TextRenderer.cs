@@ -6,7 +6,7 @@ using UnityEngine;
 using UnityEngine.Events;
 
 namespace ConformalDecals.Text {
-    [KSPAddon(KSPAddon.Startup.EveryScene, false)]
+    [KSPAddon(KSPAddon.Startup.Instantly, true)]
     public class TextRenderer : MonoBehaviour {
         public const TextureFormat       TextTextureFormat       = TextureFormat.RG16;
         public const RenderTextureFormat TextRenderTextureFormat = RenderTextureFormat.R8;
@@ -52,7 +52,9 @@ namespace ConformalDecals.Text {
             return Instance.RunJob(new TextRenderJob(oldText, newText, null), out _);
         }
 
+        // Unregister a user of a piece of text
         public static void UnregisterText(DecalText text) {
+            Debug.Log($"[ConformalDecals] Unregistering text '{text.Text}'");
             if (RenderCache.TryGetValue(text, out var renderedText)) {
                 renderedText.UserCount--;
                 if (renderedText.UserCount <= 0) {
@@ -102,7 +104,10 @@ namespace ConformalDecals.Text {
                 return null;
             }
 
-            Debug.Log($"Starting Text Rendering Job. queue depth = {RenderJobs.Count}, cache size = {RenderCache.Count}");
+            Debug.Log($"[ConformalDecals] Starting Text Rendering Job. queue depth = {RenderJobs.Count}, cache size = {RenderCache.Count}");
+            foreach (var cacheitem in RenderCache) {
+                Debug.Log($"[ConformalDecals] Cache item: '{cacheitem.Key.Text}' with {cacheitem.Value.UserCount} users");
+            }
             job.Start();
 
             Texture2D texture = null;
@@ -137,6 +142,7 @@ namespace ConformalDecals.Text {
             }
 
             var output = RenderText(job.NewText, texture);
+            output.UserCount++;
             RenderCache.Add(job.NewText, output);
 
             job.Finish(output);

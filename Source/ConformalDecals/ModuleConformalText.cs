@@ -39,7 +39,7 @@ namespace ConformalDecals {
          UI_Toggle()]
         public bool fillEnabled = true;
 
-        [KSPEvent(guiName = "#LOC_ConformalDecals_gui-fill-color", groupName = "decal-fill", groupDisplayName = "#LOC_ConformalDecals_gui-group-fill",
+        [KSPEvent(guiName = "#LOC_ConformalDecals_gui-set-fill-color", groupName = "decal-fill", groupDisplayName = "#LOC_ConformalDecals_gui-group-fill",
             guiActive = false, guiActiveEditor = true)]
         public void SetFillColor() {
             if (_fillColorPickerController == null) {
@@ -157,12 +157,14 @@ namespace ConformalDecals {
             outlineEnabled = outlineEnabled || (!outlineEnabled && !fillEnabled);
 
             UpdateTweakables();
+            UpdateMaterials();
 
             foreach (var counterpart in part.symmetryCounterparts) {
                 var decal = counterpart.GetComponent<ModuleConformalText>();
                 decal.fillEnabled = fillEnabled;
                 decal.outlineEnabled = outlineEnabled;
                 decal.UpdateTweakables();
+                decal.UpdateMaterials();
             }
         }
 
@@ -171,12 +173,14 @@ namespace ConformalDecals {
             fillEnabled = fillEnabled || (!fillEnabled && !outlineEnabled);
 
             UpdateTweakables();
+            UpdateMaterials();
 
             foreach (var counterpart in part.symmetryCounterparts) {
                 var decal = counterpart.GetComponent<ModuleConformalText>();
                 decal.fillEnabled = fillEnabled;
                 decal.outlineEnabled = outlineEnabled;
                 decal.UpdateTweakables();
+                decal.UpdateMaterials();
             }
         }
 
@@ -204,7 +208,7 @@ namespace ConformalDecals {
         }
 
         public override void OnDestroy() {
-            if (_currentText != null) TextRenderer.UnregisterText(_currentText);
+            if (HighLogic.LoadedSceneIsGame && _currentText != null) TextRenderer.UnregisterText(_currentText);
 
             base.OnDestroy();
         }

@@ -6,7 +6,7 @@ using UnityEngine;
 using UnityEngine.Events;
 
 namespace ConformalDecals.Text {
-    [KSPAddon(KSPAddon.Startup.Instantly, true)]
+    [KSPAddon(KSPAddon.Startup.EveryScene, false)]
     public class TextRenderer : MonoBehaviour {
         public const TextureFormat       TextTextureFormat       = TextureFormat.RG16;
         public const RenderTextureFormat TextRenderTextureFormat = RenderTextureFormat.R8;
@@ -166,6 +166,7 @@ namespace ConformalDecals.Text {
             _tmp.fontSize = FontSize;
 
             // GENERATE MESH
+            _tmp.ClearMesh(false);
             _tmp.ForceMeshUpdate();
 
             var meshFilters = gameObject.GetComponentsInChildren<MeshFilter>();
@@ -180,7 +181,7 @@ namespace ConformalDecals.Text {
                 var renderer = meshFilters[i].gameObject.GetComponent<MeshRenderer>();
                 
                 meshes[i] = meshFilters[i].mesh;
-                meshes[i].RecalculateBounds();
+                if (i == 0) meshes[i] = _tmp.mesh;
 
                 materials[i] = Instantiate(renderer.material);
                 materials[i].shader = _blitShader;

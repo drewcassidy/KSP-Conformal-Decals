@@ -6,12 +6,12 @@ using UnityEngine;
 
 namespace ConformalDecals {
     public class ModuleConformalText : ModuleConformalDecal, ISerializationCallbackReceiver {
-        [KSPField(isPersistant = true)] public string text         = "Hello World!";
+        [KSPField(isPersistant = true)] public string text         = "Text";
         [KSPField(isPersistant = true)] public Color  fillColor    = Color.black;
         [KSPField(isPersistant = true)] public Color  outlineColor = Color.white;
 
-        [KSPField] public Vector2 lineSpacingRange = new Vector2(-20, 50);
-        [KSPField] public Vector2 charSpacingRange = new Vector2(-20, 50);
+        [KSPField] public Vector2 lineSpacingRange = new Vector2(-50, 50);
+        [KSPField] public Vector2 charSpacingRange = new Vector2(-50, 50);
 
         // serialization-only fields. do not use except in serialization functions
         [KSPField(isPersistant = true)] public string fontName = "Calibri SDF";

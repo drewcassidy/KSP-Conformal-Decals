@@ -512,7 +512,7 @@ namespace ConformalDecals {
             cutoffField.guiActiveEditor = cutoffAdjustable;
             wearField.guiActiveEditor = useBaseNormal;
 
-            var steps = 20;
+            var steps = 40;
 
             if (scaleAdjustable) {
                 var minValue = Mathf.Max(Mathf.Epsilon, scaleRange.x);

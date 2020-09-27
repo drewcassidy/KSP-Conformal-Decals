@@ -1,5 +1,4 @@
 using System;
-using System.Reflection;
 using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
@@ -38,6 +37,7 @@ namespace ConformalDecals.Text {
         private static readonly Dictionary<DecalText, TextRenderOutput> RenderCache = new Dictionary<DecalText, TextRenderOutput>();
         private static readonly Queue<TextRenderJob>                    RenderJobs  = new Queue<TextRenderJob>();
 
+        // Update text using the job queue
         public static TextRenderJob UpdateText(DecalText oldText, DecalText newText, UnityAction<TextRenderOutput> renderFinishedCallback) {
             if (newText == null) throw new ArgumentNullException(nameof(newText));
 
@@ -46,6 +46,7 @@ namespace ConformalDecals.Text {
             return job;
         }
 
+        // Update text immediately without using job queue
         public static TextRenderOutput UpdateTextNow(DecalText oldText, DecalText newText) {
             if (newText == null) throw new ArgumentNullException(nameof(newText));
 
@@ -74,16 +75,6 @@ namespace ConformalDecals.Text {
             DontDestroyOnLoad(gameObject);
         }
 
-        private void Update() {
-            // TODO: ASYNC RENDERING
-            // bool renderNeeded;
-            // do {
-            //     if (RenderJobs.Count == 0) return;
-            //     var nextJob = RenderJobs.Dequeue();
-            //     RunJob(nextJob, out renderNeeded);
-            // } while (!renderNeeded);
-        }
-
         private void Setup() {
             if (_isSetup) return;
 
@@ -98,6 +89,7 @@ namespace ConformalDecals.Text {
             _isSetup = true;
         }
 
+        // Run a text render job
         private TextRenderOutput RunJob(TextRenderJob job, out bool renderNeeded) {
             if (!job.Needed) {
                 renderNeeded = false;
@@ -131,32 +123,27 @@ namespace ConformalDecals.Text {
 
             // now that all old references are handled, begin rendering the new output
 
-            if (RenderCache.TryGetValue(job.NewText, out var cachedRender)) {
-                Debug.Log("Using Cached Render Output");
-                Debug.Log($"Finished Text Rendering Job. queue depth = {RenderJobs.Count}, cache size = {RenderCache.Count}");
-
-                cachedRender.UserCount++;
-                job.Finish(cachedRender);
+            if (RenderCache.TryGetValue(job.NewText, out var renderOutput)) {
                 renderNeeded = false;
-                return cachedRender;
+            }
+            else {
+                renderNeeded = true;
+
+                renderOutput = RenderText(job.NewText, texture);
+                RenderCache.Add(job.NewText, renderOutput);
             }
 
-            var output = RenderText(job.NewText, texture);
-            output.UserCount++;
-            RenderCache.Add(job.NewText, output);
-
-            job.Finish(output);
-            Debug.Log($"Finished Text Rendering Job. queue depth = {RenderJobs.Count}, cache size = {RenderCache.Count}");
-            renderNeeded = true;
-            return output;
+            renderOutput.UserCount++;
+            
+            job.Finish(renderOutput);
+            return renderOutput;
         }
 
+        // Render a piece of text to a given texture
         public TextRenderOutput RenderText(DecalText text, Texture2D texture) {
             if (text == null) throw new ArgumentNullException(nameof(text));
             if (_tmp == null) throw new InvalidOperationException("TextMeshPro object not yet created.");
             
-            Debug.Log($"[ConformalDecals] rendering text '{text.Text}' in {text.Font.Name}");
-
             // SETUP TMP OBJECT FOR RENDERING
             _tmp.text = text.FormattedText;
             _tmp.font = text.Font.FontAsset;
@@ -181,7 +168,6 @@ namespace ConformalDecals.Text {
 
             var bounds = new Bounds();
 
-            Debug.Log($"meshFilter count: {meshFilters.Length}");
             // SETUP MATERIALS AND BOUNDS
             for (int i = 0; i < meshFilters.Length; i++) {
                 var renderer = meshFilters[i].gameObject.GetComponent<MeshRenderer>();
@@ -215,8 +201,6 @@ namespace ConformalDecals.Text {
                 return new TextRenderOutput(Texture2D.blackTexture, Rect.zero);
             }
 
-            Debug.Log($"Texture size: {textureSize}");
-
             // make sure texture isnt too big, scale it down if it is
             // this is just so you dont crash the game by pasting in the entire script of The Bee Movie
             if (textureSize.x > MaxTextureSize) {
@@ -237,8 +221,6 @@ namespace ConformalDecals.Text {
                 size = size * sizeRatio,
                 center = (Vector2) textureSize / 2
             };
-
-            Debug.Log($"Window size: {window.size}");
 
             // SETUP TEXTURE
             if (texture == null) {

@@ -6,7 +6,6 @@ float _OutlineWidth;
 void surf(DecalSurfaceInput IN, inout SurfaceOutput o) {
     float4 color = _DecalColor;
     float dist = _Cutoff - tex2D(_Decal, IN.uv_decal).r; // text distance
-    float ddist = SDFdDist(dist); // distance gradient magnitude
     
     #ifdef DECAL_OUTLINE
         // Outline
@@ -16,7 +15,7 @@ void surf(DecalSurfaceInput IN, inout SurfaceOutput o) {
         #ifdef DECAL_FILL
             // Outline and Fill
             float outlineDist = -dist - outlineOffset;
-            float outlineFactor = SDFAA(outlineDist, ddist);
+            float outlineFactor = SDFAA(outlineDist);
             dist -= outlineOffset;
             color = lerp(_DecalColor, _OutlineColor, outlineFactor);
         #else
@@ -28,6 +27,7 @@ void surf(DecalSurfaceInput IN, inout SurfaceOutput o) {
     #endif
 
     dist = max(dist, BoundsDist(IN.uv, IN.vertex_normal, _DecalNormal));
+    float ddist = SDFdDist(dist); // distance gradient magnitude
     o.Alpha = _DecalOpacity * SDFAA(dist, ddist);
     o.Albedo = UnderwaterFog(IN.worldPosition, color).rgb;
 

@@ -246,8 +246,6 @@ namespace ConformalDecals {
 
             _boundsRenderer = decalProjectorTransform.GetComponent<MeshRenderer>();
 
-            UpdateMaterials();
-
             // handle tweakables
             if (HighLogic.LoadedSceneIsEditor) {
                 GameEvents.onEditorPartEvent.Add(OnEditorEvent);
@@ -360,7 +358,7 @@ namespace ConformalDecals {
             }
         }
 
-        protected void OnAttach() {
+        protected virtual void OnAttach() {
             if (part.parent == null) {
                 this.LogError("Attach function called but part has no parent!");
                 _isAttached = false;
@@ -383,7 +381,7 @@ namespace ConformalDecals {
             UpdateScale();
         }
 
-        protected void OnDetach() {
+        protected virtual void OnDetach() {
             _isAttached = false;
 
             // unhide model
@@ -456,7 +454,7 @@ namespace ConformalDecals {
             }
         }
 
-        protected void UpdateMaterials() {
+        protected virtual void UpdateMaterials() {
             materialProperties.UpdateMaterials();
             materialProperties.SetOpacity(opacity);
             materialProperties.SetCutoff(cutoff);
@@ -500,7 +498,7 @@ namespace ConformalDecals {
             }
         }
 
-        protected void UpdateTweakables() {
+        protected virtual void UpdateTweakables() {
             // setup tweakable fields
             var scaleField = Fields[nameof(scale)];
             var depthField = Fields[nameof(depth)];
@@ -514,7 +512,7 @@ namespace ConformalDecals {
             cutoffField.guiActiveEditor = cutoffAdjustable;
             wearField.guiActiveEditor = useBaseNormal;
 
-            var steps = 20;
+            var steps = 40;
 
             if (scaleAdjustable) {
                 var minValue = Mathf.Max(Mathf.Epsilon, scaleRange.x);

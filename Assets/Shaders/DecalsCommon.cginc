@@ -4,7 +4,7 @@
 #include "AutoLight.cginc"
 #include "Lighting.cginc"
 
-#define CLIP_MARGIN 0.1
+#define CLIP_MARGIN 0.05
 #define EDGE_MARGIN 0.01
 
 // UNIFORM VARIABLES
@@ -85,7 +85,7 @@ struct DecalSurfaceInput
     
     #ifdef DECAL_BASE_NORMAL
         float3 normal;
-    #endif
+    #endif //DECAL_BASE_NORMAL
 
     float3 vertex_normal;
     float3 viewDir;
@@ -150,14 +150,7 @@ inline float BoundsDist(float3 p, float3 normal, float3 projNormal) {
         float dist = max(max(q.x, q.y), q.z); // pseudo SDF
         float ndist = EDGE_MARGIN - dot(normal, projNormal); // SDF to normal
         return 10 * max(dist, ndist); // return intersection
-    #endif
-}
-
-inline float SDFAA(float dist) {
-    float ddist = length(float2(ddx(dist), ddy(dist)));
-    float pixelDist = dist / ddist;
-    return saturate(0.5-pixelDist);
-    return saturate(0.5 - dist);
+    #endif //DECAL_PREVIEW
 }
 
 #endif

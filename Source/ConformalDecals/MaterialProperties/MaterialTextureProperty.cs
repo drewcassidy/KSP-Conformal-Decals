@@ -19,7 +19,10 @@ namespace ConformalDecals.MaterialProperties {
         [SerializeField] private Vector2 _textureOffset;
         [SerializeField] private Vector2 _textureScale = Vector2.one;
 
-        public Texture2D Texture => _texture;
+        public Texture2D Texture {
+            get => _texture;
+            set => _texture = value;
+        }
 
         public string TextureUrl {
             get => _textureUrl;

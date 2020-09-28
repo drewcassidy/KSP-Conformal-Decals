@@ -202,7 +202,7 @@ namespace ConformalDecals.MaterialProperties {
         public void SetShader(string shaderName) {
             if (string.IsNullOrEmpty(shaderName)) {
                 if (_shader == null) {
-                    Debug.Log("Using default decal shader");
+                    Logging.Log("Using default decal shader");
                     shaderName = "ConformalDecals/Decal/Standard";
                 }
                 else {
@@ -211,7 +211,7 @@ namespace ConformalDecals.MaterialProperties {
             }
 
             if (DecalConfig.IsLegacy(shaderName, out var newShader, out var keywords)) {
-                Debug.LogWarning($"[ConformalDecals] Part is using shader {shaderName}, which has been replaced by {newShader}.");
+                Logging.LogWarning($"Part is using shader {shaderName}, which has been replaced by {newShader}.");
                 shaderName = newShader;
                 foreach (var keyword in keywords) {
                     var newProperty = AddOrGetProperty<MaterialKeywordProperty>(keyword);

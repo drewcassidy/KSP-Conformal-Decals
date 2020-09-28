@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using ConformalDecals.Util;
 using TMPro;
 using UnityEngine;
 using UnityEngine.Events;
@@ -66,7 +67,6 @@ namespace ConformalDecals.Text {
 
         /// Unregister a user of a piece of text
         public static void UnregisterText(DecalText text) {
-            Debug.Log($"[ConformalDecals] Unregistering text '{text.Text}'");
             if (RenderCache.TryGetValue(text, out var renderedText)) {
                 renderedText.UserCount--;
                 if (renderedText.UserCount <= 0) {
@@ -78,10 +78,10 @@ namespace ConformalDecals.Text {
 
         private void Start() {
             if (_instance != null) {
-                Debug.Log("[ConformalDecals] Duplicate TextRenderer created???");
+                Logging.LogError("Duplicate TextRenderer created???");
             }
 
-            Debug.Log("[ConformalDecals] Creating TextRenderer Object");
+            Logging.Log("Creating TextRenderer Object");
             _instance = this;
             DontDestroyOnLoad(gameObject);
         }
@@ -90,13 +90,13 @@ namespace ConformalDecals.Text {
         private void Setup() {
             if (_isSetup) return;
 
-            Debug.Log("[ConformalDecals] Setting Up TextRenderer Object");
+            Logging.Log("Setting Up TextRenderer Object");
 
             _tmp = gameObject.AddComponent<TextMeshPro>();
             _tmp.renderer.enabled = false; // dont automatically render
 
             _blitShader = Shabby.Shabby.FindShader(ShaderName);
-            if (_blitShader == null) Debug.LogError($"[ConformalDecals] could not find text blit shader named '{ShaderName}'");
+            if (_blitShader == null) Logging.LogError($"Could not find text blit shader named '{ShaderName}'");
 
             _isSetup = true;
         }
@@ -106,11 +106,6 @@ namespace ConformalDecals.Text {
             if (!job.Needed) {
                 renderNeeded = false;
                 return null;
-            }
-
-            Debug.Log($"[ConformalDecals] Starting Text Rendering Job. queue depth = {RenderJobs.Count}, cache size = {RenderCache.Count}");
-            foreach (var cacheitem in RenderCache) {
-                Debug.Log($"[ConformalDecals] Cache item: '{cacheitem.Key.Text}' with {cacheitem.Value.UserCount} users");
             }
 
             job.Start();
@@ -123,14 +118,9 @@ namespace ConformalDecals.Text {
 
                 if (oldRender.UserCount <= 0) {
                     // this is the only usage of this output, so we are free to re-render into the texture
-                    Debug.Log("Render output is not shared with other users, so reusing texture and removing cache slot");
 
                     texture = oldRender.Texture;
                     RenderCache.Remove(job.OldText);
-                }
-                else {
-                    // other things are using this render output, so decriment usercount, and we'll make a new entry instead
-                    Debug.Log("Render output is shared with other users, so making new output");
                 }
             }
 
@@ -210,7 +200,7 @@ namespace ConformalDecals.Text {
             };
 
             if (textureSize.x == 0 || textureSize.y == 0) {
-                Debug.LogWarning("[ConformalDecals] No text present or error in texture size calculation. Aborting.");
+                Logging.LogWarning("No text present or error in texture size calculation. Aborting.");
                 return new TextRenderOutput(Texture2D.blackTexture, Rect.zero);
             }
 

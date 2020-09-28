@@ -44,7 +44,6 @@ namespace ConformalDecals.UI {
             var tags = window.GetComponentsInChildren<UITag>(true);
 
             foreach (var tag in tags) {
-                Debug.Log($"Handling object {tag.gameObject.name}");
                 switch (tag.type) {
                     case UITag.UIType.Window:
                         ProcessImage(tag.gameObject, skin.window);

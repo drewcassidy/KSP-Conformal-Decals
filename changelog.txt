@@ -2,15 +2,16 @@ v0.2.0
 ------
 - New Parts:
  - CDL-3 Surface Base Decal: A set of conformal decals based on the symbols from the movie Moon designed by Gavin Rothery
+ - CDL-T Custom Text Decal: A customizable text decal with a variety of fonts
 - Changes:
  - New "KEYWORD" material modifier, allowing for shader features to be enabled and disabled.
  - material modifiers can now be removed in variants by setting `remove = true` inside them.
- - Unified all shaders into a single "Standard" shader with variants supporting any combination of bump, specular and emissive maps, plus SDF alphas.
+ - Unified all decal shaders into a single "Standard" shader with variants supporting any combination of bump, specular and emissive maps, plus SDF alphas.
   - Old shaders are remapped to Standard shader plus keywords automatically.
   - New SDF-based antialiasing for when decals extend to their borders, i.e. on opaque flags.
 - Fixes:
  - Fixed WIDTH and HEIGHT scale modes being flipped
- - Removed debug log statements
+ - Removed some debug log statements
 
 v0.1.4
 ------

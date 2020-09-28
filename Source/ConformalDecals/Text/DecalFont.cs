@@ -6,13 +6,17 @@ using UniLinq;
 
 namespace ConformalDecals.Text {
     public class DecalFont : IEquatable<DecalFont> {
+        /// Human-readable name for the font
         public string Title { get; }
 
-        public TMP_FontAsset FontAsset { get; }
-
+        /// Internal name for the font
         public string Name => FontAsset.name;
 
+        /// The font asset itself
+        public TMP_FontAsset FontAsset { get; }
 
+        /// Styles that are forced on for this font,
+        /// e.g. smallcaps for a font without lower case characters
         public FontStyles FontStyle { get; }
 
         public bool Bold => (FontStyle & FontStyles.Bold) != 0;
@@ -23,7 +27,8 @@ namespace ConformalDecals.Text {
 
         public bool SmallCaps => (FontStyle & FontStyles.SmallCaps) != 0;
 
-
+        /// Styles that are forced off for this font,
+        /// e.g. underline for a font with no underscore character
         public FontStyles FontStyleMask { get; }
 
         public bool BoldMask => (FontStyleMask & FontStyles.Bold) != 0;

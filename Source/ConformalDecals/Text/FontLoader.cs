@@ -6,6 +6,7 @@ using UniLinq;
 using UnityEngine;
 
 namespace ConformalDecals.Text {
+    /// KSP database loader for KSPFont files which contain TextMeshPro font assets
     [DatabaseLoaderAttrib(new[] {"kspfont"})]
     public class FontLoader : DatabaseLoader<GameDatabase.TextureInfo> {
         private const  string        FallbackName = "NotoSans-Regular SDF";

@@ -3,12 +3,16 @@ using System.Text.RegularExpressions;
 
 namespace ConformalDecals.Text {
     public class DecalText : IEquatable<DecalText> {
+        /// Raw text contents
         public string Text { get; }
 
+        /// Font asset used by this text snippet
         public DecalFont Font { get; }
 
+        /// Style used by this text snippet
         public DecalTextStyle Style { get; }
 
+        /// The text formatted with newlines for vertical text
         public string FormattedText {
             get {
                 if (Style.Vertical) {

@@ -5,11 +5,21 @@ using UnityEngine;
 using UnityEngine.Events;
 
 namespace ConformalDecals.Text {
+    // TODO: Testing shows the job system is unnecessary, so remove job system code.
+
+    /// Class handing text rendering.
+    /// Is a singleton referencing a single gameobject in the scene which contains the TextMeshPro component
     [KSPAddon(KSPAddon.Startup.Instantly, true)]
     public class TextRenderer : MonoBehaviour {
-        public const TextureFormat       TextTextureFormat       = TextureFormat.RG16;
+        /// Texture format used for returned textures.
+        /// Unfortunately due to how Unity textures work, this cannot be R8 or Alpha8,
+        /// so theres always a superfluous green channel using memory
+        public const TextureFormat TextTextureFormat = TextureFormat.RG16;
+
+        /// Render Texture format used when rendering
         public const RenderTextureFormat TextRenderTextureFormat = RenderTextureFormat.R8;
 
+        /// The text renderer object within the scene which contains the TextMeshPro component used for rendering.
         public static TextRenderer Instance {
             get {
                 if (!_instance._isSetup) {
@@ -20,6 +30,7 @@ namespace ConformalDecals.Text {
             }
         }
 
+        /// Text Render unityevent, used with the job system to signal render completion
         [Serializable]
         public class TextRenderEvent : UnityEvent<TextRenderOutput> { }
 
@@ -37,7 +48,7 @@ namespace ConformalDecals.Text {
         private static readonly Dictionary<DecalText, TextRenderOutput> RenderCache = new Dictionary<DecalText, TextRenderOutput>();
         private static readonly Queue<TextRenderJob>                    RenderJobs  = new Queue<TextRenderJob>();
 
-        // Update text using the job queue
+        /// Update text using the job queue
         public static TextRenderJob UpdateText(DecalText oldText, DecalText newText, UnityAction<TextRenderOutput> renderFinishedCallback) {
             if (newText == null) throw new ArgumentNullException(nameof(newText));
 
@@ -46,14 +57,14 @@ namespace ConformalDecals.Text {
             return job;
         }
 
-        // Update text immediately without using job queue
+        /// Update text immediately without using job queue
         public static TextRenderOutput UpdateTextNow(DecalText oldText, DecalText newText) {
             if (newText == null) throw new ArgumentNullException(nameof(newText));
 
             return Instance.RunJob(new TextRenderJob(oldText, newText, null), out _);
         }
 
-        // Unregister a user of a piece of text
+        /// Unregister a user of a piece of text
         public static void UnregisterText(DecalText text) {
             Debug.Log($"[ConformalDecals] Unregistering text '{text.Text}'");
             if (RenderCache.TryGetValue(text, out var renderedText)) {
@@ -75,6 +86,7 @@ namespace ConformalDecals.Text {
             DontDestroyOnLoad(gameObject);
         }
 
+        /// Setup this text renderer instance for rendering
         private void Setup() {
             if (_isSetup) return;
 
@@ -89,7 +101,7 @@ namespace ConformalDecals.Text {
             _isSetup = true;
         }
 
-        // Run a text render job
+        /// Run a text render job
         private TextRenderOutput RunJob(TextRenderJob job, out bool renderNeeded) {
             if (!job.Needed) {
                 renderNeeded = false;
@@ -100,6 +112,7 @@ namespace ConformalDecals.Text {
             foreach (var cacheitem in RenderCache) {
                 Debug.Log($"[ConformalDecals] Cache item: '{cacheitem.Key.Text}' with {cacheitem.Value.UserCount} users");
             }
+
             job.Start();
 
             Texture2D texture = null;
@@ -134,16 +147,16 @@ namespace ConformalDecals.Text {
             }
 
             renderOutput.UserCount++;
-            
+
             job.Finish(renderOutput);
             return renderOutput;
         }
 
-        // Render a piece of text to a given texture
+        /// Render a piece of text to a given texture
         public TextRenderOutput RenderText(DecalText text, Texture2D texture) {
             if (text == null) throw new ArgumentNullException(nameof(text));
             if (_tmp == null) throw new InvalidOperationException("TextMeshPro object not yet created.");
-            
+
             // SETUP TMP OBJECT FOR RENDERING
             _tmp.text = text.FormattedText;
             _tmp.font = text.Font.FontAsset;
@@ -171,13 +184,13 @@ namespace ConformalDecals.Text {
             // SETUP MATERIALS AND BOUNDS
             for (int i = 0; i < meshFilters.Length; i++) {
                 var renderer = meshFilters[i].gameObject.GetComponent<MeshRenderer>();
-                
+
                 meshes[i] = meshFilters[i].mesh;
                 if (i == 0) meshes[i] = _tmp.mesh;
 
                 materials[i] = Instantiate(renderer.material);
                 materials[i].shader = _blitShader;
-                
+
                 if (renderer == null) throw new FormatException($"Object {meshFilters[i].gameObject.name} has filter but no renderer");
                 if (meshes[i] == null) throw new FormatException($"Object {meshFilters[i].gameObject.name} has a null mesh");
 

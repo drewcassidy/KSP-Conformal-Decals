@@ -100,7 +100,6 @@
         <Compile Include="UI\ColorChannelSlider.cs" />
         <Compile Include="Util/Logging.cs" />
         <Compile Include="Util/OrientedBounds.cs" />
-        <Compile Include="Util/TextureUtils.cs" />
         <Compile Include="Util/ParseUtil.cs" />
         <Compile Include="UI/BoxSlider.cs" />
         <Compile Include="Util\ColorHSL.cs" />

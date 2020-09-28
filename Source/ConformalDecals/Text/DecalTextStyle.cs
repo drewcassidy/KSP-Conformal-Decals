@@ -1,14 +1,15 @@
 using System;
 using TMPro;
 using UnityEngine;
+
 // ReSharper disable NonReadonlyMemberInGetHashCode
 
 namespace ConformalDecals.Text {
     public struct DecalTextStyle : IEquatable<DecalTextStyle> {
         private FontStyles _fontStyle;
-        private bool _vertical;
-        private float _lineSpacing;
-        private float _charSpacing;
+        private bool       _vertical;
+        private float      _lineSpacing;
+        private float      _charSpacing;
 
         public FontStyles FontStyle {
             get => _fontStyle;
@@ -61,7 +62,7 @@ namespace ConformalDecals.Text {
             get => _charSpacing;
             set => _charSpacing = value;
         }
-        
+
         public DecalTextStyle(FontStyles fontStyle, bool vertical, float lineSpacing, float charSpacing) {
             _fontStyle = fontStyle;
             _vertical = vertical;
@@ -70,7 +71,7 @@ namespace ConformalDecals.Text {
         }
 
         public bool Equals(DecalTextStyle other) {
-            return FontStyle == other.FontStyle && Vertical == other.Vertical && 
+            return FontStyle == other.FontStyle && Vertical == other.Vertical &&
                    Mathf.Approximately(LineSpacing, other.LineSpacing) &&
                    Mathf.Approximately(CharSpacing, other.CharSpacing);
         }

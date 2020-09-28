@@ -1,5 +1,6 @@
 using System;
 using ConformalDecals.Text;
+using ConformalDecals.Util;
 using TMPro;
 using UnityEngine;
 using UnityEngine.Events;
@@ -102,7 +103,7 @@ namespace ConformalDecals.UI {
                 _style.LineSpacing = Mathf.Clamp(value, _lineSpacingRange.x, _lineSpacingRange.y);
             }
             else {
-                Debug.LogWarning("[ConformalDecals] line spacing value '{text}' could not be parsed.");
+                Logging.LogWarning("Line spacing value '{text}' could not be parsed.");
             }
             
             UpdateLineSpacing();
@@ -125,7 +126,7 @@ namespace ConformalDecals.UI {
                 _style.CharSpacing = Mathf.Clamp(value, _charSpacingRange.x, _charSpacingRange.y);
             }
             else {
-                Debug.LogWarning("[ConformalDecals] char spacing value '{text}' could not be parsed.");
+                Logging.LogWarning("Char spacing value '{text}' could not be parsed.");
             }
             
             UpdateCharSpacing();

@@ -107,7 +107,7 @@ namespace ConformalDecals {
         }
 
         private static Texture2D MakeBlankNormal() {
-            Debug.Log("ConformalDecals: Generating neutral normal map texture");
+            Logging.Log("Generating neutral normal map texture");
             var width = 2;
             var height = 2;
             var color = new Color32(255, 128, 128, 128);
@@ -133,7 +133,7 @@ namespace ConformalDecals {
             var configs = GameDatabase.Instance.GetConfigs("CONFORMALDECALS");
 
             if (configs.Length > 0) {
-                Debug.Log("ConformalDecals: loading config");
+                Logging.Log("loading config");
                 foreach (var config in configs) {
                     ParseConfig(config.config);
                 }

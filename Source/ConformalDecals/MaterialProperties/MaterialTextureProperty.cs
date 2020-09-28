@@ -109,7 +109,7 @@ namespace ConformalDecals.MaterialProperties {
         }
 
         private static Texture2D LoadTexture(string textureUrl, bool isNormal) {
-            Debug.Log($"loading texture '{textureUrl}', isNormalMap = {isNormal}");
+            //Logging.Log($"loading texture '{textureUrl}', isNormalMap = {isNormal}");
             if ((string.IsNullOrEmpty(textureUrl) && isNormal) || textureUrl == "Bump") {
                 return Texture2D.normalTexture;
             }

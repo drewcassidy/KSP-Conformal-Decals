@@ -46,7 +46,6 @@ namespace ConformalDecals.UI {
             Toggle active = null;
 
             foreach (var font in fonts.OrderBy(x => x.Title)) {
-                Debug.Log(font.Title);
                 var listItem = GameObject.Instantiate(_menuItem, _menuList.transform);
                 listItem.name = font.Title;
                 listItem.SetActive(true);

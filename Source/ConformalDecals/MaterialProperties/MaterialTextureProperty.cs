@@ -67,8 +67,7 @@ namespace ConformalDecals.MaterialProperties {
         public override void Modify(Material material) {
             if (material == null) throw new ArgumentNullException(nameof(material));
             if (_texture == null) {
-                _texture = Texture2D.whiteTexture;
-                throw new NullReferenceException("texture is null, but should not be");
+                _texture = isNormal ? DecalConfig.BlankNormal : Texture2D.whiteTexture;
             }
 
             material.SetTexture(_propertyID, _texture);

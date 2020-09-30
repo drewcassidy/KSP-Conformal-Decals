@@ -30,12 +30,20 @@ namespace ConformalDecals.MaterialProperties {
 
         public Shader DecalShader => _shader;
 
+        public IEnumerable<Material> Materials {
+            get {
+                yield return PreviewMaterial;
+                yield return DecalMaterial;
+            }
+        }
+
         public Material DecalMaterial {
             get {
                 if (_decalMaterial == null) {
                     _decalMaterial = new Material(_shader);
 
                     _decalMaterial.SetInt(DecalPropertyIDs._Cull, (int) CullMode.Off);
+                    _decalMaterial.SetInt(DecalPropertyIDs._ZWrite, 0);
                     _decalMaterial.renderQueue = RenderQueue;
                 }
 
@@ -50,6 +58,7 @@ namespace ConformalDecals.MaterialProperties {
 
                     _previewMaterial.EnableKeyword("DECAL_PREVIEW");
                     _previewMaterial.SetInt(DecalPropertyIDs._Cull, (int) CullMode.Back);
+                    _previewMaterial.SetInt(DecalPropertyIDs._ZWrite, 1);
                 }
 
                 return _previewMaterial;
@@ -69,7 +78,6 @@ namespace ConformalDecals.MaterialProperties {
         public float AspectRatio => MainTexture == null ? 1 : MainTexture.AspectRatio;
 
         public void OnBeforeSerialize() {
-            Debug.Log($"Serializing MaterialPropertyCollection {this.GetInstanceID()}");
             if (_materialProperties == null) throw new SerializationException("Tried to serialize an uninitialized MaterialPropertyCollection");
 
             _serializedNames = _materialProperties.Keys.ToArray();
@@ -77,7 +85,6 @@ namespace ConformalDecals.MaterialProperties {
         }
 
         public void OnAfterDeserialize() {
-            Debug.Log($"Deserializing MaterialPropertyCollection {this.GetInstanceID()}");
             if (_serializedNames == null) throw new SerializationException("ID array is null");
             if (_serializedProperties == null) throw new SerializationException("Property array is null");
             if (_serializedProperties.Length != _serializedNames.Length) throw new SerializationException("Material property arrays are different lengths.");
@@ -95,7 +102,6 @@ namespace ConformalDecals.MaterialProperties {
         }
 
         public void Awake() {
-            Debug.Log($"MaterialPropertyCollection {this.GetInstanceID()} onAwake");
             _materialProperties ??= new Dictionary<string, MaterialProperty>();
         }
 
@@ -145,6 +151,20 @@ namespace ConformalDecals.MaterialProperties {
             }
         }
 
+        public bool RemoveProperty(string propertyName) {
+            if (_materialProperties.TryGetValue(propertyName, out var property)) {
+                foreach (var material in Materials) {
+                    property.Remove(material);
+                }
+                _materialProperties.Remove(propertyName);
+                Destroy(property);
+                
+                return true;
+            }
+
+            return false;
+        }
+
         public MaterialTextureProperty AddTextureProperty(string propertyName, bool isMain = false) {
             var newProperty = AddProperty<MaterialTextureProperty>(propertyName);
             if (isMain) _mainTexture = newProperty;
@@ -167,6 +187,8 @@ namespace ConformalDecals.MaterialProperties {
             string propertyName = "";
             if (!ParseUtil.ParseStringIndirect(ref propertyName, node, "name")) throw new ArgumentException("node has no name");
 
+            if (ParseUtil.ParseBool(node, "remove", true)) RemoveProperty(propertyName);
+
             var newProperty = AddOrGetProperty<T>(propertyName);
             newProperty.ParseNode(node);
 
@@ -180,11 +202,20 @@ namespace ConformalDecals.MaterialProperties {
         public void SetShader(string shaderName) {
             if (string.IsNullOrEmpty(shaderName)) {
                 if (_shader == null) {
-                    Debug.Log("Using default decal shader");
-                    shaderName = "ConformalDecals/Paint/Diffuse";
+                    Logging.Log("Using default decal shader");
+                    shaderName = "ConformalDecals/Decal/Standard";
                 }
                 else {
                     return;
+                }
+            }
+
+            if (DecalConfig.IsLegacy(shaderName, out var newShader, out var keywords)) {
+                Logging.LogWarning($"Part is using shader {shaderName}, which has been replaced by {newShader}.");
+                shaderName = newShader;
+                foreach (var keyword in keywords) {
+                    var newProperty = AddOrGetProperty<MaterialKeywordProperty>(keyword);
+                    newProperty.value = true;
                 }
             }
 
@@ -208,8 +239,6 @@ namespace ConformalDecals.MaterialProperties {
         public void UpdateTile(Rect tile) {
             if (_mainTexture == null) throw new InvalidOperationException("UpdateTile called but no main texture is specified!");
             var mainTexSize = _mainTexture.Dimensions;
-
-            Debug.Log($"Main texture is {_mainTexture.PropertyName} and its size is {mainTexSize}");
 
             foreach (var entry in _materialProperties) {
                 if (entry.Value is MaterialTextureProperty textureProperty && textureProperty.autoTile) {
@@ -244,8 +273,9 @@ namespace ConformalDecals.MaterialProperties {
         }
 
         public void UpdateMaterials() {
-            UpdateMaterial(DecalMaterial);
-            UpdateMaterial(PreviewMaterial);
+            foreach (var material in Materials) {
+                UpdateMaterial(material);
+            }
         }
 
         public void UpdateMaterial(Material material) {

@@ -1,3 +1,24 @@
+v0.2.0
+------
+- New Parts:
+ - CDL-3 Surface Base Decal: A set of conformal decals based on the symbols from the movie Moon (2009) designed by Gavin Rothery
+ - CDL-T Custom Text Decal: A customizable text decal with a variety of fonts
+- Changes:
+ - New ModuleConformalText module for customizable text
+  - Text, font, and style can all be customized, as well as text fill and outline colors and widths
+  - Same projection and opacity options as other conformal decals
+  - New StandardText decal shader supporting the text module
+ - Unified all decal shaders into a single "StandardDecal" shader with variants supporting any combination of bump, specular and emissive maps, plus SDF alphas.
+  - Old shaders are remapped to Standard shader plus keywords automatically.
+  - New SDF-based antialiasing for when decals extend to their borders, e.g. on opaque flags.
+ - New "KEYWORD" material modifier, allowing for shader features to be enabled and disabled.
+ - Material modifiers can now be removed in variants by setting `remove = true` inside them.
+- Fixes:
+ - Fixed WIDTH and HEIGHT scale modes being flipped
+ - Removed some debug log statements
+- Dependencies:
+ - Updated ModuleManager to version 4.1.4
+
 v0.1.4
 ------
 - Supported KSP versions: 1.8.x to 1.10.x

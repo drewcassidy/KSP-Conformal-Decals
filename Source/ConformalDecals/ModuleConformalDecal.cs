@@ -19,7 +19,7 @@ namespace ConformalDecals {
 
         // CONFIGURABLE VALUES
 
-        [KSPField] public string shader = "ConformalDecals/Paint/Diffuse";
+        [KSPField] public string shader = "ConformalDecals/Decal/Standard";
 
         [KSPField] public string decalFront     = "Decal-Front";
         [KSPField] public string decalBack      = "Decal-Back";
@@ -130,7 +130,6 @@ namespace ConformalDecals {
 
         /// <inheritdoc />
         public override void OnLoad(ConfigNode node) {
-            this.Log("Loading module");
             try {
                 // SETUP TRANSFORMS
                 decalFrontTransform = part.FindModelTransform(decalFront);
@@ -150,7 +149,6 @@ namespace ConformalDecals {
 
                 // SETUP BACK MATERIAL
                 if (updateBackScale) {
-                    this.Log("Getting material and base scale for back material");
                     var backRenderer = decalBackTransform.GetComponent<MeshRenderer>();
                     if (backRenderer == null) {
                         this.LogError($"Specified decalBack transform {decalBack} has no renderer attached! Setting updateBackScale to false.");
@@ -172,6 +170,12 @@ namespace ConformalDecals {
 
                 // set shader
                 materialProperties.SetShader(shader);
+                materialProperties.AddOrGetProperty<MaterialKeywordProperty>("DECAL_BASE_NORMAL").value = useBaseNormal;
+
+                // add keyword nodes
+                foreach (var keywordNode in node.GetNodes("KEYWORD")) {
+                    materialProperties.ParseProperty<MaterialKeywordProperty>(keywordNode);
+                }
 
                 // add texture nodes
                 foreach (var textureNode in node.GetNodes("TEXTURE")) {
@@ -190,7 +194,6 @@ namespace ConformalDecals {
 
                 // handle texture tiling parameters
                 var tileString = node.GetValue("tile");
-                this.Log(tileString);
                 if (!string.IsNullOrEmpty(tileString)) {
                     var tileValid = ParseExtensions.TryParseRect(tileString, out tileRect);
                     if (!tileValid) throw new FormatException($"Invalid rect value for tile '{tileString}'");
@@ -202,9 +205,6 @@ namespace ConformalDecals {
                 else if (tileIndex >= 0) {
                     materialProperties.UpdateTile(tileIndex, tileSize);
                 }
-
-                // QUEUE PART FOR ICON FIXING IN VAB
-                DecalIconFixer.QueuePart(part.name);
             }
             catch (Exception e) {
                 this.LogException("Exception parsing partmodule", e);
@@ -212,6 +212,10 @@ namespace ConformalDecals {
 
             UpdateMaterials();
 
+            foreach (var keyword in _decalMaterial.shaderKeywords) {
+                this.Log($"keyword: {keyword}");
+            }
+            
             if (HighLogic.LoadedSceneIsEditor) {
                 UpdateTweakables();
             }
@@ -225,6 +229,9 @@ namespace ConformalDecals {
                 opacity = defaultOpacity;
                 cutoff = defaultCutoff;
                 wear = defaultWear;
+
+                // QUEUE PART FOR ICON FIXING IN VAB
+                DecalIconFixer.QueuePart(part.name);
             }
         }
 
@@ -235,13 +242,9 @@ namespace ConformalDecals {
 
         /// <inheritdoc />
         public override void OnStart(StartState state) {
-            this.Log("Starting module");
-
             materialProperties.RenderQueue = DecalQueue;
 
             _boundsRenderer = decalProjectorTransform.GetComponent<MeshRenderer>();
-
-            UpdateMaterials();
 
             // handle tweakables
             if (HighLogic.LoadedSceneIsEditor) {
@@ -263,13 +266,13 @@ namespace ConformalDecals {
                     OnAttach();
                 }
             }
-            
+
             // handle flight events
             if (HighLogic.LoadedSceneIsFlight) {
                 GameEvents.onPartWillDie.Add(OnPartWillDie);
-                
+
                 if (part.parent == null) part.explode();
-                
+
                 Part.layerMask |= 1 << DecalConfig.DecalLayer;
                 decalColliderTransform.gameObject.layer = DecalConfig.DecalLayer;
 
@@ -354,8 +357,8 @@ namespace ConformalDecals {
                 part.Die();
             }
         }
-        
-        protected void OnAttach() {
+
+        protected virtual void OnAttach() {
             if (part.parent == null) {
                 this.LogError("Attach function called but part has no parent!");
                 _isAttached = false;
@@ -363,8 +366,6 @@ namespace ConformalDecals {
             }
 
             _isAttached = true;
-
-            this.Log($"Decal attached to {part.parent.partName}");
 
             // hide model
             decalModelTransform.gameObject.SetActive(false);
@@ -380,7 +381,7 @@ namespace ConformalDecals {
             UpdateScale();
         }
 
-        protected void OnDetach() {
+        protected virtual void OnDetach() {
             _isAttached = false;
 
             // unhide model
@@ -405,10 +406,10 @@ namespace ConformalDecals {
             switch (scaleMode) {
                 default:
                 case DecalScaleMode.HEIGHT:
-                    size = new Vector2(scale, scale * aspectRatio);
+                    size = new Vector2(scale / aspectRatio, scale);
                     break;
                 case DecalScaleMode.WIDTH:
-                    size = new Vector2(scale / aspectRatio, scale);
+                    size = new Vector2(scale, scale * aspectRatio);
                     break;
                 case DecalScaleMode.AVERAGE:
                     var width1 = 2 * scale / (1 + aspectRatio);
@@ -453,7 +454,7 @@ namespace ConformalDecals {
             }
         }
 
-        protected void UpdateMaterials() {
+        protected virtual void UpdateMaterials() {
             materialProperties.UpdateMaterials();
             materialProperties.SetOpacity(opacity);
             materialProperties.SetCutoff(cutoff);
@@ -497,7 +498,7 @@ namespace ConformalDecals {
             }
         }
 
-        protected void UpdateTweakables() {
+        protected virtual void UpdateTweakables() {
             // setup tweakable fields
             var scaleField = Fields[nameof(scale)];
             var depthField = Fields[nameof(depth)];
@@ -511,7 +512,7 @@ namespace ConformalDecals {
             cutoffField.guiActiveEditor = cutoffAdjustable;
             wearField.guiActiveEditor = useBaseNormal;
 
-            var steps = 20;
+            var steps = 40;
 
             if (scaleAdjustable) {
                 var minValue = Mathf.Max(Mathf.Epsilon, scaleRange.x);

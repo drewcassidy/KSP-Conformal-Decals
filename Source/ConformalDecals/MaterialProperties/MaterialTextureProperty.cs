@@ -10,7 +10,7 @@ namespace ConformalDecals.MaterialProperties {
         [SerializeField] public bool autoTile;
 
         [SerializeField] private string    _textureUrl;
-        [SerializeField] private Texture2D _texture = Texture2D.whiteTexture;
+        [SerializeField] private Texture2D _texture;
 
         [SerializeField] private bool _hasTile;
         [SerializeField] private Rect _tileRect;
@@ -19,7 +19,10 @@ namespace ConformalDecals.MaterialProperties {
         [SerializeField] private Vector2 _textureOffset;
         [SerializeField] private Vector2 _textureScale = Vector2.one;
 
-        public Texture2D Texture => _texture;
+        public Texture2D Texture {
+            get => _texture;
+            set => _texture = value;
+        }
 
         public string TextureUrl {
             get => _textureUrl;
@@ -55,18 +58,29 @@ namespace ConformalDecals.MaterialProperties {
             if (ParseUtil.ParseStringIndirect(ref _textureUrl, node, "textureUrl")) {
                 _texture = LoadTexture(_textureUrl, isNormal);
             }
+            
+            if (_texture == null) {
+                _texture = isNormal ? DecalConfig.BlankNormal : Texture2D.whiteTexture;
+            }
         }
 
         public override void Modify(Material material) {
             if (material == null) throw new ArgumentNullException(nameof(material));
             if (_texture == null) {
-                _texture = Texture2D.whiteTexture;
-                throw new NullReferenceException("texture is null, but should not be");
+                _texture = isNormal ? DecalConfig.BlankNormal : Texture2D.whiteTexture;
             }
 
             material.SetTexture(_propertyID, _texture);
             material.SetTextureOffset(_propertyID, _textureOffset);
             material.SetTextureScale(_propertyID, _textureScale * _scale);
+            if (_propertyName != "_Decal") material.EnableKeyword("DECAL" + _propertyName.ToUpper());
+        }
+
+        public override void Remove(Material material) {
+            if (material == null) throw new ArgumentNullException(nameof(material));
+            base.Remove(material);
+
+            if (_propertyName != "_Decal") material.DisableKeyword("DECAL" + _propertyName.ToUpper());
         }
 
         public void SetScale(Vector2 scale) {
@@ -94,7 +108,7 @@ namespace ConformalDecals.MaterialProperties {
         }
 
         private static Texture2D LoadTexture(string textureUrl, bool isNormal) {
-            Debug.Log($"loading texture '{textureUrl}', isNormalMap = {isNormal}");
+            //Logging.Log($"loading texture '{textureUrl}', isNormalMap = {isNormal}");
             if ((string.IsNullOrEmpty(textureUrl) && isNormal) || textureUrl == "Bump") {
                 return Texture2D.normalTexture;
             }

@@ -139,44 +139,53 @@ namespace ConformalDecals.Util {
             throw new FormatException($"Improperly formatted {typeof(T)} value for {valueName} : '{valueString}");
         }
 
+        public static bool TryParseHexColor(string valueString, out Color32 value) {
+            value = new Color32(0, 0, 0, byte.MaxValue);
+
+            if (!uint.TryParse(valueString, System.Globalization.NumberStyles.HexNumber, null, out var hexColor)) return false;
+
+            switch (valueString.Length) {
+                case 8: // RRGGBBAA
+                    value.a = (byte) (hexColor & 0xFF);
+                    hexColor >>= 8;
+                    goto case 6;
+
+                case 6: // RRGGBB
+                    value.b = (byte) (hexColor & 0xFF);
+                    hexColor >>= 8;
+                    value.g = (byte) (hexColor & 0xFF);
+                    hexColor >>= 8;
+                    value.r = (byte) (hexColor & 0xFF);
+                    return true;
+
+                case 4: // RGBA
+                    value.a = (byte) ((hexColor & 0xF) << 4);
+                    hexColor >>= 4;
+                    goto case 3;
+
+                case 3: // RGB
+                    value.b = (byte) (hexColor & 0xF << 4);
+                    hexColor >>= 4;
+                    value.g = (byte) (hexColor & 0xF << 4);
+                    hexColor >>= 4;
+                    value.r = (byte) (hexColor & 0xF << 4);
+                    return true;
+
+                default:
+                    return false;
+            }
+        }
+
         public static bool TryParseColor32(string valueString, out Color32 value) {
             value = new Color32(0, 0, 0, byte.MaxValue);
 
-            // HTML-style hex color
+            // hex color
             if (valueString[0] == '#') {
                 var hexColorString = valueString.Substring(1);
 
-                if (!int.TryParse(hexColorString, System.Globalization.NumberStyles.HexNumber, null, out var hexColor)) return false;
-
-                switch (hexColorString.Length) {
-                    case 8: // RRGGBBAA
-                        value.a = (byte) (hexColor & 0xFF);
-                        hexColor >>= 8;
-                        goto case 6;
-
-                    case 6: // RRGGBB
-                        value.b = (byte) (hexColor & 0xFF);
-                        hexColor >>= 8;
-                        value.g = (byte) (hexColor & 0xFF);
-                        hexColor >>= 8;
-                        value.r = (byte) (hexColor & 0xFF);
-                        return true;
-
-                    case 4: // RGBA
-                        value.a = (byte) ((hexColor & 0xF) << 4);
-                        hexColor >>= 4;
-                        goto case 3;
-
-                    case 3: // RGB
-                        value.b = (byte) (hexColor & 0xF << 4);
-                        hexColor >>= 4;
-                        value.g = (byte) (hexColor & 0xF << 4);
-                        hexColor >>= 4;
-                        value.r = (byte) (hexColor & 0xF << 4);
-                        return true;
-
-                    default:
-                        return false;
+                if (TryParseHexColor(hexColorString, out var hexColor)) {
+                    value = hexColor;
+                    return true;
                 }
             }
 
@@ -207,7 +216,14 @@ namespace ConformalDecals.Util {
                     value.g = (byte) (green * 0xFF);
                     value.b = (byte) (blue * 0xFF);
                     return true;
-
+                case 1: // try again for hex color
+                    if (TryParseHexColor(split[0], out var hexcolor)) {
+                        value = hexcolor;
+                        return true;
+                    }
+                    else {
+                        return false;
+                    }
                 default:
                     return false;
             }

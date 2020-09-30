@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using ConformalDecals.Util;
 using UnityEngine;
 
 namespace ConformalDecals {
@@ -12,11 +13,11 @@ namespace ConformalDecals {
 
         public void Start() {
             foreach (var partName in PartNames) {
-                Debug.Log($"Unf*&king decal preview on {partName}");
+                Logging.Log($"Unf*&king decal preview on '{partName}'");
                 var partInfo = PartLoader.getPartInfoByName(partName);
 
                 if (partInfo == null) {
-                    Debug.Log($"Part {partName} not found!");
+                    Logging.LogError($"Part {partName} not found!");
                     continue;
                 }
 
@@ -28,12 +29,12 @@ namespace ConformalDecals {
                 var backTransform = Part.FindHeirarchyTransform(icon.transform, decalModule.decalBack);
 
                 if (frontTransform == null) {
-                    Debug.Log($"Part {partName} has no frontTransform");
+                    Logging.Log($"Part '{partName}' has no frontTransform");
                     continue;
                 }
 
                 if (backTransform == null) {
-                    Debug.Log($"Part {partName} has no backTransform");
+                    Logging.Log($"Part '{partName}' has no backTransform");
                     continue;
                 }
 

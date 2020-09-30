@@ -1,14 +1,13 @@
 using ConformalDecals.MaterialProperties;
 using ConformalDecals.Text;
 using ConformalDecals.UI;
+using ConformalDecals.Util;
 using TMPro;
 using UnityEngine;
 
 namespace ConformalDecals {
     public class ModuleConformalText : ModuleConformalDecal, ISerializationCallbackReceiver {
-        [KSPField(isPersistant = true)] public string text         = "Text";
-        [KSPField(isPersistant = true)] public Color  fillColor    = Color.black;
-        [KSPField(isPersistant = true)] public Color  outlineColor = Color.white;
+        [KSPField(isPersistant = true)] public string text = "Text";
 
         [KSPField] public Vector2 lineSpacingRange = new Vector2(-50, 50);
         [KSPField] public Vector2 charSpacingRange = new Vector2(-50, 50);
@@ -19,6 +18,8 @@ namespace ConformalDecals {
         [KSPField(isPersistant = true)] public bool   vertical;
         [KSPField(isPersistant = true)] public float  lineSpacing;
         [KSPField(isPersistant = true)] public float  charSpacing;
+        [KSPField(isPersistant = true)] public string fillColor    = "000000FF";
+        [KSPField(isPersistant = true)] public string outlineColor = "FFFFFFFF";
 
         // KSP TWEAKABLES
 
@@ -43,7 +44,7 @@ namespace ConformalDecals {
             guiActive = false, guiActiveEditor = true)]
         public void SetFillColor() {
             if (_fillColorPickerController == null) {
-                _fillColorPickerController = ColorPickerController.Create(fillColor, OnFillColorUpdate);
+                _fillColorPickerController = ColorPickerController.Create(_fillColor, OnFillColorUpdate);
             }
             else {
                 _fillColorPickerController.Close();
@@ -66,7 +67,7 @@ namespace ConformalDecals {
             guiActive = false, guiActiveEditor = true)]
         public void SetOutlineColor() {
             if (_outlineColorPickerController == null) {
-                _outlineColorPickerController = ColorPickerController.Create(outlineColor, OnOutlineColorUpdate);
+                _outlineColorPickerController = ColorPickerController.Create(_outlineColor, OnOutlineColorUpdate);
             }
             else {
                 _outlineColorPickerController.Close();
@@ -75,6 +76,8 @@ namespace ConformalDecals {
 
         private DecalTextStyle _style;
         private DecalFont      _font;
+        private Color32        _fillColor;
+        private Color32        _outlineColor;
 
         private TextEntryController   _textEntryController;
         private ColorPickerController _fillColorPickerController;
@@ -131,23 +134,23 @@ namespace ConformalDecals {
         }
 
         public void OnFillColorUpdate(Color rgb, Util.ColorHSV hsv) {
-            fillColor = rgb;
+            _fillColor = rgb;
             UpdateMaterials();
 
             foreach (var counterpart in part.symmetryCounterparts) {
                 var decal = counterpart.GetComponent<ModuleConformalText>();
-                decal.fillColor = fillColor;
+                decal._fillColor = _fillColor;
                 decal.UpdateMaterials();
             }
         }
 
         public void OnOutlineColorUpdate(Color rgb, Util.ColorHSV hsv) {
-            outlineColor = rgb;
+            _outlineColor = rgb;
             UpdateMaterials();
 
             foreach (var counterpart in part.symmetryCounterparts) {
                 var decal = counterpart.GetComponent<ModuleConformalText>();
-                decal.outlineColor = outlineColor;
+                decal._outlineColor = _outlineColor;
                 decal.UpdateMaterials();
             }
         }
@@ -200,11 +203,23 @@ namespace ConformalDecals {
             vertical = _style.Vertical;
             lineSpacing = _style.LineSpacing;
             charSpacing = _style.CharSpacing;
+            fillColor = _fillColor.ToHexString();
+            outlineColor = _outlineColor.ToHexString();
         }
 
         public void OnAfterDeserialize() {
             _font = DecalConfig.GetFont(fontName);
             _style = new DecalTextStyle((FontStyles) style, vertical, lineSpacing, charSpacing);
+            
+            if (!ParseUtil.TryParseColor32(fillColor, out _fillColor)) {
+                Logging.LogWarning($"Improperly formatted color value for fill: '{fillColor}'");
+                _fillColor = Color.magenta;
+            }
+
+            if (!ParseUtil.TryParseColor32(outlineColor, out _outlineColor)) {
+                Logging.LogWarning($"Improperly formatted color value for outline: '{outlineColor}'");
+                _outlineColor = Color.magenta;
+            }
         }
 
         public override void OnDestroy() {
@@ -261,10 +276,10 @@ namespace ConformalDecals {
 
         protected override void UpdateMaterials() {
             _fillEnabledProperty.value = fillEnabled;
-            _fillColorProperty.color = fillColor;
+            _fillColorProperty.color = _fillColor;
 
             _outlineEnabledProperty.value = outlineEnabled;
-            _outlineColorProperty.color = outlineColor;
+            _outlineColorProperty.color = _outlineColor;
             _outlineWidthProperty.value = outlineWidth;
 
             base.UpdateMaterials();

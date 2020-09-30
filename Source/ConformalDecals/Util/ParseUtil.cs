@@ -142,7 +142,7 @@ namespace ConformalDecals.Util {
         public static bool TryParseHexColor(string valueString, out Color32 value) {
             value = new Color32(0, 0, 0, byte.MaxValue);
 
-            if (!int.TryParse(valueString, System.Globalization.NumberStyles.HexNumber, null, out var hexColor)) return false;
+            if (!uint.TryParse(valueString, System.Globalization.NumberStyles.HexNumber, null, out var hexColor)) return false;
 
             switch (valueString.Length) {
                 case 8: // RRGGBBAA
@@ -216,7 +216,14 @@ namespace ConformalDecals.Util {
                     value.g = (byte) (green * 0xFF);
                     value.b = (byte) (blue * 0xFF);
                     return true;
-
+                case 1: // try again for hex color
+                    if (TryParseHexColor(split[0], out var hexcolor)) {
+                        value = hexcolor;
+                        return true;
+                    }
+                    else {
+                        return false;
+                    }
                 default:
                     return false;
             }

@@ -12,6 +12,8 @@ v0.2.0
 - Fixes:
  - Fixed WIDTH and HEIGHT scale modes being flipped
  - Removed some debug log statements
+- Dependencies:
+ - Updated ModuleManager to version 4.1.4
 
 v0.1.4
 ------

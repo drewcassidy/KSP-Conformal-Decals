@@ -12,7 +12,7 @@ package:
 dependencies:  # Configure dependencies
   ModuleManager:
     location: url
-    url: https://ksp.sarbian.com/jenkins/job/ModuleManager/157/artifact/ModuleManager.4.1.3.dll
+    url: https://ksp.sarbian.com/jenkins/job/ModuleManager/159/artifact/ModuleManager.4.1.4.dll
     zip: false
   B9PartSwitch:
     location: url

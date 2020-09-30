@@ -33,6 +33,7 @@ namespace ConformalDecals.UI {
         private DecalTextStyle _style;
         private Vector2        _lineSpacingRange;
         private Vector2        _charSpacingRange;
+        private TMP_InputField _textBoxTMP;
 
         private FontMenuController _fontMenu;
 
@@ -79,9 +80,9 @@ namespace ConformalDecals.UI {
             _font = font;
             font.SetupSample(_fontButton.GetComponentInChildren<TextMeshProUGUI>());
 
-            var textBox = ((TMP_InputField) _textBox);
-            textBox.textComponent.fontStyle = _style.FontStyle | _font.FontStyle;
-            textBox.fontAsset = _font.FontAsset;
+            _textBoxTMP.text = _text;
+            _textBoxTMP.textComponent.fontStyle = _style.FontStyle | _font.FontStyle & ~_font.FontStyleMask;
+            _textBoxTMP.fontAsset = _font.FontAsset;
 
             UpdateStyleButtons();
             OnValueChanged();
@@ -91,11 +92,11 @@ namespace ConformalDecals.UI {
             if (_ignoreUpdates) return;
 
             _style.LineSpacing = Mathf.Lerp(_lineSpacingRange.x, _lineSpacingRange.y, value);
-            
+
             UpdateLineSpacing();
             OnValueChanged();
         }
-        
+
         public void OnLineSpacingUpdate(string text) {
             if (_ignoreUpdates) return;
 
@@ -105,7 +106,7 @@ namespace ConformalDecals.UI {
             else {
                 Logging.LogWarning("Line spacing value '{text}' could not be parsed.");
             }
-            
+
             UpdateLineSpacing();
             OnValueChanged();
         }
@@ -114,11 +115,11 @@ namespace ConformalDecals.UI {
             if (_ignoreUpdates) return;
 
             _style.CharSpacing = Mathf.Lerp(_charSpacingRange.x, _charSpacingRange.y, value);
-            
+
             UpdateCharSpacing();
             OnValueChanged();
         }
-        
+
         public void OnCharSpacingUpdate(string text) {
             if (_ignoreUpdates) return;
 
@@ -128,7 +129,7 @@ namespace ConformalDecals.UI {
             else {
                 Logging.LogWarning("Char spacing value '{text}' could not be parsed.");
             }
-            
+
             UpdateCharSpacing();
             OnValueChanged();
         }
@@ -137,6 +138,7 @@ namespace ConformalDecals.UI {
             if (_ignoreUpdates) return;
 
             _style.Bold = state;
+            _textBoxTMP.textComponent.fontStyle = _style.FontStyle | _font.FontStyle & ~_font.FontStyleMask;
             OnValueChanged();
         }
 
@@ -144,6 +146,7 @@ namespace ConformalDecals.UI {
             if (_ignoreUpdates) return;
 
             _style.Italic = state;
+            _textBoxTMP.textComponent.fontStyle = _style.FontStyle | _font.FontStyle & ~_font.FontStyleMask;
             OnValueChanged();
         }
 
@@ -151,26 +154,31 @@ namespace ConformalDecals.UI {
             if (_ignoreUpdates) return;
 
             _style.Underline = state;
+            _textBoxTMP.textComponent.fontStyle = _style.FontStyle | _font.FontStyle & ~_font.FontStyleMask;
             OnValueChanged();
         }
 
         public void OnSmallCapsUpdate(bool state) {
             if (_ignoreUpdates) return;
-
+            
             _style.SmallCaps = state;
+            _textBoxTMP.textComponent.fontStyle = _style.FontStyle | _font.FontStyle & ~_font.FontStyleMask;
             OnValueChanged();
         }
 
         public void OnVerticalUpdate(bool state) {
             if (_ignoreUpdates) return;
-
+            
             _style.Vertical = state;
             OnValueChanged();
         }
 
 
         private void Start() {
-            ((TMP_InputField) _textBox).text = _text;
+            _textBoxTMP = ((TMP_InputField) _textBox);
+            _textBoxTMP.text = _text;
+            _textBoxTMP.textComponent.fontStyle = _style.FontStyle | _font.FontStyle & ~_font.FontStyleMask;
+            _textBoxTMP.fontAsset = _font.FontAsset;
 
             _font.SetupSample(_fontButton.GetComponentInChildren<TextMeshProUGUI>());
 
@@ -245,19 +253,19 @@ namespace ConformalDecals.UI {
 
         private void UpdateLineSpacing() {
             _ignoreUpdates = true;
-            
+
             _lineSpacingSlider.value = Mathf.InverseLerp(_lineSpacingRange.x, _lineSpacingRange.y, _style.LineSpacing);
             ((TMP_InputField) _lineSpacingTextBox).text = $"{_style.LineSpacing:F1}";
-            
+
             _ignoreUpdates = false;
         }
-        
+
         private void UpdateCharSpacing() {
             _ignoreUpdates = true;
-            
+
             _charSpacingSlider.value = Mathf.InverseLerp(_charSpacingRange.x, _charSpacingRange.y, _style.CharSpacing);
             ((TMP_InputField) _charSpacingTextBox).text = $"{_style.CharSpacing:F1}";
-            
+
             _ignoreUpdates = false;
         }
     }

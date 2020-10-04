@@ -36,6 +36,9 @@
         <Reference Include="Assembly-CSharp, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null">
             <HintPath>dlls/Assembly-CSharp.dll</HintPath>
         </Reference>
+        <Reference Include="KSPAssets, Version=1.4.0.0, Culture=neutral, PublicKeyToken=null">
+          <HintPath>dlls\KSPAssets.dll</HintPath>
+        </Reference>
         <Reference Include="Shabby, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null">
             <HintPath>dlls/Shabby.dll</HintPath>
         </Reference>

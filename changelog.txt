@@ -1,3 +1,11 @@
+v0.2.1
+------
+- Changes
+ - Pressing enter in the text entry window now types a newline.
+- Fixes
+ - Renamed font assetbundle. The old extension was causing the game to try to load it twice on Windows due to legacy compatability features.
+ - Fixed text rendering on DirectX resulting in black boxes by using ARGB32 instead of RG16 for the render texture in DirectX.
+
 v0.2.0
 ------
 - New Parts:

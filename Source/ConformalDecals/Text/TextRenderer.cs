@@ -4,6 +4,7 @@ using ConformalDecals.Util;
 using TMPro;
 using UnityEngine;
 using UnityEngine.Events;
+using UnityEngine.Rendering;
 
 namespace ConformalDecals.Text {
     // TODO: Testing shows the job system is unnecessary, so remove job system code.
@@ -15,10 +16,11 @@ namespace ConformalDecals.Text {
         /// Texture format used for returned textures.
         /// Unfortunately due to how Unity textures work, this cannot be R8 or Alpha8,
         /// so theres always a superfluous green channel using memory
-        public const TextureFormat TextTextureFormat = TextureFormat.RG16;
+        public static TextureFormat textTextureFormat = TextureFormat.RG16;
 
         /// Render Texture format used when rendering
-        public const RenderTextureFormat TextRenderTextureFormat = RenderTextureFormat.R8;
+        /// Overriden below to be ARGB32 on DirectX because DirectX is dumb
+        public static RenderTextureFormat textRenderTextureFormat = RenderTextureFormat.R8;
 
         /// The text renderer object within the scene which contains the TextMeshPro component used for rendering.
         public static TextRenderer Instance {
@@ -84,6 +86,15 @@ namespace ConformalDecals.Text {
             Logging.Log("Creating TextRenderer Object");
             _instance = this;
             DontDestroyOnLoad(gameObject);
+            if (SystemInfo.graphicsDeviceType == GraphicsDeviceType.Direct3D11 || SystemInfo.graphicsDeviceType == GraphicsDeviceType.Direct3D12) {
+                textRenderTextureFormat = RenderTextureFormat.ARGB32; // DirectX is dumb
+            }
+            if (!SystemInfo.SupportsTextureFormat(textTextureFormat)) {
+                Logging.LogError($"Text texture format {textTextureFormat} not supported on this platform.");
+            }
+            if (!SystemInfo.SupportsRenderTextureFormat(textRenderTextureFormat)) {
+                Logging.LogError($"Text texture format {textRenderTextureFormat} not supported on this platform.");
+            }
         }
 
         /// Setup this text renderer instance for rendering
@@ -227,10 +238,10 @@ namespace ConformalDecals.Text {
 
             // SETUP TEXTURE
             if (texture == null) {
-                texture = new Texture2D(textureSize.x, textureSize.y, TextTextureFormat, true);
+                texture = new Texture2D(textureSize.x, textureSize.y, textTextureFormat, true);
             }
-            else if (texture.width != textureSize.x || texture.height != textureSize.y || texture.format != TextTextureFormat) {
-                texture.Resize(textureSize.x, textureSize.y, TextTextureFormat, true);
+            else if (texture.width != textureSize.x || texture.height != textureSize.y || texture.format != textTextureFormat) {
+                texture.Resize(textureSize.x, textureSize.y, textTextureFormat, true);
             }
 
             // GENERATE PROJECTION MATRIX
@@ -239,7 +250,7 @@ namespace ConformalDecals.Text {
                 bounds.center.y - halfSize.y, bounds.center.y + halfSize.y, -1, 1);
 
             // GET RENDERTEX
-            var renderTex = RenderTexture.GetTemporary(textureSize.x, textureSize.y, 0, TextRenderTextureFormat, RenderTextureReadWrite.Linear, 1);
+            var renderTex = RenderTexture.GetTemporary(textureSize.x, textureSize.y, 0, textRenderTextureFormat, RenderTextureReadWrite.Linear, 1);
             renderTex.autoGenerateMips = false;
 
             // RENDER

@@ -257,6 +257,7 @@ namespace ConformalDecals.Text {
             Graphics.SetRenderTarget(renderTex);
             GL.PushMatrix();
             GL.LoadProjectionMatrix(matrix);
+            GL.LoadIdentity();
             GL.Clear(false, true, Color.black);
 
             for (var i = 0; i < meshes.Length; i++) {

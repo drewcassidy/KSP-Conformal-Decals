@@ -11,9 +11,9 @@ branches:
   only:
     - release
 script:
-  - git clone https://github.com/post-kerbin-mining-corporation/build-deploy.git 
+  - git clone https://github.com/drewcassidy/build-deploy.git
   - cd build-deploy
-  - git checkout master
+  - git checkout main
   - cd ..
   - pytest -s --testpath "GameData/" build-deploy/src/tests/  # run the deploy tests
   - python build-deploy/src/package.py --f ".mod_data.yml"  # Build package

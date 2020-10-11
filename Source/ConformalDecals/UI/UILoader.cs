@@ -5,8 +5,8 @@ using UnityEngine.UI;
 namespace ConformalDecals.UI {
     [KSPAddon(KSPAddon.Startup.Instantly, true)]
     public class UILoader : MonoBehaviour {
-        private static readonly string Path = KSPUtil.ApplicationRootPath + "GameData/ConformalDecals/Resources/";
 
+        private static string _path;
         private static GameObject _textEntryPrefab;
         private static GameObject _fontMenuPrefab;
         private static GameObject _colorPickerPrefab;
@@ -16,7 +16,8 @@ namespace ConformalDecals.UI {
         public static GameObject ColorPickerPrefab => _colorPickerPrefab;
 
         private void Awake() {
-            var prefabs = AssetBundle.LoadFromFile(Path + "ui.conformaldecals");
+            _path = KSPUtil.ApplicationRootPath + "GameData/ConformalDecals/Resources/";
+            var prefabs = AssetBundle.LoadFromFile(_path + "ui.conformaldecals");
 
             _textEntryPrefab = prefabs.LoadAsset("TextEntryPanel") as GameObject;
             _fontMenuPrefab = prefabs.LoadAsset("FontMenuPanel") as GameObject;

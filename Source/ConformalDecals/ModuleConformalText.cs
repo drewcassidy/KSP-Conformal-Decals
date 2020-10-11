@@ -1,3 +1,4 @@
+using System.Collections;
 using ConformalDecals.MaterialProperties;
 using ConformalDecals.Text;
 using ConformalDecals.UI;
@@ -99,18 +100,20 @@ namespace ConformalDecals {
             base.OnLoad(node);
             OnAfterDeserialize();
 
-            UpdateTextRecursive();
+            if (HighLogic.LoadedSceneIsGame) {
+                // For some reason, rendering doesnt work right on the first frame a scene is loaded
+                // So delay any rendering until the next frame when called in OnLoad
+                // This is probably a problem with Unity, not KSP
+                StartCoroutine(UpdateTextLate());
+            }
+            else {
+                UpdateText();
+            }
         }
 
         public override void OnSave(ConfigNode node) {
             OnBeforeSerialize();
             base.OnSave(node);
-        }
-
-        public override void OnStart(StartState state) {
-            base.OnStart(state);
-
-            UpdateTextRecursive();
         }
 
         public override void OnAwake() {
@@ -210,7 +213,7 @@ namespace ConformalDecals {
         public void OnAfterDeserialize() {
             _font = DecalConfig.GetFont(fontName);
             _style = new DecalTextStyle((FontStyles) style, vertical, lineSpacing, charSpacing);
-            
+
             if (!ParseUtil.TryParseColor32(fillColor, out _fillColor)) {
                 Logging.LogWarning($"Improperly formatted color value for fill: '{fillColor}'");
                 _fillColor = Color.magenta;
@@ -250,6 +253,11 @@ namespace ConformalDecals {
                 decal._currentText = _currentText;
                 decal.UpdateText();
             }
+        }
+
+        private IEnumerator UpdateTextLate() {
+            yield return null;
+            UpdateText();
         }
 
         private void UpdateText() {

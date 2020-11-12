@@ -13,6 +13,7 @@ namespace ConformalDecals {
         private static Dictionary<string, DecalFont> _fontList;
         private static int                           _decalLayer = 31;
         private static bool                          _selectableInFlight;
+        private static string                        _fallbackFontName = "NotoSans-Regular SDF";
 
         private struct LegacyShaderEntry {
             public string   name;
@@ -50,8 +51,8 @@ namespace ConformalDecals {
         public static bool SelectableInFlight => _selectableInFlight;
 
         public static IEnumerable<DecalFont> Fonts => _fontList.Values;
-        
-        public static DecalFont FallbackFont { get; private set; }
+
+        public static TMP_FontAsset FallbackFont { get; private set; }
 
         public static bool IsBlacklisted(Shader shader) {
             return IsBlacklisted(shader.name);
@@ -94,14 +95,27 @@ namespace ConformalDecals {
             }
             
             var allFonts = Resources.FindObjectsOfTypeAll<TMP_FontAsset>();
-            
+            ParseUtil.ParseStringIndirect(ref _fallbackFontName, node, "fallbackFont");
+            FallbackFont = allFonts.First(o => o.name == _fallbackFontName);
+            if (FallbackFont == null) Logging.LogError($"could not find find fallback font asset named {_fallbackFontName}");
+
             foreach (var fontNode in node.GetNodes("FONT")) {
                 try {
-                    var font = new DecalFont(fontNode, allFonts);
+                    var name = ParseUtil.ParseString(fontNode, "name");
+                    if (string.IsNullOrEmpty(name)) throw new FormatException();
+                    
+                    var fontAsset = allFonts.First(o => o.name == name);
+                    if (fontAsset == null) throw new FormatException($"Could not find font asset named {name}");
+
+                    if (!fontAsset.fallbackFontAssets.Contains(FallbackFont)) {
+                        fontAsset.fallbackFontAssets.Add(FallbackFont);
+                    }
+                    
+                    var font = new DecalFont(name, fontNode, fontAsset);
                     _fontList.Add(font.Name, font);
                 }
                 catch (Exception e) {
-                    Debug.LogException(e);
+                    Logging.LogException($"Exception parsing font node:\n{fontNode.ToString()}\n", e);
                 }
             }
         }

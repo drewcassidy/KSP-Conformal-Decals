@@ -11,13 +11,12 @@ namespace ConformalDecals.Text {
     [DatabaseLoaderAttrib(new[] {"decalfont"})]
     public class FontLoader : DatabaseLoader<GameDatabase.TextureInfo> {
         private const  string        FallbackName = "NotoSans-Regular SDF";
-
-        public static TMP_FontAsset FallbackFont { get; private set; }
+        private static TMP_FontAsset _fallbackFont;
 
         public override IEnumerator Load(UrlDir.UrlFile urlFile, FileInfo fileInfo) {
-            if (FallbackFont == null) {
-                FallbackFont = Resources.FindObjectsOfTypeAll<TMP_FontAsset>().First(o => o.name == FallbackName);
-                if (FallbackFont == null) Logging.LogError($"Could not find fallback font '{FallbackName}'");
+            if (_fallbackFont == null) {
+                _fallbackFont = Resources.FindObjectsOfTypeAll<TMP_FontAsset>().First(o => o.name == FallbackName);
+                if (_fallbackFont == null) Logging.LogError($"Could not find fallback font '{FallbackName}'");
             }
 
             Logging.Log($"Loading font file '{urlFile.fullPath}'");
@@ -29,6 +28,7 @@ namespace ConformalDecals.Text {
                 var loadedFonts = bundle.LoadAllAssets<TMP_FontAsset>();
                 foreach (var font in loadedFonts) {
                     Logging.Log($"Adding font {font.name}");
+                    font.fallbackFontAssets.Add(_fallbackFont);
                 }
             }
 

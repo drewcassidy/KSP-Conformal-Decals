@@ -40,15 +40,19 @@ namespace ConformalDecals.Text {
         public bool SmallCapsMask => (FontStyleMask & FontStyles.SmallCaps) != 0;
 
 
-        public DecalFont(string name, ConfigNode node, TMP_FontAsset font) {
-            if (name == null) throw new ArgumentNullException(nameof(name));
+        public DecalFont(ConfigNode node, IEnumerable<TMP_FontAsset> fontAssets) {
             if (node == null) throw new ArgumentNullException(nameof(node));
-            if (font == null) throw new ArgumentNullException(nameof(font));
+            if (fontAssets == null) throw new ArgumentNullException(nameof(fontAssets));
+
+            var name = ParseUtil.ParseString(node, "name");
+            FontAsset = fontAssets.First(o => o.name == name);
+            if (FontAsset == null) {
+                throw new FormatException($"Could not find font asset named {name}");
+            }
 
             Title = ParseUtil.ParseString(node, "title", true, name);
             FontStyle = (FontStyles) ParseUtil.ParseInt(node, "style", true);
             FontStyleMask = (FontStyles) ParseUtil.ParseInt(node, "styleMask", true);
-            FontAsset = font;
         }
 
 

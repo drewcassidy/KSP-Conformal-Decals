@@ -91,6 +91,7 @@
         <Compile Include="Text/TextRenderer.cs" />
         <Compile Include="Text/DecalText.cs" />
         <Compile Include="Text\DecalTextStyle.cs" />
+        <Compile Include="Text\TextEncoder.cs" />
         <Compile Include="Text\TextRenderOutput.cs" />
         <Compile Include="Text\TextRenderJob.cs" />
         <Compile Include="UI/ColorPickerController.cs" />

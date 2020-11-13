@@ -280,24 +280,12 @@ namespace ConformalDecals.Text {
             RenderTexture.ReleaseTemporary(renderTex);
 
             // CLEAR SUBMESHES
+            _tmp.text = "";
+
             for (int i = 0; i < transform.childCount; i++) {
                 var child = transform.GetChild(i);
-                var renderer = child.GetComponent<MeshRenderer>();
-                var filter = child.GetComponent<MeshFilter>();
-                if (filter == null || renderer == null) {
-                    Logging.Log("TMP Sub object has no filter or renderer, destroying");
-                    Destroy(child.gameObject);
-                }
-
-                if (filter.mesh.vertexCount < 3) {
-                    Logging.Log("TMP Sub object has no mesh, destroying");
-                    Destroy(child.gameObject);
-                }
-
-                renderer.enabled = false;
+                Destroy(child.gameObject);
             }
-
-            _tmp.ClearMesh(true);
 
             return new TextRenderOutput(texture, window);
         }

@@ -99,6 +99,7 @@ namespace ConformalDecals {
         public override void OnLoad(ConfigNode node) {
             base.OnLoad(node);
             OnAfterDeserialize();
+            text = TextEncoder.Decode(text);
 
             if (HighLogic.LoadedSceneIsGame) {
                 // For some reason, rendering doesnt work right on the first frame a scene is loaded
@@ -112,6 +113,7 @@ namespace ConformalDecals {
         }
 
         public override void OnSave(ConfigNode node) {
+            text = TextEncoder.Encode(text);
             OnBeforeSerialize();
             base.OnSave(node);
         }

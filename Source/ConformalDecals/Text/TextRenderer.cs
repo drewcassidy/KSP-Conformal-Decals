@@ -207,6 +207,9 @@ namespace ConformalDecals.Text {
 
             // CALCULATE SIZES
             var size = bounds.size * PixelDensity;
+            size.x = Mathf.Max(size.x, 0.1f);
+            size.y = Mathf.Max(size.y, 0.1f);
+            
             var textureSize = new Vector2Int {
                 x = Mathf.NextPowerOfTwo((int) size.x),
                 y = Mathf.NextPowerOfTwo((int) size.y)

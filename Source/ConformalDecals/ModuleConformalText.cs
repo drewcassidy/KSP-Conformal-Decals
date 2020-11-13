@@ -1,4 +1,5 @@
 using System.Collections;
+using System.Net;
 using ConformalDecals.MaterialProperties;
 using ConformalDecals.Text;
 using ConformalDecals.UI;
@@ -27,7 +28,7 @@ namespace ConformalDecals {
         [KSPEvent(guiName = "#LOC_ConformalDecals_gui-set-text", guiActive = false, guiActiveEditor = true)]
         public void SetText() {
             if (_textEntryController == null) {
-                _textEntryController = TextEntryController.Create(text, _font, _style, lineSpacingRange, charSpacingRange, OnTextUpdate);
+                _textEntryController = TextEntryController.Create(_text, _font, _style, lineSpacingRange, charSpacingRange, OnTextUpdate);
             }
             else {
                 _textEntryController.Close();
@@ -75,6 +76,7 @@ namespace ConformalDecals {
             }
         }
 
+        private string         _text;
         private DecalTextStyle _style;
         private DecalFont      _font;
         private Color32        _fillColor;
@@ -99,7 +101,6 @@ namespace ConformalDecals {
         public override void OnLoad(ConfigNode node) {
             base.OnLoad(node);
             OnAfterDeserialize();
-            text = TextEncoder.Decode(text);
 
             if (HighLogic.LoadedSceneIsGame) {
                 // For some reason, rendering doesnt work right on the first frame a scene is loaded
@@ -113,7 +114,6 @@ namespace ConformalDecals {
         }
 
         public override void OnSave(ConfigNode node) {
-            text = TextEncoder.Encode(text);
             OnBeforeSerialize();
             base.OnSave(node);
         }
@@ -132,7 +132,7 @@ namespace ConformalDecals {
         }
 
         public void OnTextUpdate(string newText, DecalFont newFont, DecalTextStyle newStyle) {
-            text = newText;
+            _text = newText;
             _font = newFont;
             _style = newStyle;
             UpdateTextRecursive();
@@ -203,6 +203,7 @@ namespace ConformalDecals {
         }
 
         public void OnBeforeSerialize() {
+            text = WebUtility.UrlEncode(_text);
             fontName = _font.Name;
             style = (int) _style.FontStyle;
             vertical = _style.Vertical;
@@ -213,6 +214,7 @@ namespace ConformalDecals {
         }
 
         public void OnAfterDeserialize() {
+            _text = WebUtility.UrlDecode(text);
             _font = DecalConfig.GetFont(fontName);
             _style = new DecalTextStyle((FontStyles) style, vertical, lineSpacing, charSpacing);
 
@@ -247,7 +249,7 @@ namespace ConformalDecals {
 
             foreach (var counterpart in part.symmetryCounterparts) {
                 var decal = counterpart.GetComponent<ModuleConformalText>();
-                decal.text = text;
+                decal._text = _text;
                 decal._font = _font;
                 decal._style = _style;
 
@@ -264,7 +266,7 @@ namespace ConformalDecals {
 
         private void UpdateText() {
             // Render text
-            var newText = new DecalText(text, _font, _style);
+            var newText = new DecalText(_text, _font, _style);
             var output = TextRenderer.UpdateTextNow(_currentText, newText);
             _currentText = newText;
 

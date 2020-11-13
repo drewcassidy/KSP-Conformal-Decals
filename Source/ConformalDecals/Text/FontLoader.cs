@@ -29,7 +29,6 @@ namespace ConformalDecals.Text {
                 var loadedFonts = bundle.LoadAllAssets<TMP_FontAsset>();
                 foreach (var font in loadedFonts) {
                     Logging.Log($"Adding font {font.name}");
-                    font.fallbackFontAssets.Add(FallbackFont);
                 }
             }
 

@@ -89,9 +89,11 @@ namespace ConformalDecals.Text {
             if (SystemInfo.graphicsDeviceType == GraphicsDeviceType.Direct3D11 || SystemInfo.graphicsDeviceType == GraphicsDeviceType.Direct3D12) {
                 textRenderTextureFormat = RenderTextureFormat.ARGB32; // DirectX is dumb
             }
+
             if (!SystemInfo.SupportsTextureFormat(textTextureFormat)) {
                 Logging.LogError($"Text texture format {textTextureFormat} not supported on this platform.");
             }
+
             if (!SystemInfo.SupportsRenderTextureFormat(textRenderTextureFormat)) {
                 Logging.LogError($"Text texture format {textRenderTextureFormat} not supported on this platform.");
             }
@@ -279,8 +281,23 @@ namespace ConformalDecals.Text {
 
             // CLEAR SUBMESHES
             for (int i = 0; i < transform.childCount; i++) {
-                Destroy(transform.GetChild(i).gameObject);
+                var child = transform.GetChild(i);
+                var renderer = child.GetComponent<MeshRenderer>();
+                var filter = child.GetComponent<MeshFilter>();
+                if (filter == null || renderer == null) {
+                    Logging.Log("TMP Sub object has no filter or renderer, destroying");
+                    Destroy(child.gameObject);
+                }
+
+                if (filter.mesh.vertexCount < 3) {
+                    Logging.Log("TMP Sub object has no mesh, destroying");
+                    Destroy(child.gameObject);
+                }
+
+                renderer.enabled = false;
             }
+
+            _tmp.ClearMesh(true);
 
             return new TextRenderOutput(texture, window);
         }

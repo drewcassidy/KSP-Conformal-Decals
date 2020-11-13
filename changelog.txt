@@ -1,3 +1,8 @@
+v0.2.3
+------
+- Fixes:
+ - Fixed TMP subobjects being deleted, causing fallback fonts to fail in some situations.
+
 v0.2.2
 ------
 - Fixes:

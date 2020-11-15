@@ -1,3 +1,11 @@
+v0.2.3
+------
+- Fixes:
+ - Fixed TMP subobjects being deleted, causing fallback fonts to fail in some situations.
+ - Started using URL-style encoding for text decals behind the scenes to prevent issues with certain characters.
+ - Fixed text decals having zero size when they had only whitespace or an empty string
+ - Fixed decals having drag and causing issues when using FAR
+
 v0.2.2
 ------
 - Fixes:

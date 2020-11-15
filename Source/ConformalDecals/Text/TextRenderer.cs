@@ -163,9 +163,9 @@ namespace ConformalDecals.Text {
             // SETUP TMP OBJECT FOR RENDERING
             _tmp.text = text.FormattedText;
             _tmp.font = text.Font.FontAsset;
-            _tmp.fontStyle = text.Style.FontStyle | text.Font.FontStyle;
-            _tmp.lineSpacing = text.Style.LineSpacing;
-            _tmp.characterSpacing = text.Style.CharSpacing;
+            _tmp.fontStyle = text.Style | text.Font.FontStyle;
+            _tmp.lineSpacing = text.LineSpacing;
+            _tmp.characterSpacing = text.CharSpacing;
 
             _tmp.extraPadding = true;
             _tmp.enableKerning = true;

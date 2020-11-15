@@ -9,7 +9,7 @@ branches:
   only:
     - release
 script:
-  - git clone https://github.com/drewcassidy/build-deploy.git
+  - git clone https://github.com/post-kerbin-mining-corporation/build-deploy.git
   - cd build-deploy
   - git checkout master
   - cd ..

@@ -31,7 +31,7 @@ namespace ConformalDecals {
 
         [KSPField] public bool    scaleAdjustable = true;
         [KSPField] public float   defaultScale    = 1;
-        [KSPField] public Vector2 scaleRange      = new Vector2(0, 4);
+        [KSPField] public Vector2 scaleRange      = new Vector2(0, 10);
 
         [KSPField] public DecalScaleMode scaleMode = DecalScaleMode.HEIGHT;
 
@@ -60,19 +60,19 @@ namespace ConformalDecals {
 
         // INTERNAL VALUES
         [KSPField(guiName = "#LOC_ConformalDecals_gui-scale", guiActive = false, guiActiveEditor = true, isPersistant = true, guiFormat = "F2", guiUnits = "m"),
-         UI_FloatRange(stepIncrement = 0.05f)]
+         UI_FloatRange()]
         public float scale = 1.0f;
 
         [KSPField(guiName = "#LOC_ConformalDecals_gui-depth", guiActive = false, guiActiveEditor = true, isPersistant = true, guiFormat = "F2", guiUnits = "m"),
-         UI_FloatRange(stepIncrement = 0.02f)]
+         UI_FloatRange()]
         public float depth = 0.2f;
 
         [KSPField(guiName = "#LOC_ConformalDecals_gui-opacity", guiActive = false, guiActiveEditor = true, isPersistant = true, guiFormat = "P0"),
-         UI_FloatRange(stepIncrement = 0.05f)]
+         UI_FloatRange()]
         public float opacity = 1.0f;
 
         [KSPField(guiName = "#LOC_ConformalDecals_gui-cutoff", guiActive = false, guiActiveEditor = true, isPersistant = true, guiFormat = "P0"),
-         UI_FloatRange(stepIncrement = 0.05f)]
+         UI_FloatRange()]
         public float cutoff = 0.5f;
 
         [KSPField(guiName = "#LOC_ConformalDecals_gui-wear", guiActive = false, guiActiveEditor = true, isPersistant = true, guiFormat = "F0"),
@@ -215,7 +215,7 @@ namespace ConformalDecals {
             foreach (var keyword in _decalMaterial.shaderKeywords) {
                 this.Log($"keyword: {keyword}");
             }
-            
+
             if (HighLogic.LoadedSceneIsEditor) {
                 UpdateTweakables();
             }
@@ -512,7 +512,7 @@ namespace ConformalDecals {
             cutoffField.guiActiveEditor = cutoffAdjustable;
             wearField.guiActiveEditor = useBaseNormal;
 
-            var steps = 40;
+            var steps = 20;
 
             if (scaleAdjustable) {
                 var minValue = Mathf.Max(Mathf.Epsilon, scaleRange.x);
@@ -521,7 +521,7 @@ namespace ConformalDecals {
                 var scaleEditor = (UI_FloatRange) scaleField.uiControlEditor;
                 scaleEditor.minValue = minValue;
                 scaleEditor.maxValue = maxValue;
-                scaleEditor.stepIncrement = (maxValue - minValue) / steps;
+                scaleEditor.stepIncrement = 0.01f; //1cm
                 scaleEditor.onFieldChanged = OnSizeTweakEvent;
             }
 
@@ -532,7 +532,7 @@ namespace ConformalDecals {
                 var depthEditor = (UI_FloatRange) depthField.uiControlEditor;
                 depthEditor.minValue = minValue;
                 depthEditor.maxValue = maxValue;
-                depthEditor.stepIncrement = (maxValue - minValue) / steps;
+                depthEditor.stepIncrement = 0.01f; //1cm
                 depthEditor.onFieldChanged = OnSizeTweakEvent;
             }
 

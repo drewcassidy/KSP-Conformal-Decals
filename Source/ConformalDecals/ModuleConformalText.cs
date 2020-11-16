@@ -104,6 +104,7 @@ namespace ConformalDecals {
             if (ParseUtil.ParseStringIndirect(ref fontName, node, "fontName")) {
                 font = DecalConfig.GetFont(fontName);
             }
+            else if (font == null) font = DecalConfig.GetFont("Calibri SDF");
 
             int styleInt = 0;
             if (ParseUtil.ParseIntIndirect(ref styleInt, node, "style")) {

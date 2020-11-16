@@ -94,12 +94,24 @@ namespace ConformalDecals {
 
         public override void OnLoad(ConfigNode node) {
             base.OnLoad(node);
-            text = WebUtility.UrlDecode(ParseUtil.ParseString(node, "text"));
-            font = DecalConfig.GetFont(ParseUtil.ParseString(node, "font", true, "Calibri SDF"));
+
+            string textRaw = "";
+            if (ParseUtil.ParseStringIndirect(ref textRaw, node, "text")) {
+                text = WebUtility.UrlDecode(textRaw);
+            }
+
+            string fontName = "";
+            if (ParseUtil.ParseStringIndirect(ref fontName, node, "fontName")) {
+                font = DecalConfig.GetFont(fontName);
+            }
+
             int styleInt = 0;
-            if (ParseUtil.ParseIntIndirect(ref styleInt, node, "style")) style = (FontStyles) styleInt;
-            if (!ParseUtil.ParseColor32Indirect(ref fillColor, node, "fillColor")) fillColor = Color.magenta;
-            if (!ParseUtil.ParseColor32Indirect(ref outlineColor, node, "outlineColor")) outlineColor = Color.magenta;
+            if (ParseUtil.ParseIntIndirect(ref styleInt, node, "style")) {
+                style = (FontStyles) styleInt;
+            }
+
+            ParseUtil.ParseColor32Indirect(ref fillColor, node, "fillColor");
+            ParseUtil.ParseColor32Indirect(ref outlineColor, node, "outlineColor");
 
             if (HighLogic.LoadedSceneIsGame) {
                 // For some reason, rendering doesnt work right on the first frame a scene is loaded
@@ -210,12 +222,12 @@ namespace ConformalDecals {
 
         public override void OnDestroy() {
             if (HighLogic.LoadedSceneIsGame && _currentText != null) TextRenderer.UnregisterText(_currentText);
-            
+
             // close all UIs
             if (_textEntryController != null) _textEntryController.Close();
             if (_fillColorPickerController != null) _fillColorPickerController.Close();
             if (_outlineColorPickerController != null) _outlineColorPickerController.Close();
-            
+
             base.OnDestroy();
         }
 

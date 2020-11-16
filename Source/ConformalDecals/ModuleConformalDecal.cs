@@ -31,7 +31,7 @@ namespace ConformalDecals {
 
         [KSPField] public bool    scaleAdjustable = true;
         [KSPField] public float   defaultScale    = 1;
-        [KSPField] public Vector2 scaleRange      = new Vector2(0, 10);
+        [KSPField] public Vector2 scaleRange      = new Vector2(0, 5);
 
         [KSPField] public DecalScaleMode scaleMode = DecalScaleMode.HEIGHT;
 

@@ -1,3 +1,7 @@
+v0.2.4
+- Fixes:
+ - Fixed red text appearing on planets due to KSP bug by clearing render textures afterwards.
+
 v0.2.3
 ------
 - Fixes:

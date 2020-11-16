@@ -1,3 +1,14 @@
+v0.2.4
+------
+- Fixes:
+ - Fixed red text appearing on planets due to KSP bug by clearing render textures afterwards.
+ - Fixed fonts not saving correctly.
+- Changes:
+ - Lowered step size for decal size and depth to 1cm.
+ - Changed default max size to 5m.
+ - Changed default text decal size to 0.2m
+ - Text decals now show as a circle if they contain only whitespace.
+
 v0.2.3
 ------
 - Fixes:

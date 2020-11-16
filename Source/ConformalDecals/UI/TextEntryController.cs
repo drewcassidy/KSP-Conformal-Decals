@@ -11,7 +11,6 @@ namespace ConformalDecals.UI {
         [Serializable]
         public delegate void TextUpdateDelegate(string newText, DecalFont newFont, FontStyles style, bool vertical, float linespacing, float charspacing);
 
-
         [SerializeField] private Selectable _textBox;
         [SerializeField] private Button     _fontButton;
 
@@ -40,7 +39,10 @@ namespace ConformalDecals.UI {
 
         private FontMenuController _fontMenu;
 
-        private bool _ignoreUpdates;
+        private bool   _ignoreUpdates;
+        private bool   _isLocked;
+        private string _lockString;
+        private static int _lockCounter;
 
         public static TextEntryController Create(
             string text, DecalFont font, FontStyles style, bool vertical, float linespacing, float charspacing,
@@ -68,6 +70,18 @@ namespace ConformalDecals.UI {
         public void Close() {
             if (_fontMenu != null) _fontMenu.Close();
             Destroy(gameObject);
+        }
+
+        public void SetControlLock(string value = null) {
+            if (_isLocked) return;
+            InputLockManager.SetControlLock(_lockString);
+            _isLocked = true;
+        }
+
+        public void RemoveControlLock(string value = null) {
+            if (!_isLocked) return;
+            InputLockManager.RemoveControlLock(_lockString);
+            _isLocked = false;
         }
 
         public void OnTextUpdate(string newText) {
@@ -195,18 +209,25 @@ namespace ConformalDecals.UI {
             OnValueChanged();
         }
 
-
         private void Start() {
+            _lockString = $"ConformalDecals_TextEditor_{_lockCounter++}";
+                
             _textBoxTMP = ((TMP_InputField) _textBox);
             _textBoxTMP.text = _text;
             _textBoxTMP.textComponent.fontStyle = _style | _font.FontStyle & ~_font.FontStyleMask;
             _textBoxTMP.fontAsset = _font.FontAsset;
+            _textBoxTMP.onSelect.AddListener(SetControlLock);
+            _textBoxTMP.onDeselect.AddListener(RemoveControlLock);
 
             _font.SetupSample(_fontButton.GetComponentInChildren<TextMeshProUGUI>());
 
             UpdateStyleButtons();
             UpdateLineSpacing();
             UpdateCharSpacing();
+        }
+
+        private void OnDestroy() {
+            RemoveControlLock();
         }
 
         private void OnValueChanged() {

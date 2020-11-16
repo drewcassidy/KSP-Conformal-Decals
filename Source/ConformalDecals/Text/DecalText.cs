@@ -32,6 +32,7 @@ namespace ConformalDecals.Text {
         /// The text formatted with newlines for vertical text
         public string FormattedText {
             get {
+                if (string.IsNullOrWhiteSpace(Text)) return "•";
                 if (Vertical) {
                     return Regex.Replace(Text, @"(.)", "$1\n");
                 }

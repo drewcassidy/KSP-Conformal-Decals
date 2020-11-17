@@ -249,6 +249,9 @@ namespace ConformalDecals {
                 decal.text = text;
                 decal.font = font;
                 decal.style = style;
+                decal.vertical = vertical;
+                decal.charSpacing = charSpacing;
+                decal.lineSpacing = lineSpacing;
 
                 decal._currentJob = _currentJob;
                 decal._currentText = _currentText;

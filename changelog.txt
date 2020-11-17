@@ -1,3 +1,8 @@
+v0.2.5
+------
+- Fixes:
+ - Fixed line spacing, character spacing, and vertical settings not applying to symmetry counterparts
+
 v0.2.4
 ------
 - Fixes:

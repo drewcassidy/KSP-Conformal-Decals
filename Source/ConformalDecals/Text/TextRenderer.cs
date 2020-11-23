@@ -255,8 +255,7 @@ namespace ConformalDecals.Text {
                 bounds.center.y - halfSize.y, bounds.center.y + halfSize.y, -1, 1);
 
             // GET RENDERTEX
-            var renderTex = RenderTexture.GetTemporary(textureSize.x, textureSize.y, 0, textRenderTextureFormat, RenderTextureReadWrite.Linear, 1);
-            renderTex.autoGenerateMips = false;
+            var renderTex = new RenderTexture(textureSize.x, textureSize.y, 0, textRenderTextureFormat, RenderTextureReadWrite.Linear) {autoGenerateMips = false};
 
             // RENDER
             Graphics.SetRenderTarget(renderTex);
@@ -281,7 +280,7 @@ namespace ConformalDecals.Text {
             GL.PopMatrix();
             
             // RELEASE RENDERTEX
-            RenderTexture.ReleaseTemporary(renderTex);
+            RenderTexture.Destroy(renderTex);
 
             // CLEAR SUBMESHES
             _tmp.text = "";

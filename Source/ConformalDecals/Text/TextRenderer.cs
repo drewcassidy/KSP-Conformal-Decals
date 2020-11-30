@@ -255,8 +255,7 @@ namespace ConformalDecals.Text {
                 bounds.center.y - halfSize.y, bounds.center.y + halfSize.y, -1, 1);
 
             // GET RENDERTEX
-            var renderTex = RenderTexture.GetTemporary(textureSize.x, textureSize.y, 0, textRenderTextureFormat, RenderTextureReadWrite.Linear, 1);
-            renderTex.autoGenerateMips = false;
+            var renderTex = new RenderTexture(textureSize.x, textureSize.y, 0, textRenderTextureFormat, RenderTextureReadWrite.Linear) {autoGenerateMips = false};
 
             // RENDER
             Graphics.SetRenderTarget(renderTex);
@@ -273,15 +272,17 @@ namespace ConformalDecals.Text {
             }
 
             // COPY TEXTURE BACK INTO RAM
+            var prevRT = RenderTexture.active;
             RenderTexture.active = renderTex;
             texture.ReadPixels(new Rect(0, 0, textureSize.x, textureSize.y), 0, 0, true);
             texture.Apply();
+            RenderTexture.active = prevRT;
 
-            GL.Clear(false, true, Color.black); //KSP doesnt clear render textures before using them so we need to clear afterwards, as well. Thanks Squad.
             GL.PopMatrix();
             
             // RELEASE RENDERTEX
-            RenderTexture.ReleaseTemporary(renderTex);
+            renderTex.Release();
+            RenderTexture.Destroy(renderTex);
 
             // CLEAR SUBMESHES
             _tmp.text = "";

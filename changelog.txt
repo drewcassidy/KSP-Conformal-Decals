@@ -1,3 +1,9 @@
+v0.2.6
+------
+- Fixes:
+ - Fixed stock flags appearing stretched by forcing their aspect ratio to be correct.
+ - Another attempted fix for the planet text glitch.
+
 v0.2.5
 ------
 - Fixes:

@@ -400,7 +400,7 @@ namespace ConformalDecals {
         protected void UpdateScale() {
             scale = Mathf.Max(0.01f, scale);
             depth = Mathf.Max(0.01f, depth);
-            var aspectRatio = materialProperties.AspectRatio;
+            var aspectRatio = Mathf.Max(0.01f, materialProperties.AspectRatio);
             Vector2 size;
 
             switch (scaleMode) {

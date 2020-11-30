@@ -45,8 +45,7 @@ namespace ConformalDecals.MaterialProperties {
             get {
                 if (_texture == null) return 1;
                 if (_textureUrl?.Contains("Squad/Flags") == true) return 0.625f;
-                if (_hasTile) return MaskedHeight / (float) MaskedWidth;
-                return _texture.height / _texture.width;
+                return MaskedHeight / (float) MaskedWidth;
             }
         }
 

@@ -123,7 +123,6 @@ namespace ConformalDecals.Text {
 
             job.Start();
 
-            Texture2D texture = null;
             if (job.OldText != null && RenderCache.TryGetValue(job.OldText, out var oldRender)) {
                 // old output still exists
 
@@ -132,7 +131,7 @@ namespace ConformalDecals.Text {
                 if (oldRender.UserCount <= 0) {
                     // this is the only usage of this output, so we are free to re-render into the texture
 
-                    texture = oldRender.Texture;
+                    Destroy(oldRender.Texture);
                     RenderCache.Remove(job.OldText);
                 }
             }
@@ -145,7 +144,7 @@ namespace ConformalDecals.Text {
             else {
                 renderNeeded = true;
 
-                renderOutput = RenderText(job.NewText, texture);
+                renderOutput = RenderText(job.NewText);
                 RenderCache.Add(job.NewText, renderOutput);
             }
 
@@ -156,7 +155,7 @@ namespace ConformalDecals.Text {
         }
 
         /// Render a piece of text to a given texture
-        public TextRenderOutput RenderText(DecalText text, Texture2D texture) {
+        public TextRenderOutput RenderText(DecalText text) {
             if (text == null) throw new ArgumentNullException(nameof(text));
             if (_tmp == null) throw new InvalidOperationException("TextMeshPro object not yet created.");
 
@@ -209,7 +208,7 @@ namespace ConformalDecals.Text {
             var size = bounds.size * PixelDensity;
             size.x = Mathf.Max(size.x, 0.1f);
             size.y = Mathf.Max(size.y, 0.1f);
-            
+
             var textureSize = new Vector2Int {
                 x = Mathf.NextPowerOfTwo((int) size.x),
                 y = Mathf.NextPowerOfTwo((int) size.y)
@@ -242,12 +241,7 @@ namespace ConformalDecals.Text {
             };
 
             // SETUP TEXTURE
-            if (texture == null) {
-                texture = new Texture2D(textureSize.x, textureSize.y, textTextureFormat, true);
-            }
-            else if (texture.width != textureSize.x || texture.height != textureSize.y || texture.format != textTextureFormat) {
-                texture.Resize(textureSize.x, textureSize.y, textTextureFormat, true);
-            }
+            var texture = new Texture2D(textureSize.x, textureSize.y, textTextureFormat, true);
 
             // GENERATE PROJECTION MATRIX
             var halfSize = (Vector2) textureSize / PixelDensity / 2 / sizeRatio;
@@ -275,11 +269,11 @@ namespace ConformalDecals.Text {
             var prevRT = RenderTexture.active;
             RenderTexture.active = renderTex;
             texture.ReadPixels(new Rect(0, 0, textureSize.x, textureSize.y), 0, 0, true);
-            texture.Apply();
+            texture.Apply(false, true);
             RenderTexture.active = prevRT;
 
             GL.PopMatrix();
-            
+
             // RELEASE RENDERTEX
             renderTex.Release();
             RenderTexture.Destroy(renderTex);

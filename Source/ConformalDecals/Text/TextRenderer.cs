@@ -241,7 +241,7 @@ namespace ConformalDecals.Text {
             };
 
             // SETUP TEXTURE
-            var texture = new Texture2D(textureSize.x, textureSize.y, textTextureFormat, true);
+            var texture = new Texture2D(textureSize.x, textureSize.y, textTextureFormat, false);
 
             // GENERATE PROJECTION MATRIX
             var halfSize = (Vector2) textureSize / PixelDensity / 2 / sizeRatio;
@@ -268,7 +268,7 @@ namespace ConformalDecals.Text {
             // COPY TEXTURE BACK INTO RAM
             var prevRT = RenderTexture.active;
             RenderTexture.active = renderTex;
-            texture.ReadPixels(new Rect(0, 0, textureSize.x, textureSize.y), 0, 0, true);
+            texture.ReadPixels(new Rect(0, 0, textureSize.x, textureSize.y), 0, 0, false);
             texture.Apply(false, true);
             RenderTexture.active = prevRT;
 

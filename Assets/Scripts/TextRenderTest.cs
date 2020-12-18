@@ -30,6 +30,8 @@ public class TextRenderTest : MonoBehaviour {
         Debug.Log("starting...");
 
         StartCoroutine(OnRender());
+        var thing = new GameObject();
+        thing.AddComponent<TextMeshPro>();
     }
 
     // Update is called once per frame

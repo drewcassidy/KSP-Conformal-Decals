@@ -1,3 +1,9 @@
+v0.2.7
+------
+- Fixes:
+ - Fixed certain non-ascii strings not rendering correctly under certain circumstances.
+ - Yet another attempted fix for the planet text glitch.
+
 v0.2.6
 ------
 - Fixes:

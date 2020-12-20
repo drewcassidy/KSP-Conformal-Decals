@@ -31,7 +31,6 @@ namespace ConformalDecals.Text {
         /// Update text immediately without using job queue
         public static TextRenderOutput UpdateText(DecalText oldText, DecalText newText) {
             if (newText == null) throw new ArgumentNullException(nameof(newText));
-            Logging.Log($"Rendering text {newText}");
 
             if (!(oldText is null)) UnregisterText(oldText);
 

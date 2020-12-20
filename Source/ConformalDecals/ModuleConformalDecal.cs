@@ -89,8 +89,10 @@ namespace ConformalDecals {
         [KSPField] public Transform decalProjectorTransform;
         [KSPField] public Transform decalColliderTransform;
 
-        [KSPField] public Material backMaterial;
-        [KSPField] public Vector2  backTextureBaseScale;
+        [KSPField] public MeshRenderer boundsRenderer;
+        [KSPField] public MeshRenderer frontRenderer;
+        [KSPField] public Material     backMaterial;
+        [KSPField] public Vector2      backTextureBaseScale;
 
         private const  int DecalQueueMin      = 2100;
         private const  int DecalQueueMax      = 2400;
@@ -101,9 +103,8 @@ namespace ConformalDecals {
         private bool      _isAttached;
         private Matrix4x4 _orthoMatrix;
 
-        private Material     _decalMaterial;
-        private Material     _previewMaterial;
-        private MeshRenderer _boundsRenderer;
+        private Material _decalMaterial;
+        private Material _previewMaterial;
 
         private int DecalQueue {
             get {
@@ -132,24 +133,33 @@ namespace ConformalDecals {
         public override void OnLoad(ConfigNode node) {
             try {
                 // SETUP TRANSFORMS
-                decalFrontTransform = part.FindModelTransform(decalFront);
-                if (decalFrontTransform == null) throw new FormatException($"Could not find decalFront transform: '{decalFront}'.");
-
-                decalBackTransform = part.FindModelTransform(decalBack);
-                if (decalBackTransform == null) throw new FormatException($"Could not find decalBack transform: '{decalBack}'.");
-
-                decalModelTransform = part.FindModelTransform(decalModel);
-                if (decalModelTransform == null) throw new FormatException($"Could not find decalModel transform: '{decalModel}'.");
-
+                // Projector transform, where the decal is projected from when attached
                 decalProjectorTransform = part.FindModelTransform(decalProjector);
                 if (decalProjectorTransform == null) throw new FormatException($"Could not find decalProjector transform: '{decalProjector}'.");
 
+                // Model transform, containing all visible elements of the decal when not attached
+                decalModelTransform = part.FindModelTransform(decalModel);
+                if (decalModelTransform == null) throw new FormatException($"Could not find decalModel transform: '{decalModel}'.");
+
+                // Front transform, shows a preview of the decal when unattached
+                decalFrontTransform = part.FindModelTransform(decalFront);
+                if (decalFrontTransform == null) throw new FormatException($"Could not find decalFront transform: '{decalFront}'.");
+
+                frontRenderer = decalFrontTransform.GetComponent<MeshRenderer>();
+
+                // Collider transform, selectable area and shows where the decal is projecting onto
                 decalColliderTransform = part.FindModelTransform(decalCollider);
                 if (decalColliderTransform == null) throw new FormatException($"Could not find decalCollider transform: '{decalCollider}'.");
 
-                // SETUP BACK MATERIAL
+                boundsRenderer = decalColliderTransform.GetComponent<MeshRenderer>();
+
+                // SETUP BACK
                 if (updateBackScale) {
+                    decalBackTransform = part.FindModelTransform(decalBack);
+                    if (decalBackTransform == null) throw new FormatException($"Could not find decalBack transform: '{decalBack}'.");
+
                     var backRenderer = decalBackTransform.GetComponent<MeshRenderer>();
+
                     if (backRenderer == null) {
                         this.LogError($"Specified decalBack transform {decalBack} has no renderer attached! Setting updateBackScale to false.");
                         updateBackScale = false;
@@ -244,7 +254,8 @@ namespace ConformalDecals {
         public override void OnStart(StartState state) {
             materialProperties.RenderQueue = DecalQueue;
 
-            _boundsRenderer = decalProjectorTransform.GetComponent<MeshRenderer>();
+            boundsRenderer = decalProjectorTransform.GetComponent<MeshRenderer>();
+            frontRenderer = decalFrontTransform.GetComponent<MeshRenderer>();
 
             // handle tweakables
             if (HighLogic.LoadedSceneIsEditor) {
@@ -278,7 +289,7 @@ namespace ConformalDecals {
 
                 if (!selectableInFlight || !DecalConfig.SelectableInFlight) {
                     decalColliderTransform.GetComponent<Collider>().enabled = false;
-                    _boundsRenderer.enabled = false;
+                    boundsRenderer.enabled = false;
                 }
             }
         }
@@ -440,7 +451,7 @@ namespace ConformalDecals {
 
                 // update projection
                 foreach (var target in _targets) {
-                    target.Project(_orthoMatrix, decalProjectorTransform, _boundsRenderer.bounds, useBaseNormal);
+                    target.Project(_orthoMatrix, decalProjectorTransform, boundsRenderer.bounds, useBaseNormal);
                 }
             }
             else {
@@ -465,7 +476,7 @@ namespace ConformalDecals {
             _decalMaterial = materialProperties.DecalMaterial;
             _previewMaterial = materialProperties.PreviewMaterial;
 
-            if (!_isAttached) decalFrontTransform.GetComponent<MeshRenderer>().material = _previewMaterial;
+            if (!_isAttached) frontRenderer.material = _previewMaterial;
         }
 
         protected void UpdateTargets() {

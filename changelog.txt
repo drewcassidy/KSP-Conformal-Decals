@@ -3,6 +3,8 @@ v0.2.7
 - Fixes:
  - Fixed certain non-ascii strings not rendering correctly under certain circumstances.
  - Yet another attempted fix for the planet text glitch.
+- Changes:
+ - Small optimizations and simplified text rendering.
 
 v0.2.6
 ------

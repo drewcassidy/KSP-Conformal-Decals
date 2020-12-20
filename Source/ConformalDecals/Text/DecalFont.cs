@@ -105,5 +105,9 @@ namespace ConformalDecals.Text {
         public void OnBeforeSerialize() { }
 
         public void OnAfterDeserialize() { }
+
+        public override string ToString() {
+            return _title;
+        }
     }
 }

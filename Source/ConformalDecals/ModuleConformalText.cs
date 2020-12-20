@@ -89,7 +89,6 @@ namespace ConformalDecals {
         private MaterialColorProperty   _outlineColorProperty;
         private MaterialFloatProperty   _outlineWidthProperty;
 
-        private TextRenderJob _currentJob;
         private DecalText     _currentText;
 
         public override void OnLoad(ConfigNode node) {
@@ -253,7 +252,6 @@ namespace ConformalDecals {
                 decal.charSpacing = charSpacing;
                 decal.lineSpacing = lineSpacing;
 
-                decal._currentJob = _currentJob;
                 decal._currentText = _currentText;
                 decal.UpdateText();
             }
@@ -267,7 +265,7 @@ namespace ConformalDecals {
         private void UpdateText() {
             // Render text
             var newText = new DecalText(text, font, style, vertical, lineSpacing, charSpacing);
-            var output = TextRenderer.UpdateTextNow(_currentText, newText);
+            var output = TextRenderer.UpdateText(_currentText, newText);
             _currentText = newText;
 
             UpdateTexture(output);

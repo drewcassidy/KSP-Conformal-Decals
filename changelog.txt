@@ -1,3 +1,8 @@
+v0.2.8
+------
+- Update bundled Shabby to support Harmony 2 for compatibility with other mods
+- Update bundled B9PartSwitch to 2.18.0
+
 v0.2.7
 ------
 - Supported KSP versions: 1.8.x to 1.11.x

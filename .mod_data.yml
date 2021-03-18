@@ -16,7 +16,7 @@ dependencies:  # Configure dependencies
     zip: false
   B9PartSwitch:
     location: url
-    url: http://pileof.rocks/KSP/B9PartSwitch-v2.16.0.zip
+    url: http://pileof.rocks/KSP/B9PartSwitch-v2.18.0.zip
     zip: true
   Shabby:
     location: url

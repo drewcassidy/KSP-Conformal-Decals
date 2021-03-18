@@ -1,6 +1,7 @@
 v0.2.8
 ------
 - Update bundled Shabby to support Harmony 2 for compatibility with other mods
+- Update bundled B9PartSwitch to 2.18.0
 
 v0.2.7
 ------

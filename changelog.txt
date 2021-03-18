@@ -1,3 +1,7 @@
+v0.2.8
+------
+- Update bundled Shabby to support Harmony 2 for compatibility with other mods
+
 v0.2.7
 ------
 - Supported KSP versions: 1.8.x to 1.11.x

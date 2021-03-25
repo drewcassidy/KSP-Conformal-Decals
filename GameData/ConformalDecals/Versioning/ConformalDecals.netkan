@@ -1,0 +1,31 @@
+{
+    "spec_version": "v1.18",
+    "name": "Conformal Decals",
+    "abstract": "Decals done teh right way",
+    "author": "cineboxandrew-drewcassidy",
+    "identifier": "ConformalDecals",
+    "license": ["GPL-3.0"],
+    "resources": {
+        "homepage": "https://forum.kerbalspaceprogram.com/index.php?/topic/194802-18-111-conformal-decals-028-decals-done-the-right-way/",
+        "repository": "https://github.com/drewcassidy/KSP-Conformal-Decals",
+        "spacedock": "https://spacedock.info/mod/2451/Conformal%20Decals?"
+
+    },
+
+    "tags": [
+        "graphics",
+        "information"
+
+    ],
+
+    "$kref": "#/ckan/github/drewcassidy/KSP-Conformal-Decals",
+    "$vref": "#/ckan/ksp-avc",
+
+    "install": [
+        {
+        "find": "ConformalDecals",
+        "install_to": "GameData"
+        }
+    ]
+    
+}

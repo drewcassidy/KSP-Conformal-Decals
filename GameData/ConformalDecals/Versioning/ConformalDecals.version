@@ -2,6 +2,11 @@
     "NAME":"ConformalDecals",
     "URL":"https://raw.githubusercontent.com/drewcassidy/KSP-Conformal-Decals/release/GameData/ConformalDecals/Versioning/ConformalDecals.version",
     "DOWNLOAD":"https://github.com/drewcassidy/KSP-Conformal-Decals/releases",
+    "GITHUB":
+    {
+        "USERNAME":"drewcassidy"
+        "REPOSITORY":"KSP-Conformal-Decals"
+    }
     "VERSION":
     {
         "MAJOR":0,

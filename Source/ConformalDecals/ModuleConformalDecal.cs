@@ -481,6 +481,9 @@ namespace ConformalDecals {
             foreach (var renderer in renderers) {
                 // skip disabled renderers
                 if (renderer.gameObject.activeInHierarchy == false) continue;
+                
+                // skip transparentFX layer, which causes issues with Waterfall
+                if (renderer.gameObject.layer == 1) continue;
 
                 // skip blacklisted shaders
                 if (DecalConfig.IsBlacklisted(renderer.material.shader)) continue;

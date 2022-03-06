@@ -62,6 +62,8 @@ namespace ConformalDecals {
             // Button for selecting a flag
             // This is a bit of a hack to bring up the stock flag selection menu
             // When its done, it calls OnCustomFlagSelected()
+            
+            // ReSharper disable once PossibleNullReferenceException
             var flagBrowser = (Instantiate((Object) (new FlagBrowserGUIButton(null, null, null, null)).FlagBrowserPrefab) as GameObject).GetComponent<FlagBrowser>();
             flagBrowser.OnFlagSelected = OnCustomFlagSelected;
         }

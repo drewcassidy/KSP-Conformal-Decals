@@ -252,7 +252,6 @@ namespace ConformalDecals {
                 decal.charSpacing = charSpacing;
                 decal.lineSpacing = lineSpacing;
 
-                decal._currentText = _currentText;
                 decal.UpdateText();
             }
         }

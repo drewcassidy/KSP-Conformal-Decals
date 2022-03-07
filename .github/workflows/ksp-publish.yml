@@ -40,7 +40,7 @@ jobs:
       - name: Upload Unbundled Build
         uses: actions/upload-artifact@v3
         with:
-          name: build-unbundled
+          name: ConformalDecals-unbundled
           path: |
             GameData/ConformalDecals 
             README.md 

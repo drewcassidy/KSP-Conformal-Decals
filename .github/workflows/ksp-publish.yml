@@ -27,7 +27,7 @@ jobs:
       - name: Install Conformal Decals dependencies
         working-directory: Source
         run: |
-          curl --user drewcassidy --pass ${{ secrets.PILE_OF_ROCKS_PASS }} https://pileof.rocks/secret/conformal-decals-dependencies-1.zip
+          curl --user drewcassidy --pass ${{ secrets.PILE_OF_ROCKS_PASS }} https://pileof.rocks/Secret/conformal-decals-dependencies-1.zip
           mkdir -p ConformalDecals/bin/Release
           unzip conformal-decals-dependencies-*.zip -d ConformalDecals/bin/Release
           

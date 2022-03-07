@@ -1,0 +1,37 @@
+
+name: build
+on: [ push, pull_request ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Setup Python 
+        uses: actions/setup-python@v2
+        with:
+          python-version: '3.x'
+          
+      - name: Setup .NET Core SDK
+        uses: actions/setup-dotnet@v1.7.2
+        with:
+          dotnet-version: '6.0.x'
+
+      - name: Install python tools
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install yaclog yaclog-ksp
+
+      - name: Install Conformal Decals dependencies
+        working-directory: Source
+        run: |
+          curl --user drewcassidy --pass ${{ secrets.PILE_OF_ROCKS_PASS }} https://pileof.rocks/secret/conformal-decals-dependencies-1.zip
+          mkdir -p ConformalDecals/bin/Release
+          unzip conformal-decals-dependencies-*.zip -d ConformalDecals/bin/Release
+          
+      - name: Build Conformal Decals dll
+        working-directory: Source
+        run: |
+          dotnet build --configuration Release ConformalDecals.sln

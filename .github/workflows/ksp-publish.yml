@@ -19,29 +19,31 @@ jobs:
         with:
           dotnet-version: '6.0.x'
 
-      - name: Install python tools
+      - name: Install Python Tools
         run: |
           python -m pip install --upgrade pip
           python -m pip install yaclog yaclog-ksp
 
-      - name: Install Conformal Decals dependencies
+      - name: Download Dependencies
         working-directory: Source
         run: |
           wget --user drewcassidy --password ${{ secrets.PILE_OF_ROCKS_PASS }} https://pileof.rocks/Secret/conformal-decals-dependencies-1.zip
-          mkdir -p ConformalDecals/bin/Release
           unzip conformal-decals-dependencies-*.zip -d ConformalDecals/dlls
-          
-      - name: Build Conformal Decals dll
-        working-directory: Source
-        run: |
           dotnet build --configuration Release ConformalDecals.sln
           
-      - name: Zip Up Release
+      - name: Build DLL
+        working-directory: Source
         run: |
-          zip -r ConformalDecals-unbundled.zip GameData/ConformalDecals README.md CHANGELOG.md LICENSE-ART.md LICENSE-SOURCE.md
+          mkdir -p GameData/ConformalDecals/Plugins
+          dotnet build --configuration Release ConformalDecals.sln
           
       - name: Upload Unbundled Build
         uses: actions/upload-artifact@v3
         with:
           name: build-unbundled
-          path: ConformalDecals-unbundled.zip
+          path: |
+            GameData/ConformalDecals 
+            README.md 
+            CHANGELOG.md 
+            LICENSE-ART.md 
+            LICENSE-SOURCE.md

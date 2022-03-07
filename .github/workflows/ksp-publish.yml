@@ -38,10 +38,10 @@ jobs:
           
       - name: Zip Up Release
         run: |
-          zip ConformalDecals-unbundled.zip Gamedata/ConformalDecals/* README.md CHANGELOG.md LICENSE-ART.md LICENSE-SOURCE.md
+          zip -r ConformalDecals-unbundled.zip Gamedata/ConformalDecals/* README.md CHANGELOG.md LICENSE-ART.md LICENSE-SOURCE.md
           
-      - name: Upload Output
+      - name: Upload Unbundled Build
         uses: actions/upload-artifact@v3
         with:
-          name: build-output
+          name: build-unbundled
           path: ConformalDecals-unbundled.zip

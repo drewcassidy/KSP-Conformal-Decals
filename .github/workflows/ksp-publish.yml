@@ -34,7 +34,7 @@ jobs:
       - name: Build DLL
         working-directory: Source
         run: |
-          mkdir -p GameData/ConformalDecals/Plugins
+          mkdir -p ../GameData/ConformalDecals/Plugins
           dotnet build --configuration Release ConformalDecals.sln
           
       - name: Upload Unbundled Build

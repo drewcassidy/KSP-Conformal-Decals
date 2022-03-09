@@ -24,18 +24,24 @@ jobs:
           python -m pip install --upgrade pip
           python -m pip install yaclog yaclog-ksp
 
-      - name: Download Dependencies
+      - name: Download DLL Dependencies
         working-directory: Source
         run: |
           wget --user drewcassidy --password ${{ secrets.PILE_OF_ROCKS_PASS }} https://pileof.rocks/Secret/conformal-decals-dependencies-1.zip
           unzip conformal-decals-dependencies-*.zip -d ConformalDecals/dlls
           dotnet build --configuration Release ConformalDecals.sln
           
+      - name: Generate version info
+        run: python Scripts/version.py
+          
       - name: Build DLL
         working-directory: Source
         run: |
           mkdir -p ../GameData/ConformalDecals/Plugins
           dotnet build --configuration Release ConformalDecals.sln
+          
+      - name: Validate files
+        uses: DasSkelett/AVC-VersionFileValidator@master
           
       - name: Upload Unbundled Build
         uses: actions/upload-artifact@v3

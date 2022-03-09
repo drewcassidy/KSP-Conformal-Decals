@@ -27,6 +27,7 @@ def run():
 
     version_path = 'GameData/ConformalDecals/Versioning/ConformalDecals.version'
     with open(version_path, 'r+') as version_file:
+        print('Updating version file')
         segments = version.split('.')
         # print(version_file.read())
         decoded = json.load(version_file)
@@ -41,6 +42,7 @@ def run():
 
     project_path = 'Source/ConformalDecals/ConformalDecals.csproj'
     with open(project_path, 'r+') as project_file:
+        print('Updating csproj file')
         segments = version.split('.')
         decoded = minidom.parse(project_file)
         version_node = decoded.getElementsByTagName('AssemblyVersion')[0]
@@ -52,6 +54,8 @@ def run():
         project_file.seek(0)
         decoded.writexml(project_file)
         project_file.truncate()
+    
+    print('Done!')
 
 
 if __name__ == '__main__':

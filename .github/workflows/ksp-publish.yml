@@ -108,8 +108,10 @@ jobs:
         
       - name: Zip Download Packages
         run: |
-          zip -r ConformalDecals-$VERSION_TITLE-unbundled.zip ConformalDecals-unbundled/*
-          zip -r ConformalDecals-$VERSION_TITLE.zip ConformalDecals/*
+          mkdir bundled
+          mkdir unbundled
+          zip -r bundled/ConformalDecals-$VERSION_TITLE.zip ConformalDecals/*
+          zip -r unbundled/ConformalDecals-$VERSION_TITLE.zip ConformalDecals-unbundled/*
           ls
 
       - name: Publish to Spacedock
@@ -127,8 +129,7 @@ jobs:
       - name: Publish to Github
         uses: softprops/action-gh-release@v1
         with:
-          files: ConformalDecals-${{ env.VERSION_TITLE }}.zip ConformalDecals*/GameData/ConformalDecals/Versioning/ConformalDecals.version
-          name: ${{ env.VERSION_TITLE }}
+          files: bundled/ConformalDecals-*.zip bundled/ConformalDecals/GameData/ConformalDecals/Versioning/ConformalDecals.version
           body_path: RELEASE.md
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

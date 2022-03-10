@@ -60,7 +60,7 @@ jobs:
       - name: Upload Unbundled Build
         uses: actions/upload-artifact@v3
         with:
-          name: ConformalDecals-${{ env.VERSION_TITLE }}-unbundled
+          name: ${{ format("ConformalDecals-{0}-unbundled", env.VERSION_TITLE) }}
           path: |
             GameData/ConformalDecals 
             README.md 
@@ -71,7 +71,7 @@ jobs:
       - name: Upload Bundled Build
         uses: actions/upload-artifact@v3
         with:
-          name: ConformalDecals-${{ env.VERSION_TITLE }}
+          name: ${{ format("ConformalDecals-{0}", env.VERSION_TITLE) }}
           path: |
             GameData
             README.md 

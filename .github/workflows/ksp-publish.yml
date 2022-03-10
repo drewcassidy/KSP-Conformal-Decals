@@ -60,7 +60,7 @@ jobs:
       - name: Upload Unbundled Build
         uses: actions/upload-artifact@v3
         with:
-          name: ${{ format('ConformalDecals-{0}-unbundled', env.VERSION_TITLE) }}
+          name: ConformalDecals-unbundled
           path: |
             GameData/ConformalDecals 
             README.md 
@@ -71,7 +71,7 @@ jobs:
       - name: Upload Bundled Build
         uses: actions/upload-artifact@v3
         with:
-          name: ${{ format('ConformalDecals-{0}', env.VERSION_TITLE) }}
+          name: ConformalDecals
           path: |
             GameData
             README.md 
@@ -98,30 +98,30 @@ jobs:
           python -m pip install --upgrade pip
           python -m pip install yaclog
           
-      - name: Download Build Artifacts 
-        uses: actions/download-artifact@v3
-        
-      - name: Zip Download Packages
-        run: |
-          zip -r ConformalDecals-${{ env.VERSION_TITLE }}-unbundled.zip ConformalDecals-${{ env.VERSION_TITLE }}-unbundled/*
-          zip -r ConformalDecals-${{ env.VERSION_TITLE }}.zip ConformalDecals-${{ env.VERSION_TITLE }}/*
-          ls
-
       - name: Get version name and body
         run: |
           echo "VERSION_TILE=$(yaclog show -n)" >> $GITHUB_ENV
           echo "$(yaclog show -mb)" >> RELEASE.md
           
+      - name: Download Build Artifacts 
+        uses: actions/download-artifact@v3
+        
+      - name: Zip Download Packages
+        run: |
+          zip -r ConformalDecals-$VERSION_TITLE-unbundled.zip ConformalDecals-unbundled/*
+          zip -r ConformalDecals-$VERSION_TITLE.zip ConformalDecals/*
+          ls
+
       - name: Publish to Spacedock
         run: |
           curl -F username= "drewcassidy" -F password= "${{ secrets.SPACEDOCK_PASS }}" \
             -c ./cookies "https://spacedock.info/api/login"
           curl -c ./cookies \
-            -F "version=$(yaclog show -n)" \
+            -F "version=$VERSION_TITLE" \
             -F "changelog=$(yaclog show -mb)" \
             -F "game-version=1.12.3" \
             -F "notify-followers=yes" \
-            -F "zipball=@ConformalDecals-${{ env.VERSION_TITLE }}.zip" \
+            -F "zipball=@ConformalDecals-$VERSION_TITLE.zip" \
             "https://spacedock.info/api/mod/2994/update"
           
       - name: Publish to Github

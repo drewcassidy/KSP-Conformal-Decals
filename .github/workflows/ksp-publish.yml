@@ -123,7 +123,7 @@ jobs:
             -F "changelog=$(yaclog show -mb)" \
             -F "game-version=1.12.3" \
             -F "notify-followers=yes" \
-            -F "zipball=@ConformalDecals-$VERSION_TITLE.zip" \
+            -F "zipball=@bundled/ConformalDecals-$VERSION_TITLE.zip" \
             "https://spacedock.info/api/mod/2994/update"
           
       - name: Publish to Github

@@ -54,7 +54,7 @@ def run():
         project_file.seek(0)
         decoded.writexml(project_file)
         project_file.truncate()
-    
+
     print('Done!')
 
 

@@ -1,6 +1,6 @@
 
 name: build
-on: [ push, pull_request ]
+on: [ push ]
 
 jobs:
   build:
@@ -19,10 +19,11 @@ jobs:
         with:
           dotnet-version: '6.0.x'
 
-      - name: Install Python Tools
+      - name: Generate version info
         run: |
           python -m pip install --upgrade pip
           python -m pip install yaclog yaclog-ksp
+          python Scripts/version.py
 
       - name: Download DLL Dependencies
         working-directory: Source
@@ -31,18 +32,26 @@ jobs:
           unzip conformal-decals-dependencies-*.zip -d ConformalDecals/dlls
           dotnet build --configuration Release ConformalDecals.sln
           
-      - name: Generate version info
-        run: python Scripts/version.py
-          
       - name: Build DLL
         working-directory: Source
         run: |
           mkdir -p ../GameData/ConformalDecals/Plugins
           dotnet build --configuration Release ConformalDecals.sln
           
+      - name: Download KSP Dependencies
+        run: |
+          wget http://pileof.rocks/KSP/Shabby_v0.2.0.zip
+          wget https://ksp.sarbian.com/jenkins/job/ModuleManager/161/artifact/ModuleManager.4.2.1.dll
+          wget https://github.com/blowfishpro/B9PartSwitch/releases/download/v2.19.0/B9PartSwitch_v2.19.0.zip
+          unzip -d Shabby Shabby*.zip
+          unzip -d B9PartSwitch B9PartSwitch*.zip 
+          mv Shabby/GameData/Shabby GameData/
+          mv ModulaManager*.dll GameData/
+          mv B9PartSwitch/GameData/B9PartSwitch GameData/
+          
       - name: Validate files
         uses: DasSkelett/AVC-VersionFileValidator@master
-          
+        
       - name: Upload Unbundled Build
         uses: actions/upload-artifact@v3
         with:
@@ -53,3 +62,60 @@ jobs:
             CHANGELOG.md 
             LICENSE-ART.md 
             LICENSE-SOURCE.md
+            
+      - name: Upload Bundled Build
+        uses: actions/upload-artifact@v3
+        with:
+          name: ConformalDecals
+          path: |
+            GameData
+            README.md 
+            CHANGELOG.md 
+            LICENSE-ART.md 
+            LICENSE-SOURCE.md
+            
+            
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags')
+    
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Set up Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: '3.x'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install setuptools wheel twine
+          python -m pip install . # Self hosting!
+
+      - name: Get version name and body
+        run: |
+          echo "VERSION_TILE=$(yaclog show -n)" >> $GITHUB_ENV
+          echo "$(yaclog show -mb)" >> RELEASE.md
+          
+      - name: Publish to Spacedock
+        run: |
+          curl -F username= ${{ secrets.SPACEDOCK_USER }} -F password= ${{ secrets.SPACEDOCK_PASS }} \
+            -c ./cookies "https://spacedock.info/api/login"
+          curl -c ./cookies \
+            -F "version=$(yaclog show -n)" \
+            -F "changelog=$(yaclog show -mb)" \
+            -F "game-version=1.12.3" \
+            -F "notify-followers=yes" \
+            -F "zipball=@ConformalDecals.zip" \
+            "https://spacedock.info/api/mod/2994/update"
+          
+      - name: Publish to Github
+        uses: softprops/action-gh-release@v1
+        with:
+          files: ConformalDecals.zip
+          name: ${{ env.VERSION_TITLE }}
+          body_path: RELEASE.md
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

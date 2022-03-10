@@ -18,14 +18,19 @@ jobs:
         uses: actions/setup-dotnet@v1.7.2
         with:
           dotnet-version: '6.0.x'
-
-      - name: Generate version info
+          
+      - name: Install Python Tools
         run: |
           python -m pip install --upgrade pip
           python -m pip install yaclog yaclog-ksp
+
+      - name: Generate Version Info
+        run: |
+          echo "VERSION_TILE=$(yaclog show -n)" >> $GITHUB_ENV
           python Scripts/version.py
+          yaclog-ksp -n "Conformal Decals"
           
-      - name: Validate files
+      - name: Validate Version Info
         uses: DasSkelett/AVC-VersionFileValidator@master
 
       - name: Download DLL Dependencies
@@ -55,7 +60,7 @@ jobs:
       - name: Upload Unbundled Build
         uses: actions/upload-artifact@v3
         with:
-          name: ConformalDecals-unbundled
+          name: ConformalDecals-${{ env.VERSION_TITLE }}-unbundled
           path: |
             GameData/ConformalDecals 
             README.md 
@@ -66,7 +71,7 @@ jobs:
       - name: Upload Bundled Build
         uses: actions/upload-artifact@v3
         with:
-          name: ConformalDecals
+          name: ConformalDecals-${{ env.VERSION_TITLE }}
           path: |
             GameData
             README.md 
@@ -88,10 +93,19 @@ jobs:
         with:
           python-version: '3.x'
 
-      - name: Install dependencies
+      - name: Install Python Tools
         run: |
           python -m pip install --upgrade pip
           python -m pip install yaclog
+          
+      - name: Download Build Artifacts 
+        uses: actions/download-artifact@v3
+        
+      - name: Zip Download Packages
+        run: |
+          zip -r ConformalDecals-${{ env.VERSION_TITLE }}-unbundled.zip ConformalDecals-${{ env.VERSION_TITLE }}-unbundled/*
+          zip -r ConformalDecals-${{ env.VERSION_TITLE }}.zip ConformalDecals-${{ env.VERSION_TITLE }}/*
+          ls
 
       - name: Get version name and body
         run: |
@@ -100,20 +114,20 @@ jobs:
           
       - name: Publish to Spacedock
         run: |
-          curl -F username= ${{ secrets.SPACEDOCK_USER }} -F password= ${{ secrets.SPACEDOCK_PASS }} \
+          curl -F username= "drewcassidy" -F password= "${{ secrets.SPACEDOCK_PASS }}" \
             -c ./cookies "https://spacedock.info/api/login"
           curl -c ./cookies \
             -F "version=$(yaclog show -n)" \
             -F "changelog=$(yaclog show -mb)" \
             -F "game-version=1.12.3" \
             -F "notify-followers=yes" \
-            -F "zipball=@ConformalDecals.zip" \
+            -F "zipball=@ConformalDecals-${{ env.VERSION_TITLE }}.zip" \
             "https://spacedock.info/api/mod/2994/update"
           
       - name: Publish to Github
         uses: softprops/action-gh-release@v1
         with:
-          files: ConformalDecals.zip
+          files: ConformalDecals-${{ env.VERSION_TITLE }}.zip ConformalDecals*/GameData/ConformalDecals/Versioning/ConformalDecals.version
           name: ${{ env.VERSION_TITLE }}
           body_path: RELEASE.md
         env:

@@ -116,7 +116,7 @@ jobs:
 
       - name: Publish to Spacedock
         run: |
-          curl -F username= "drewcassidy" -F password= "${{ secrets.SPACEDOCK_PASS }}" \
+          curl -F "username=drewcassidy" -F "password=${{ secrets.SPACEDOCK_PASS }}" \
             -c ./cookies "https://spacedock.info/api/login"
           curl -c ./cookies \
             -F "version=$VERSION_TITLE" \

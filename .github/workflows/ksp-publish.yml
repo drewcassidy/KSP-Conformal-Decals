@@ -24,6 +24,9 @@ jobs:
           python -m pip install --upgrade pip
           python -m pip install yaclog yaclog-ksp
           python Scripts/version.py
+          
+      - name: Validate files
+        uses: DasSkelett/AVC-VersionFileValidator@master
 
       - name: Download DLL Dependencies
         working-directory: Source
@@ -48,9 +51,6 @@ jobs:
           mv Shabby/GameData/Shabby GameData/
           mv ModuleManager*.dll GameData/
           mv B9PartSwitch/GameData/B9PartSwitch GameData/
-          
-      - name: Validate files
-        uses: DasSkelett/AVC-VersionFileValidator@master
         
       - name: Upload Unbundled Build
         uses: actions/upload-artifact@v3

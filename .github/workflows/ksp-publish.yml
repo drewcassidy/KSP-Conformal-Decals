@@ -124,7 +124,7 @@ jobs:
             -F "game-version=1.12.3" \
             -F "notify-followers=yes" \
             -F "zipball=@bundled/ConformalDecals-$VERSION_TITLE.zip" \
-            "https://spacedock.info/api/mod/2994/update"
+            "https://spacedock.info/api/mod/2451/update"
           
       - name: Publish to Github
         uses: softprops/action-gh-release@v1
@@ -132,7 +132,7 @@ jobs:
           files: |
             bundled/ConformalDecals-*.zip 
             ConformalDecals/GameData/ConformalDecals/Versioning/ConformalDecals.version
-          name: ${{ env.VERSION_TITLE }}
+          name: Conformal Decals ${{ env.VERSION_TITLE }}
           body_path: RELEASE.md
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

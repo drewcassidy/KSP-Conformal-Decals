@@ -16,7 +16,6 @@ def run():
         if tag.commit == repo.head.commit:
             release = True
             build = 100000
-            version = str(yaclog.version.extract_version(tag.name)[0])
             break
 
     if not release:

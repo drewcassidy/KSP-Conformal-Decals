@@ -118,7 +118,7 @@ jobs:
         run: |
           curl -F "username=drewcassidy" -F "password=${{ secrets.SPACEDOCK_PASS }}" \
             -c ./cookies "https://spacedock.info/api/login"
-          curl -c ./cookies \
+          curl -c ./cookies -b ./cookies \
             -F "version=$VERSION_TITLE" \
             -F "changelog=$(yaclog show -mb)" \
             -F "game-version=1.12.3" \
@@ -129,7 +129,9 @@ jobs:
       - name: Publish to Github
         uses: softprops/action-gh-release@v1
         with:
-          files: bundled/ConformalDecals-*.zip bundled/ConformalDecals/GameData/ConformalDecals/Versioning/ConformalDecals.version
+          files: |
+            bundled/ConformalDecals-*.zip 
+            ConformalDecals/GameData/ConformalDecals/Versioning/ConformalDecals.version
           body_path: RELEASE.md
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

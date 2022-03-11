@@ -26,7 +26,7 @@ jobs:
 
       - name: Generate Version Info
         run: |
-          echo "VERSION_TILE=$(yaclog show -n)" >> $GITHUB_ENV
+          echo "VERSION_TITLE=$(yaclog show -n)" >> $GITHUB_ENV
           python Scripts/version.py
           yaclog-ksp -n "Conformal Decals"
           
@@ -100,7 +100,7 @@ jobs:
           
       - name: Get version name and body
         run: |
-          echo "VERSION_TILE=$(yaclog show -n)" >> $GITHUB_ENV
+          echo "VERSION_TITLE=$(yaclog show -n)" >> $GITHUB_ENV
           echo "$(yaclog show -mb)" >> RELEASE.md
           
       - name: Download Build Artifacts 
@@ -132,6 +132,7 @@ jobs:
           files: |
             bundled/ConformalDecals-*.zip 
             ConformalDecals/GameData/ConformalDecals/Versioning/ConformalDecals.version
+          name: ${{ env.VERSION_TITLE }}
           body_path: RELEASE.md
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

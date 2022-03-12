@@ -1,4 +1,3 @@
-using ConformalDecals.Util;
 using UnityEngine;
 
 namespace ConformalDecals {
@@ -9,6 +8,7 @@ namespace ConformalDecals {
 
         [KSPField(isPersistant = true)] public bool useCustomFlag;
 
+        // The URL of the flag for the current mission or agency
         public string MissionFlagUrl {
             get {
                 if (HighLogic.LoadedSceneIsEditor) {
@@ -19,6 +19,7 @@ namespace ConformalDecals {
                     return string.IsNullOrEmpty(part.flagURL) ? HighLogic.CurrentGame.flagURL : part.flagURL;
                 }
 
+                // If we are not in game, use the default flag (for icon rendering)
                 return DefaultFlag;
             }
         }
@@ -26,84 +27,106 @@ namespace ConformalDecals {
         public override void OnLoad(ConfigNode node) {
             base.OnLoad(node);
 
-            if (useCustomFlag) {
-                SetFlag(flagUrl);
-            }
-            else {
-                SetFlag(MissionFlagUrl);
-            }
+            // Since OnLoad is called for all modules, we only need to update this module
+            // Updating symmetry counterparts would be redundent
+            UpdateFlag();
         }
 
         public override void OnStart(StartState state) {
             base.OnStart(state);
 
-            if (HighLogic.LoadedSceneIsGame) {
-                GameEvents.onMissionFlagSelect.Add(OnEditorFlagSelected);
-            }
-
             if (HighLogic.LoadedSceneIsEditor) {
+                // Register flag change event
+                GameEvents.onMissionFlagSelect.Add(OnEditorFlagSelected);
+                
+                // Register reset button event
                 Events[nameof(ResetFlag)].guiActiveEditor = useCustomFlag;
             }
 
-            if (useCustomFlag) {
-                SetFlag(flagUrl);
-            }
-            else {
-                SetFlag(MissionFlagUrl);
-            }
+            // Since OnStart is called for all modules, we only need to update this module
+            // Updating symmetry counterparts would be redundent
+            UpdateFlag();
         }
 
         public override void OnDestroy() {
-            GameEvents.onMissionFlagSelect.Remove(SetFlag);
+            if (HighLogic.LoadedSceneIsEditor) {
+                // Unregister flag change event
+                GameEvents.onMissionFlagSelect.Remove(OnEditorFlagSelected);
+            }
+            
             base.OnDestroy();
         }
 
         [KSPEvent(guiActive = false, guiActiveEditor = true, guiName = "#LOC_ConformalDecals_gui-select-flag")]
         public void SelectFlag() {
+            // Button for selecting a flag
+            // This is a bit of a hack to bring up the stock flag selection menu
+            // When its done, it calls OnCustomFlagSelected()
+            
+            // ReSharper disable once PossibleNullReferenceException
             var flagBrowser = (Instantiate((Object) (new FlagBrowserGUIButton(null, null, null, null)).FlagBrowserPrefab) as GameObject).GetComponent<FlagBrowser>();
             flagBrowser.OnFlagSelected = OnCustomFlagSelected;
         }
 
         [KSPEvent(guiActive = false, guiActiveEditor = true, guiName = "#LOC_ConformalDecals_gui-reset-flag")]
         public void ResetFlag() {
-            SetFlag(MissionFlagUrl);
-            SetFlagSymmetryCounterparts(MissionFlagUrl);
-
+            
+            // we are no longer using a custom flag, so instead use the mission or agency flag
             useCustomFlag = false;
+            flagUrl = "Mission";
+            UpdateFlag(true);
+            
+            // disable the reset button, since it no longer makes sense
             Events[nameof(ResetFlag)].guiActiveEditor = false;
         }
 
         private void OnCustomFlagSelected(FlagBrowser.FlagEntry newFlagEntry) {
-            SetFlag(newFlagEntry.textureInfo.name);
-            SetFlagSymmetryCounterparts(newFlagEntry.textureInfo.name);
-
+            // Callback for when a flag is selected in the menu spawned by SelectFlag()
+            
+            // we are now using a custom flag with the URL of the new flag entry
             useCustomFlag = true;
+            flagUrl = newFlagEntry.textureInfo.name;
+            UpdateFlag(true);
+            
+            // make sure the reset button is now available
             Events[nameof(ResetFlag)].guiActiveEditor = true;
         }
 
         private void OnEditorFlagSelected(string newFlagUrl) {
             if (!useCustomFlag) {
-                SetFlag(newFlagUrl);
-                SetFlagSymmetryCounterparts(newFlagUrl);
+                flagUrl = newFlagUrl;
+                // Since this callback is called for all modules, we only need to update this module
+                // Updating symmetry counterparts would be redundent
+                UpdateFlag();
             }
         }
 
-        private void SetFlag(string newFlagUrl) {
-            this.Log($"Loading flag texture '{newFlagUrl}'.");
-
-            flagUrl = newFlagUrl;
-            materialProperties.AddOrGetTextureProperty("_Decal", true).TextureUrl = newFlagUrl;
-
+        // Update the displayed flag texture for this decal or optionally any symmetry counterparts
+        private void UpdateFlag(bool recursive = false) {
+            // get the decal material property for the decal texture
+            var textureProperty = materialProperties.AddOrGetTextureProperty("_Decal", true);
+            
+            if(useCustomFlag) {
+                // set the texture to the custom flag
+                textureProperty.TextureUrl = flagUrl;
+            }
+            else {
+                // set the texture to the mission flag
+                textureProperty.TextureUrl = MissionFlagUrl;
+            }
+            
             UpdateMaterials();
             UpdateScale();
-        }
 
-        private void SetFlagSymmetryCounterparts(string newFlagUrl) {
-            foreach (var counterpart in part.symmetryCounterparts) {
-                var decal = counterpart.GetComponent<ModuleConformalFlag>();
-
-                decal.SetFlag(newFlagUrl);
-                decal.useCustomFlag = useCustomFlag;
+            if (recursive) {
+                // for each symmetry counterpart, copy this part's properties and update it in turn
+                foreach (var counterpart in part.symmetryCounterparts) {
+                    var decal = counterpart.GetComponent<ModuleConformalFlag>();
+                    
+                    decal.useCustomFlag = useCustomFlag;
+                    decal.flagUrl = flagUrl;
+                    decal.UpdateFlag();
+                }
             }
         }
     }

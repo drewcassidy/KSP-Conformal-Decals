@@ -153,7 +153,7 @@ namespace ConformalDecals {
             this.vertical = newVertical;
             this.lineSpacing = newLineSpacing;
             this.charSpacing = newCharSpacing;
-            UpdateTextRecursive();
+            UpdateText(true);
         }
 
         public void OnFillColorUpdate(Color rgb, Util.ColorHSV hsv) {
@@ -240,40 +240,37 @@ namespace ConformalDecals {
             base.OnDetach();
         }
 
-        private void UpdateTextRecursive() {
-            UpdateText();
-
-            foreach (var counterpart in part.symmetryCounterparts) {
-                var decal = counterpart.GetComponent<ModuleConformalText>();
-                decal.text = text;
-                decal.font = font;
-                decal.style = style;
-                decal.vertical = vertical;
-                decal.charSpacing = charSpacing;
-                decal.lineSpacing = lineSpacing;
-
-                decal._currentText = _currentText;
-                decal.UpdateText();
-            }
-        }
-
         private IEnumerator UpdateTextLate() {
             yield return null;
             UpdateText();
         }
 
-        private void UpdateText() {
+        private void UpdateText(bool recursive = false) {
             // Render text
             var newText = new DecalText(text, font, style, vertical, lineSpacing, charSpacing);
             var output = TextRenderer.UpdateText(_currentText, newText);
+            
+            // update the _currentText state variable
+            // this is the ONLY place this variable should be set! otherwise the current state is lost
             _currentText = newText;
 
+            // Update the texture with the new rendered output
             UpdateTexture(output);
 
-            // TODO: ASYNC RENDERING
-            // var newText = new DecalText(text, _font, _style);
-            // _currentJob = TextRenderer.UpdateText(_currentText, newText, UpdateTexture);
-            // _currentText = newText;
+            // If recursive, copy parameters to other parts and perform the same operation
+            if (recursive) {
+                foreach (var counterpart in part.symmetryCounterparts) {
+                    var decal = counterpart.GetComponent<ModuleConformalText>();
+                    decal.text = text;
+                    decal.font = font;
+                    decal.style = style;
+                    decal.vertical = vertical;
+                    decal.charSpacing = charSpacing;
+                    decal.lineSpacing = lineSpacing;
+
+                    decal.UpdateText();
+                }
+            }
         }
 
         public void UpdateTexture(TextRenderOutput output) {

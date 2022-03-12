@@ -49,11 +49,14 @@ jobs:
           wget http://pileof.rocks/KSP/Shabby_v0.2.0.zip
           wget https://ksp.sarbian.com/jenkins/job/ModuleManager/161/artifact/ModuleManager.4.2.1.dll
           wget https://github.com/blowfishpro/B9PartSwitch/releases/download/v2.19.0/B9PartSwitch_v2.19.0.zip
+          wget https://github.com/KSPModdingLibs/HarmonyKSP/releases/download/2.0.4.0/HarmonyKSP_2.0.4.0_for_KSP1.8+.zip
           unzip -d Shabby Shabby*.zip
           unzip -d B9PartSwitch B9PartSwitch*.zip 
+          unzip -d HarmonyKSP HarmonyKSP*.zip
           mv Shabby/GameData/Shabby GameData/
           mv ModuleManager*.dll GameData/
           mv B9PartSwitch/GameData/B9PartSwitch GameData/
+          mv HarmonyKSP/GameData/000_Harmony GameData/
 
       - name: Upload Unbundled Build
         uses: actions/upload-artifact@v3

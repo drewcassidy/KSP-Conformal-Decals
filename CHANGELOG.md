@@ -8,6 +8,14 @@ All notable changes to this project will be documented in this file
 | website | https://forum.kerbalspaceprogram.com/index.php?/topic/194802-18-111-conformal-decals |
 | author  | Andrew Cassidy                                                                       |
 
+## Unreleased
+
+### Fixed
+
+- Fixed text decals breaking when used in symmetry
+- Fixed decals projecting onto the TransparentFX layer, such as Waterfall plumes
+
+
 ## 0.2.8
 
 - Update bundled Shabby to support Harmony 2 for compatibility with other mods

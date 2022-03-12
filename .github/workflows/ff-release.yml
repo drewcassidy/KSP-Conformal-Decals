@@ -1,5 +1,7 @@
 name: Fast-Forward Release Branch
-on: [ release ]
+on:
+  release:
+    types: [published]
 
 jobs:
   fast-forward:
@@ -12,8 +14,7 @@ jobs:
           fetch-depth: 0
 
       - name: Merge into Release
-        run: |
-          git merge ${{github.ref_name}} --ff-only
+        run: git merge ${{github.ref_name}} --ff-only
 
       - name: Push Changes
         uses: ad-m/github-push-action@master

@@ -37,7 +37,6 @@ jobs:
         run: |
           wget --user drewcassidy --password ${{ secrets.PILE_OF_ROCKS_PASS }} https://pileof.rocks/Secret/conformal-decals-dependencies-1.zip
           unzip conformal-decals-dependencies-*.zip -d ConformalDecals/dlls
-          dotnet build --configuration Release ConformalDecals.sln
 
       - name: Build DLL
         working-directory: Source

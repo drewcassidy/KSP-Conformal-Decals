@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Text.RegularExpressions;
 using ConformalDecals.Text;
 using ConformalDecals.Util;
 using TMPro;
@@ -10,6 +11,7 @@ namespace ConformalDecals {
     public static class DecalConfig {
         private static Texture2D                     _blankNormal;
         private static List<string>                  _shaderBlacklist;
+        private static List<Regex>                   _shaderRegexBlacklist;
         private static Dictionary<string, DecalFont> _fontList;
         private static int                           _decalLayer = 31;
         private static bool                          _selectableInFlight;
@@ -50,15 +52,23 @@ namespace ConformalDecals {
         public static bool SelectableInFlight => _selectableInFlight;
 
         public static IEnumerable<DecalFont> Fonts => _fontList.Values;
-        
-        public static DecalFont FallbackFont { get; private set; }
 
         public static bool IsBlacklisted(Shader shader) {
             return IsBlacklisted(shader.name);
         }
 
         public static bool IsBlacklisted(string shaderName) {
-            return _shaderBlacklist.Contains(shaderName);
+            if (_shaderBlacklist.Contains(shaderName)) return true;
+
+            foreach (var regex in _shaderRegexBlacklist) {
+                if (regex.IsMatch(shaderName)) {
+                    _shaderBlacklist.Add(shaderName);
+                    Logging.Log($"Caching blacklisted shader name '{shaderName}' which matches '{regex}'");
+                    return true;
+                }
+            }
+
+            return false;
         }
 
         public static bool IsLegacy(string shaderName, out string newShader, out string[] keywords) {
@@ -91,10 +101,14 @@ namespace ConformalDecals {
                 foreach (var shaderName in blacklist.GetValuesList("shader")) {
                     _shaderBlacklist.Add(shaderName);
                 }
+
+                foreach (var shaderRegex in blacklist.GetValuesList("shaderRegex")) {
+                    _shaderRegexBlacklist.Add(new Regex(shaderRegex));
+                }
             }
 
             var allFonts = Resources.FindObjectsOfTypeAll<TMP_FontAsset>();
-            
+
             foreach (var fontNode in node.GetNodes("FONT")) {
                 try {
                     var font = new DecalFont(fontNode, allFonts);
@@ -128,13 +142,14 @@ namespace ConformalDecals {
         // ReSharper disable once UnusedMember.Global
         public static void ModuleManagerPostLoad() {
             _shaderBlacklist = new List<string>();
+            _shaderRegexBlacklist = new List<Regex>();
             _fontList = new Dictionary<string, DecalFont>();
 
             var configs = GameDatabase.Instance.GetConfigs("CONFORMALDECALS");
 
             if (configs.Length > 0) {
-                Logging.Log("loading config");
                 foreach (var config in configs) {
+                    Logging.Log($"loading config file '{config.url}'");
                     ParseConfig(config.config);
                 }
             }

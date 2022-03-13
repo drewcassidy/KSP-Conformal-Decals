@@ -8,6 +8,22 @@ All notable changes to this project will be documented in this file
 | website | https://forum.kerbalspaceprogram.com/index.php?/topic/194802-18-111-conformal-decals |
 | author  | Andrew Cassidy                                                                       |
 
+## Unreleased
+
+### Fixed
+
+- Fixed decals not projecting on loading prefabs
+
+### Changed
+
+- Re-enabled projecting onto TransparentFX layer
+
+### Added
+
+- Allowed for regular expressions to be used when blacklisting shaders
+- Added all Waterfall shaders to the shader blacklist when Waterfall is present
+
+
 ## 0.2.9 - 2022-03-12
 
 ### Fixed

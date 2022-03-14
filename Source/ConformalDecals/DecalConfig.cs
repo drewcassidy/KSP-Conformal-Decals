@@ -149,7 +149,7 @@ namespace ConformalDecals {
 
             if (configs.Length > 0) {
                 foreach (var config in configs) {
-                    Logging.Log($"loading config file '{config.url}'");
+                    Logging.Log($"loading config node '{config.url}'");
                     ParseConfig(config.config);
                 }
             }

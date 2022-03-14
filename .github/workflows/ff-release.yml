@@ -1,7 +1,7 @@
 name: Fast-Forward Release Branch
 on:
   release:
-    types: [published]
+    types: [created]
 
 jobs:
   fast-forward:

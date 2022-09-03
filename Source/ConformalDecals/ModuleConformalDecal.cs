@@ -283,7 +283,7 @@ namespace ConformalDecals {
             }
         }
 
-        public virtual void OnDestroy() {
+        public  void OnDestroy() {
             // remove GameEvents
             if (HighLogic.LoadedSceneIsEditor) {
                 GameEvents.onEditorPartEvent.Remove(OnEditorEvent);
@@ -577,7 +577,8 @@ namespace ConformalDecals {
 
             // render on each target object
             foreach (var target in _targets) {
-                target.Render(_decalMaterial, part.mpb, camera);
+                if (target != null)
+                    target.Render(_decalMaterial, part.mpb, camera);
             }
         }
     }

@@ -220,7 +220,7 @@ namespace ConformalDecals {
             }
         }
 
-        public override void OnDestroy() {
+        public void OnDestroy() {
             if (HighLogic.LoadedSceneIsGame && _currentText != null) TextRenderer.UnregisterText(_currentText);
 
             // close all UIs
@@ -228,7 +228,7 @@ namespace ConformalDecals {
             if (_fillColorPickerController != null) _fillColorPickerController.Close();
             if (_outlineColorPickerController != null) _outlineColorPickerController.Close();
 
-            base.OnDestroy();
+            //base.OnDestroy();
         }
 
         protected override void OnDetach() {

@@ -53,9 +53,7 @@ namespace ConformalDecals {
                 // Unregister flag change event
                 GameEvents.onMissionFlagSelect.Remove(OnEditorFlagSelected);
             }
-            
-            //base.OnDestroy();
-        }
+                    }
 
         [KSPEvent(guiActive = false, guiActiveEditor = true, guiName = "#LOC_ConformalDecals_gui-select-flag")]
         public void SelectFlag() {

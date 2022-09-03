@@ -283,7 +283,7 @@ namespace ConformalDecals {
             }
         }
 
-        public  void OnDestroy() {
+        public void OnDestroy() {
             // remove GameEvents
             if (HighLogic.LoadedSceneIsEditor) {
                 GameEvents.onEditorPartEvent.Remove(OnEditorEvent);
@@ -440,7 +440,8 @@ namespace ConformalDecals {
 
                 // update projection
                 foreach (var target in _targets) {
-                    target.Project(_orthoMatrix, decalProjectorTransform, _boundsRenderer.bounds, useBaseNormal);
+                    if (target != null) 
+                        target.Project(_orthoMatrix, decalProjectorTransform, _boundsRenderer.bounds, useBaseNormal);
                 }
             }
             else {

@@ -227,8 +227,6 @@ namespace ConformalDecals {
             if (_textEntryController != null) _textEntryController.Close();
             if (_fillColorPickerController != null) _fillColorPickerController.Close();
             if (_outlineColorPickerController != null) _outlineColorPickerController.Close();
-
-            //base.OnDestroy();
         }
 
         protected override void OnDetach() {

@@ -48,14 +48,12 @@ namespace ConformalDecals {
             UpdateFlag();
         }
 
-        public override void OnDestroy() {
+        public  void OnDestroy() {
             if (HighLogic.LoadedSceneIsEditor) {
                 // Unregister flag change event
                 GameEvents.onMissionFlagSelect.Remove(OnEditorFlagSelected);
             }
-            
-            base.OnDestroy();
-        }
+                    }
 
         [KSPEvent(guiActive = false, guiActiveEditor = true, guiName = "#LOC_ConformalDecals_gui-select-flag")]
         public void SelectFlag() {

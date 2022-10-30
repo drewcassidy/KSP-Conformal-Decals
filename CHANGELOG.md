@@ -8,10 +8,13 @@ All notable changes to this project will be documented in this file
 | website | https://forum.kerbalspaceprogram.com/index.php?/topic/194802-18-111-conformal-decals |
 | author  | Andrew Cassidy                                                                       |
 
+## 0.2.11 - Unreleased
 
-## 0.2.11 - Unreleased, changes submitted by Linuxgurugamer
-	Fixed nullref caused when an entry in _targets was null
-	Fixed memory leak caused by the OnDestroy() methods not being called due to them being virtual
+### Fixed
+
+- PR by LinuxGuruGamer:
+	- Fixed nullref caused when an entry in `_targets` was null
+	- Fixed memory leak caused by the OnDestroy() methods not being called due to them being virtual
 
 
 ## 0.2.10 - 2022-03-14

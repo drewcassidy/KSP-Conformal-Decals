@@ -8,6 +8,13 @@ All notable changes to this project will be documented in this file
 | website | https://forum.kerbalspaceprogram.com/index.php?/topic/194802-18-111-conformal-decals |
 | author  | Andrew Cassidy                                                                       |
 
+## Unreleased
+
+### Changed
+
+- Updated bundled Shabby to 0.3.0. Does not affect CKAN users
+
+
 ## 0.2.11 - 2022-10-30
 
 ### Fixed

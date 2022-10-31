@@ -577,20 +577,11 @@ namespace ConformalDecals {
 
         public void Render(Camera camera) {
             if (!_isAttached) return;
-
-            try {
-                // render on each target object
-                foreach (var target in _targets) {
-                    target.Render(_decalMaterial, part.mpb, camera);
-                }
-            } catch (NullReferenceException) {
-                // catch any NREs and purge null transforms from the target list
-                // comparing Transform to null is expensive, but a try-catch block is much cheaper
-                foreach (var target in _targets) {
-                    if (target.target == null) {
-                        _targets.Remove(target);
-                    }
-                }
+            
+            // render on each target object
+            foreach (var target in _targets) {
+                if (ReferenceEquals(target.target, null)) _targets.Remove(target);
+                else target.Render(_decalMaterial, part.mpb, camera);
             }
         }
     }

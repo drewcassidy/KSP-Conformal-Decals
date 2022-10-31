@@ -14,6 +14,10 @@ All notable changes to this project will be documented in this file
 
 - Updated bundled Shabby to 0.3.0. Does not affect CKAN users
 
+### Fixed
+
+- Reverted some changes from last version that were causing issues on launch
+
 
 ## 0.2.11 - 2022-10-30
 

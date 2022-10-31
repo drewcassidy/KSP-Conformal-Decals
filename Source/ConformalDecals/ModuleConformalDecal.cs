@@ -122,8 +122,7 @@ namespace ConformalDecals {
 
             if (materialProperties == null) {
                 materialProperties = ScriptableObject.CreateInstance<MaterialPropertyCollection>();
-            }
-            else {
+            } else {
                 materialProperties = ScriptableObject.Instantiate(materialProperties);
             }
         }
@@ -153,14 +152,12 @@ namespace ConformalDecals {
                     if (backRenderer == null) {
                         this.LogError($"Specified decalBack transform {decalBack} has no renderer attached! Setting updateBackScale to false.");
                         updateBackScale = false;
-                    }
-                    else {
+                    } else {
                         backMaterial = backRenderer.material;
                         if (backMaterial == null) {
                             this.LogError($"Specified decalBack transform {decalBack} has a renderer but no material! Setting updateBackScale to false.");
                             updateBackScale = false;
-                        }
-                        else {
+                        } else {
                             if (backTextureBaseScale == default) backTextureBaseScale = backMaterial.GetTextureScale(PropertyIDs._MainTex);
                         }
                     }
@@ -201,12 +198,10 @@ namespace ConformalDecals {
 
                 if (tileRect.x >= 0) {
                     materialProperties.UpdateTile(tileRect);
-                }
-                else if (tileIndex >= 0) {
+                } else if (tileIndex >= 0) {
                     materialProperties.UpdateTile(tileIndex, tileSize);
                 }
-            }
-            catch (Exception e) {
+            } catch (Exception e) {
                 this.LogException("Exception parsing partmodule", e);
             }
 
@@ -222,8 +217,7 @@ namespace ConformalDecals {
 
             if (HighLogic.LoadedSceneIsGame) {
                 UpdateScale();
-            }
-            else {
+            } else {
                 scale = defaultScale;
                 depth = defaultDepth;
                 opacity = defaultOpacity;
@@ -261,8 +255,7 @@ namespace ConformalDecals {
                 // set initial attachment state
                 if (part.parent == null) {
                     OnDetach();
-                }
-                else {
+                } else {
                     OnAttach();
                 }
             }
@@ -283,7 +276,7 @@ namespace ConformalDecals {
             }
         }
 
-        public void OnDestroy() {
+        public virtual void OnDestroy() {
             // remove GameEvents
             if (HighLogic.LoadedSceneIsEditor) {
                 GameEvents.onEditorPartEvent.Remove(OnEditorEvent);
@@ -440,11 +433,13 @@ namespace ConformalDecals {
 
                 // update projection
                 foreach (var target in _targets) {
-                    if (target != null) 
+                    if (target == null) {
+                        _targets.Remove(target);
+                    } else {
                         target.Project(_orthoMatrix, decalProjectorTransform, _boundsRenderer.bounds, useBaseNormal);
+                    }
                 }
-            }
-            else {
+            } else {
                 // rescale preview model
                 decalModelTransform.localScale = new Vector3(size.x, size.y, (size.x + size.y) / 2);
 
@@ -472,8 +467,7 @@ namespace ConformalDecals {
         protected void UpdateTargets() {
             if (_targets == null) {
                 _targets = new List<ProjectionTarget>();
-            }
-            else {
+            } else {
                 _targets.Clear();
             }
 
@@ -482,7 +476,7 @@ namespace ConformalDecals {
             foreach (var renderer in renderers) {
                 // skip disabled renderers
                 if (renderer.gameObject.activeInHierarchy == false) continue;
-                
+
                 // skip blacklisted shaders
                 if (DecalConfig.IsBlacklisted(renderer.material.shader)) continue;
 
@@ -578,8 +572,11 @@ namespace ConformalDecals {
 
             // render on each target object
             foreach (var target in _targets) {
-                if (target != null)
+                if (target == null) {
+                    _targets.Remove(target);
+                } else {
                     target.Render(_decalMaterial, part.mpb, camera);
+                }
             }
         }
     }

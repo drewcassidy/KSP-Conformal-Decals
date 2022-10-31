@@ -38,7 +38,7 @@ namespace ConformalDecals {
             if (HighLogic.LoadedSceneIsEditor) {
                 // Register flag change event
                 GameEvents.onMissionFlagSelect.Add(OnEditorFlagSelected);
-                
+
                 // Register reset button event
                 Events[nameof(ResetFlag)].guiActiveEditor = useCustomFlag;
             }
@@ -48,19 +48,21 @@ namespace ConformalDecals {
             UpdateFlag();
         }
 
-        public  void OnDestroy() {
+        public virtual void OnDestroy() {
             if (HighLogic.LoadedSceneIsEditor) {
                 // Unregister flag change event
                 GameEvents.onMissionFlagSelect.Remove(OnEditorFlagSelected);
             }
-                    }
+            
+            base.OnDestroy();
+        }
 
         [KSPEvent(guiActive = false, guiActiveEditor = true, guiName = "#LOC_ConformalDecals_gui-select-flag")]
         public void SelectFlag() {
             // Button for selecting a flag
             // This is a bit of a hack to bring up the stock flag selection menu
             // When its done, it calls OnCustomFlagSelected()
-            
+
             // ReSharper disable once PossibleNullReferenceException
             var flagBrowser = (Instantiate((Object) (new FlagBrowserGUIButton(null, null, null, null)).FlagBrowserPrefab) as GameObject).GetComponent<FlagBrowser>();
             flagBrowser.OnFlagSelected = OnCustomFlagSelected;
@@ -68,24 +70,24 @@ namespace ConformalDecals {
 
         [KSPEvent(guiActive = false, guiActiveEditor = true, guiName = "#LOC_ConformalDecals_gui-reset-flag")]
         public void ResetFlag() {
-            
+
             // we are no longer using a custom flag, so instead use the mission or agency flag
             useCustomFlag = false;
             flagUrl = "Mission";
             UpdateFlag(true);
-            
+
             // disable the reset button, since it no longer makes sense
             Events[nameof(ResetFlag)].guiActiveEditor = false;
         }
 
         private void OnCustomFlagSelected(FlagBrowser.FlagEntry newFlagEntry) {
             // Callback for when a flag is selected in the menu spawned by SelectFlag()
-            
+
             // we are now using a custom flag with the URL of the new flag entry
             useCustomFlag = true;
             flagUrl = newFlagEntry.textureInfo.name;
             UpdateFlag(true);
-            
+
             // make sure the reset button is now available
             Events[nameof(ResetFlag)].guiActiveEditor = true;
         }
@@ -103,16 +105,15 @@ namespace ConformalDecals {
         private void UpdateFlag(bool recursive = false) {
             // get the decal material property for the decal texture
             var textureProperty = materialProperties.AddOrGetTextureProperty("_Decal", true);
-            
-            if(useCustomFlag) {
+
+            if (useCustomFlag) {
                 // set the texture to the custom flag
                 textureProperty.TextureUrl = flagUrl;
-            }
-            else {
+            } else {
                 // set the texture to the mission flag
                 textureProperty.TextureUrl = MissionFlagUrl;
             }
-            
+
             UpdateMaterials();
             UpdateScale();
 
@@ -120,7 +121,7 @@ namespace ConformalDecals {
                 // for each symmetry counterpart, copy this part's properties and update it in turn
                 foreach (var counterpart in part.symmetryCounterparts) {
                     var decal = counterpart.GetComponent<ModuleConformalFlag>();
-                    
+
                     decal.useCustomFlag = useCustomFlag;
                     decal.flagUrl = flagUrl;
                     decal.UpdateFlag();

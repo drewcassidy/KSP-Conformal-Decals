@@ -15,6 +15,7 @@ namespace ConformalDecals {
         private static Dictionary<string, DecalFont> _fontList;
         private static int                           _decalLayer = 31;
         private static bool                          _selectableInFlight;
+        private static Dictionary<string, float>     _aspectRatios;
 
         private struct LegacyShaderEntry {
             public string   name;
@@ -53,6 +54,8 @@ namespace ConformalDecals {
 
         public static IEnumerable<DecalFont> Fonts => _fontList.Values;
 
+        public static Dictionary<string, float> AspectRatios => _aspectRatios;
+
         public static bool IsBlacklisted(Shader shader) {
             return IsBlacklisted(shader.name);
         }
@@ -86,8 +89,7 @@ namespace ConformalDecals {
         public static DecalFont GetFont(string name) {
             if (_fontList.TryGetValue(name, out var font)) {
                 return font;
-            }
-            else {
+            } else {
                 throw new KeyNotFoundException($"Font {name} not found");
             }
         }
@@ -113,8 +115,17 @@ namespace ConformalDecals {
                 try {
                     var font = new DecalFont(fontNode, allFonts);
                     _fontList.Add(font.Name, font);
+                } catch (Exception e) {
+                    Debug.LogException(e);
                 }
-                catch (Exception e) {
+            }
+
+            foreach (var ratioNode in node.GetNodes("ASPECTRATIO")) {
+                try {
+                    var path = ParseUtil.ParseString(ratioNode, "path");
+                    var ratio = ParseUtil.ParseFloat(ratioNode, "aspectRatio");
+                    _aspectRatios[path] = ratio;
+                } catch (Exception e) {
                     Debug.LogException(e);
                 }
             }
@@ -144,6 +155,7 @@ namespace ConformalDecals {
             _shaderBlacklist = new List<string>();
             _shaderRegexBlacklist = new List<Regex>();
             _fontList = new Dictionary<string, DecalFont>();
+            _aspectRatios = new Dictionary<string, float>();
 
             var configs = GameDatabase.Instance.GetConfigs("CONFORMALDECALS");
 

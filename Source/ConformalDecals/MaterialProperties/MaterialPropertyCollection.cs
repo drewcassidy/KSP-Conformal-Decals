@@ -75,7 +75,12 @@ namespace ConformalDecals.MaterialProperties {
             }
         }
 
-        public float AspectRatio => MainTexture == null ? 1 : MainTexture.AspectRatio;
+        public float AspectRatio {
+            get => MainTexture == null ? 1 : MainTexture.AspectRatio;
+            set {
+                if (MainTexture != null) MainTexture.AspectRatio = value;
+            }
+        }
 
         public void OnBeforeSerialize() {
             if (_materialProperties == null) throw new SerializationException("Tried to serialize an uninitialized MaterialPropertyCollection");
@@ -136,8 +141,7 @@ namespace ConformalDecals.MaterialProperties {
         public T GetProperty<T>(string propertyName) where T : MaterialProperty {
             if (_materialProperties.ContainsKey(propertyName) && _materialProperties[propertyName] is T property) {
                 return property;
-            }
-            else {
+            } else {
                 return null;
             }
         }
@@ -145,8 +149,7 @@ namespace ConformalDecals.MaterialProperties {
         public T AddOrGetProperty<T>(string propertyName) where T : MaterialProperty {
             if (_materialProperties.ContainsKey(propertyName) && _materialProperties[propertyName] is T property) {
                 return property;
-            }
-            else {
+            } else {
                 return AddProperty<T>(propertyName);
             }
         }
@@ -156,9 +159,10 @@ namespace ConformalDecals.MaterialProperties {
                 foreach (var material in Materials) {
                     property.Remove(material);
                 }
+
                 _materialProperties.Remove(propertyName);
                 Destroy(property);
-                
+
                 return true;
             }
 
@@ -204,8 +208,7 @@ namespace ConformalDecals.MaterialProperties {
                 if (_shader == null) {
                     Logging.Log("Using default decal shader");
                     shaderName = "ConformalDecals/Decal/Standard";
-                }
-                else {
+                } else {
                     return;
                 }
             }

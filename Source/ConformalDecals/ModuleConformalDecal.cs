@@ -35,6 +35,8 @@ namespace ConformalDecals {
 
         [KSPField] public DecalScaleMode scaleMode = DecalScaleMode.HEIGHT;
 
+        [KSPField] public float aspectRatio = -1.0f; // < 0 = use texture
+
         [KSPField] public bool    depthAdjustable = true;
         [KSPField] public float   defaultDepth    = 0.1f;
         [KSPField] public Vector2 depthRange      = new Vector2(0, 2);
@@ -201,6 +203,10 @@ namespace ConformalDecals {
                 } else if (tileIndex >= 0) {
                     materialProperties.UpdateTile(tileIndex, tileSize);
                 }
+
+                // handle aspect ratio overrides
+                materialProperties.AspectRatio = aspectRatio;
+
             } catch (Exception e) {
                 this.LogException("Exception parsing partmodule", e);
             }
@@ -393,30 +399,32 @@ namespace ConformalDecals {
         protected void UpdateScale() {
             scale = Mathf.Max(0.01f, scale);
             depth = Mathf.Max(0.01f, depth);
-            var aspectRatio = Mathf.Max(0.01f, materialProperties.AspectRatio);
+
+            var sizeRatio = Mathf.Max(0.01f, materialProperties.AspectRatio);
+
             Vector2 size;
 
             switch (scaleMode) {
                 default:
                 case DecalScaleMode.HEIGHT:
-                    size = new Vector2(scale / aspectRatio, scale);
+                    size = new Vector2(scale / sizeRatio, scale);
                     break;
                 case DecalScaleMode.WIDTH:
-                    size = new Vector2(scale, scale * aspectRatio);
+                    size = new Vector2(scale, scale * sizeRatio);
                     break;
                 case DecalScaleMode.AVERAGE:
-                    var width1 = 2 * scale / (1 + aspectRatio);
-                    size = new Vector2(width1, width1 * aspectRatio);
+                    var width1 = 2 * scale / (1 + sizeRatio);
+                    size = new Vector2(width1, width1 * sizeRatio);
                     break;
                 case DecalScaleMode.AREA:
-                    var width2 = Mathf.Sqrt(scale / aspectRatio);
-                    size = new Vector2(width2, width2 * aspectRatio);
+                    var width2 = Mathf.Sqrt(scale / sizeRatio);
+                    size = new Vector2(width2, width2 * sizeRatio);
                     break;
                 case DecalScaleMode.MINIMUM:
-                    if (aspectRatio > 1) goto case DecalScaleMode.WIDTH;
+                    if (sizeRatio > 1) goto case DecalScaleMode.WIDTH;
                     else goto case DecalScaleMode.HEIGHT;
                 case DecalScaleMode.MAXIMUM:
-                    if (aspectRatio > 1) goto case DecalScaleMode.HEIGHT;
+                    if (sizeRatio > 1) goto case DecalScaleMode.HEIGHT;
                     else goto case DecalScaleMode.WIDTH;
             }
 
@@ -433,7 +441,7 @@ namespace ConformalDecals {
 
                 // update projection
                 foreach (var target in _targets) {
-                    if (target == null) {
+                    if (target.target == null) {
                         _targets.Remove(target);
                     } else {
                         target.Project(_orthoMatrix, decalProjectorTransform, _boundsRenderer.bounds, useBaseNormal);
@@ -570,12 +578,18 @@ namespace ConformalDecals {
         public void Render(Camera camera) {
             if (!_isAttached) return;
 
-            // render on each target object
-            foreach (var target in _targets) {
-                if (target == null) {
-                    _targets.Remove(target);
-                } else {
+            try {
+                // render on each target object
+                foreach (var target in _targets) {
                     target.Render(_decalMaterial, part.mpb, camera);
+                }
+            } catch (NullReferenceException) {
+                // catch any NREs and purge null transforms from the target list
+                // comparing Transform to null is expensive, but a try-catch block is much cheaper
+                foreach (var target in _targets) {
+                    if (target.target == null) {
+                        _targets.Remove(target);
+                    }
                 }
             }
         }

@@ -13,6 +13,8 @@ All notable changes to this project will be documented in this file
 ### Changed
 
 - Updated bundled Shabby to 0.3.0. Does not affect CKAN users
+- Made flag aspect ratio overrides configurable with `ASPECTRATIO` nodes in the config. User flags added to Squad/Flags should now be the correct aspect ratio
+- All decal aspect ratios can now be overriden with the `aspectRatio` field
 
 ### Fixed
 

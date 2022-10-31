@@ -220,7 +220,7 @@ namespace ConformalDecals {
             }
         }
 
-        public void OnDestroy() {
+        public override void OnDestroy() {
             if (HighLogic.LoadedSceneIsGame && _currentText != null) TextRenderer.UnregisterText(_currentText);
 
             // close all UIs

@@ -19,6 +19,8 @@ namespace ConformalDecals.MaterialProperties {
         [SerializeField] private Vector2 _textureOffset;
         [SerializeField] private Vector2 _textureScale = Vector2.one;
 
+        [SerializeField] private float _aspectRatioOverride = -1.0f;
+
         public Texture2D Texture {
             get => _texture;
             set => _texture = value;
@@ -43,10 +45,12 @@ namespace ConformalDecals.MaterialProperties {
 
         public float AspectRatio {
             get {
+                if (_aspectRatioOverride > 0) return _aspectRatioOverride;
                 if (_texture == null) return 1;
-                if (_textureUrl?.Contains("Squad/Flags") == true) return 0.625f;
                 return MaskedHeight / (float) MaskedWidth;
             }
+
+            set => _aspectRatioOverride = value;
         }
 
         public override void ParseNode(ConfigNode node) {
@@ -64,7 +68,7 @@ namespace ConformalDecals.MaterialProperties {
             if (ParseUtil.ParseStringIndirect(ref _textureUrl, node, "textureUrl")) {
                 _texture = LoadTexture(_textureUrl, isNormal);
             }
-            
+
             if (_texture == null) {
                 _texture = isNormal ? DecalConfig.BlankNormal : Texture2D.whiteTexture;
             }

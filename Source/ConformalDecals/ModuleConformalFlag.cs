@@ -1,3 +1,4 @@
+using ConformalDecals.Util;
 using UnityEngine;
 
 namespace ConformalDecals {
@@ -48,12 +49,12 @@ namespace ConformalDecals {
             UpdateFlag();
         }
 
-        public virtual void OnDestroy() {
+        public override void OnDestroy() {
             if (HighLogic.LoadedSceneIsEditor) {
                 // Unregister flag change event
                 GameEvents.onMissionFlagSelect.Remove(OnEditorFlagSelected);
             }
-            
+
             base.OnDestroy();
         }
 
@@ -106,12 +107,13 @@ namespace ConformalDecals {
             // get the decal material property for the decal texture
             var textureProperty = materialProperties.AddOrGetTextureProperty("_Decal", true);
 
-            if (useCustomFlag) {
-                // set the texture to the custom flag
-                textureProperty.TextureUrl = flagUrl;
-            } else {
-                // set the texture to the mission flag
-                textureProperty.TextureUrl = MissionFlagUrl;
+            string textureURL = useCustomFlag ? flagUrl : MissionFlagUrl;
+            textureProperty.TextureUrl = textureURL;
+
+            if (DecalConfig.AspectRatios.ContainsKey(textureURL)) {
+                var ratio = DecalConfig.AspectRatios[textureURL];
+                this.Log($"Overriding aspect ratio for {textureURL} with {ratio}");
+                textureProperty.AspectRatio = ratio;
             }
 
             UpdateMaterials();

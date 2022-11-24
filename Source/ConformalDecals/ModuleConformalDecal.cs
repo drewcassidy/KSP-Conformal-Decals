@@ -250,6 +250,7 @@ namespace ConformalDecals {
             if (HighLogic.LoadedSceneIsEditor) {
                 GameEvents.onEditorPartEvent.Add(OnEditorEvent);
                 GameEvents.onVariantApplied.Add(OnVariantApplied);
+                GameEvents.onEditorUndo.Add(OnEditorUndo);
 
                 UpdateTweakables();
             }
@@ -287,6 +288,7 @@ namespace ConformalDecals {
             if (HighLogic.LoadedSceneIsEditor) {
                 GameEvents.onEditorPartEvent.Remove(OnEditorEvent);
                 GameEvents.onVariantApplied.Remove(OnVariantApplied);
+                GameEvents.onEditorUndo.Remove(OnEditorUndo);
             }
 
             if (HighLogic.LoadedSceneIsFlight) {
@@ -348,6 +350,10 @@ namespace ConformalDecals {
                     UpdateScale();
                     break;
             }
+        }
+
+        protected void OnEditorUndo(ShipConstruct sc) {
+            UpdateTargets();
         }
 
         protected void OnPartWillDie(Part willDie) {

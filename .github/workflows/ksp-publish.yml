@@ -6,15 +6,15 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v4
 
       - name: Setup Python
-        uses: actions/setup-python@v2
+        uses: actions/setup-python@v5
         with:
-          python-version: '3.x'
+          python-version: '3.12'
 
       - name: Setup .NET Core SDK
-        uses: actions/setup-dotnet@v1.7.2
+        uses: actions/setup-dotnet@v4.0.0
         with:
           dotnet-version: '6.0.x'
 
@@ -59,22 +59,22 @@ jobs:
           mv HarmonyKSP/GameData/000_Harmony GameData/
 
       - name: Upload Unbundled Build
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: ConformalDecals-unbundled
           path: |
-            GameData/ConformalDecals 
+            GameData/ConformalDecals/
             README.md 
             CHANGELOG.md 
             LICENSE-ART.md 
             LICENSE-SOURCE.md
 
       - name: Upload Bundled Build
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: ConformalDecals
           path: |
-            GameData
+            GameData/
             README.md 
             CHANGELOG.md 
             LICENSE-ART.md 
@@ -87,22 +87,17 @@ jobs:
     if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags')
     
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v4
 
-      - name: Set up Python
-        uses: actions/setup-python@v2
+      - name: Setup Python
+        uses: actions/setup-python@v5
         with:
-          python-version: '3.x'
+          python-version: '3.12'
 
       - name: Install Python Tools
         run: |
           python -m pip install --upgrade pip
           python -m pip install yaclog
-
-      - name: Get version name and body
-        run: |
-          echo "VERSION_TITLE=$(yaclog show -n)" >> $GITHUB_ENV
-          echo "$(yaclog show -mb)" >> RELEASE.md
 
       - name: Download Build Artifacts
         uses: actions/download-artifact@v3
@@ -128,12 +123,9 @@ jobs:
             "https://spacedock.info/api/mod/2451/update"
 
       - name: Publish to Github
-        uses: softprops/action-gh-release@v1
-        with:
-          files: |
-            bundled/ConformalDecals-*.zip 
-            ConformalDecals/GameData/ConformalDecals/Versioning/ConformalDecals.version
-          name: Conformal Decals ${{ env.VERSION_TITLE }}
-          body_path: RELEASE.md
+        run: |
+          gh release create ${{ github.ref_name }} \
+            --notes "$(yaclog show -mb)" \
+            --title "Version $(yaclog show -n)"
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}

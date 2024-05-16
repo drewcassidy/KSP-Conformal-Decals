@@ -8,6 +8,13 @@ All notable changes to this project will be documented in this file
 | website | https://forum.kerbalspaceprogram.com/index.php?/topic/194802-18-111-conformal-decals |
 | author  | Andrew Cassidy                                                                       |
 
+## Unreleased
+
+### Fixed
+
+- Fixed flag decals sometimes not respecting image aspect ratio
+
+
 ## 0.2.12 - 2022-10-31
 
 ### Changed

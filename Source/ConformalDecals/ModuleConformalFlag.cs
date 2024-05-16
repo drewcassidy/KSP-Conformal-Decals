@@ -114,6 +114,8 @@ namespace ConformalDecals {
                 var ratio = DecalConfig.AspectRatios[textureURL];
                 this.Log($"Overriding aspect ratio for {textureURL} with {ratio}");
                 textureProperty.AspectRatio = ratio;
+            } else {
+                textureProperty.AspectRatio = -1.0f;
             }
 
             UpdateMaterials();

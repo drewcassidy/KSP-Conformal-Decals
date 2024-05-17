@@ -8,7 +8,7 @@ Conformal Decals adds a set of decal stickers to KSP, as well as providing a fra
 ## Dependencies
 
 Required:
-- KSP (1.8.x to 1.10.x)
+- KSP (1.8.x to 1.12.x)
 - B9 Part Switch (2.18.0). Bundled with release.
 - ModuleManager (4.1.4). Bundled with release.
 - Shabby (0.2.0 unofficial build). Bundled with release.

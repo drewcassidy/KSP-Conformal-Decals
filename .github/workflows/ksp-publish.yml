@@ -126,6 +126,9 @@ jobs:
         run: |
           gh release create ${{ github.ref_name }} \
             --notes "$(yaclog show -mb)" \
-            --title "Version $(yaclog show -n)"
+            --title "Version $(yaclog show -n)" \
+            bundled/ConformalDecals-*.zip \
+            ConformalDecals/GameData/ConformalDecals/Versioning/ConformalDecals.version
+
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}

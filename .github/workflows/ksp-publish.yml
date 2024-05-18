@@ -102,7 +102,6 @@ jobs:
       - name: Get version name and body
         run: |
           echo "VERSION_TITLE=$(yaclog show -n)" >> $GITHUB_ENV
-          echo "VERSION_CHANGELOG=$(yaclog show -mb)" >> $GITHUB_ENV
           yaclog show
 
       - name: Download Build Artifacts
@@ -124,7 +123,7 @@ jobs:
             -c ./cookies "https://spacedock.info/api/login"
           curl -c ./cookies -b ./cookies \
             -F "version=$VERSION_TITLE" \
-            -F "changelog=$VERSION_CHANGELOG" \
+            -F "changelog=$(yaclog show -mb)" \
             -F "game-version=1.12.3" \
             -F "notify-followers=yes" \
             -F "zipball=@bundled/ConformalDecals-$VERSION_TITLE.zip" \
@@ -134,7 +133,7 @@ jobs:
         run: |
           set -u
           gh release create ${{ github.ref_name }} \
-            --notes "$VERSION_CHANGELOG" \
+            --notes "$(yaclog show -mb)" \
             --title "Version $VERSION_TITLE" \
             bundled/ConformalDecals-*.zip 
             ConformalDecals/GameData/ConformalDecals/Versioning/ConformalDecals.version

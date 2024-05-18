@@ -124,7 +124,7 @@ jobs:
           curl -c ./cookies -b ./cookies \
             -F "version=$VERSION_TITLE" \
             -F "changelog=$(yaclog show -mb)" \
-            -F "game-version=1.12.3" \
+            -F "game-version=1.12.5" \
             -F "notify-followers=yes" \
             -F "zipball=@bundled/ConformalDecals-$VERSION_TITLE.zip" \
             "https://spacedock.info/api/mod/2451/update"

@@ -25,7 +25,7 @@ jobs:
 
       - name: Generate Version Info
         run: |
-          echo "VERSION_TITLE=$(yaclog show -n)" >> $GITHUB_ENV
+          yaclog show
           python Scripts/version.py
           yaclog-ksp -n "Conformal Decals"
 
@@ -99,11 +99,18 @@ jobs:
           python -m pip install --upgrade pip
           python -m pip install yaclog
 
+      - name: Get version name and body
+        run: |
+          echo "VERSION_TITLE=$(yaclog show -n)" >> $GITHUB_ENV
+          echo "VERSION_CHANGELOG=$(yaclog show -mb)" >> $GITHUB_ENV
+          yaclog show
+
       - name: Download Build Artifacts
         uses: actions/download-artifact@v4
 
       - name: Zip Download Packages
         run: |
+          set -u
           mkdir bundled
           mkdir unbundled
           zip -r bundled/ConformalDecals-$VERSION_TITLE.zip ConformalDecals/*
@@ -112,11 +119,12 @@ jobs:
 
       - name: Publish to Spacedock
         run: |
+          set -u
           curl -F "username=drewcassidy" -F "password=${{ secrets.SPACEDOCK_PASS }}" \
             -c ./cookies "https://spacedock.info/api/login"
           curl -c ./cookies -b ./cookies \
             -F "version=$VERSION_TITLE" \
-            -F "changelog=$(yaclog show -mb)" \
+            -F "changelog=$VERSION_CHANGELOG" \
             -F "game-version=1.12.3" \
             -F "notify-followers=yes" \
             -F "zipball=@bundled/ConformalDecals-$VERSION_TITLE.zip" \
@@ -124,10 +132,11 @@ jobs:
 
       - name: Publish to Github
         run: |
+          set -u
           gh release create ${{ github.ref_name }} \
-            --notes "$(yaclog show -mb)" \
-            --title "Version $(yaclog show -n)" \
-            bundled/ConformalDecals-*.zip \
+            --notes "$VERSION_CHANGELOG" \
+            --title "Version $VERSION_TITLE" \
+            bundled/ConformalDecals-*.zip 
             ConformalDecals/GameData/ConformalDecals/Versioning/ConformalDecals.version
 
         env:

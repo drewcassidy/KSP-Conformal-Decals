@@ -8,6 +8,13 @@ All notable changes to this project will be documented in this file
 | website | https://forum.kerbalspaceprogram.com/index.php?/topic/194802-18-111-conformal-decals |
 | author  | Andrew Cassidy                                                                       |
 
+## Unreleased
+
+### Fixed
+
+- Fixed parts showing as all black with the Deferred Rendering mod
+
+
 ## 0.2.13 - 2024-05-17
 
 ### Fixed

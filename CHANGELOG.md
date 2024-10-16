@@ -8,6 +8,13 @@ All notable changes to this project will be documented in this file
 | website | https://forum.kerbalspaceprogram.com/index.php?/topic/194802-18-111-conformal-decals |
 | author  | Andrew Cassidy                                                                       |
 
+## Unreleased
+
+### Changed
+
+- Relicensed code under Apache-2.0 license
+
+
 ## 0.2.14 - 2024-06-25
 
 ### Fixed
